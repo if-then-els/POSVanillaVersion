@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports - POS System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Chart.js CDN for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/styles.css" />
+    <script>
+      // Tailwind configuration
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: "#4f46e5",
+                50: "#eef2ff",
+                100: "#e0e7ff",
+                200: "#c7d2fe",
+                300: "#a5b4fc",
+                400: "#818cf8",
+                500: "#6366f1",
+                600: "#4f46e5",
+                700: "#4338ca",
+                800: "#3730a3",
+                900: "#312e81",
+                950: "#1e1b4b",
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar (will be loaded via JS) -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
+      ></div>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
+        <div
+          class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
+          <div>
+            <h1 class="text-3xl font-bold">Reports & Analytics</h1>
+            <p class="text-gray-600">View sales data and performance metrics</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              id="export-csv"
+              class="flex items-center px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <i class="fas fa-download mr-2"></i> Export CSV
+            </button>
+            <button
+              id="export-pdf"
+              class="flex items-center px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <i class="fas fa-file-pdf mr-2"></i> Export PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Sales Overview Card -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div
+            class="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div>
+              <h2 class="text-lg font-semibold">Sales Overview</h2>
+              <p class="text-sm text-gray-500">
+                View sales performance over time
+              </p>
+            </div>
+            <div class="mt-4 md:mt-0">
+              <select
+                id="time-range"
+                class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <!-- Chart Container -->
+            <div class="h-[300px] w-full rounded-md border p-4 mb-6">
+              <canvas id="sales-chart"></canvas>
+            </div>
+
+            <!-- Sales Data Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full table-auto">
+                <thead>
+                  <tr class="bg-gray-50 text-left">
+                    <th
+                      class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      id="period-header"
+                    >
+                      Date
+                    </th>
+                    <th
+                      class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Sales
+                    </th>
+                    <th
+                      class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Orders
+                    </th>
+                    <th
+                      class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                    >
+                      Average Order Value
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="sales-table" class="divide-y divide-gray-200">
+                  <!-- Sales data will be loaded here by JavaScript -->
+                  <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                      Loading sales data...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs for Product Sales & Category Sales -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div class="border-b border-gray-200">
+            <div class="flex">
+              <button
+                id="tab-product-sales"
+                class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary"
+              >
+                Product Sales
+              </button>
+              <button
+                id="tab-category-sales"
+                class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+              >
+                Sales by Category
+              </button>
+            </div>
+          </div>
+
+          <!-- Product Sales Tab Content -->
+          <div class="tab-content" id="product-sales-content">
+            <div class="p-6">
+              <h3 class="font-semibold text-gray-800">Product Sales</h3>
+              <p class="text-sm text-gray-500">Sales performance by product</p>
+
+              <!-- Product Chart Container -->
+              <div class="h-[300px] w-full rounded-md border p-4 my-6">
+                <canvas id="product-sales-chart"></canvas>
+              </div>
+
+              <!-- Product Sales Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                  <thead>
+                    <tr class="bg-gray-50 text-left">
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Product
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Sales
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Quantity
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Average Price
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="product-sales-table"
+                    class="divide-y divide-gray-200"
+                  >
+                    <!-- Product sales data will be loaded here by JavaScript -->
+                    <tr>
+                      <td
+                        colspan="4"
+                        class="px-6 py-4 text-center text-gray-500"
+                      >
+                        Loading product sales data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Sales Tab Content -->
+          <div class="tab-content hidden" id="category-sales-content">
+            <div class="p-6">
+              <h3 class="font-semibold text-gray-800">Sales by Category</h3>
+              <p class="text-sm text-gray-500">
+                Sales performance by product category
+              </p>
+
+              <!-- Category Chart Container -->
+              <div class="h-[300px] w-full rounded-md border p-4 my-6">
+                <canvas id="category-sales-chart"></canvas>
+              </div>
+
+              <!-- Category Sales Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                  <thead>
+                    <tr class="bg-gray-50 text-left">
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Category
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Sales
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Products
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        % of Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="category-sales-table"
+                    class="divide-y divide-gray-200"
+                  >
+                    <!-- Category sales data will be loaded here by JavaScript -->
+                    <tr>
+                      <td
+                        colspan="4"
+                        class="px-6 py-4 text-center text-gray-500"
+                      >
+                        Loading category data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast notification container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+
+    <!-- Scripts -->
+    <script src="./js/utils.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/sidebar.js"></script>
+    <script src="./js/reports.js"></script>
+  </body>
+</html>

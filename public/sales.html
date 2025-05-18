@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sales - POS System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/styles.css" />
+    <script>
+      // Tailwind configuration
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: "#4f46e5",
+                50: "#eef2ff",
+                100: "#e0e7ff",
+                200: "#c7d2fe",
+                300: "#a5b4fc",
+                400: "#818cf8",
+                500: "#6366f1",
+                600: "#4f46e5",
+                700: "#4338ca",
+                800: "#3730a3",
+                900: "#312e81",
+                950: "#1e1b4b",
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar (will be loaded via JS) -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
+      ></div>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold">Sales & Checkout</h1>
+          <p class="text-gray-600">Process sales and manage transactions</p>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Product Selection -->
+          <div class="lg:col-span-2">
+            <div
+              class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+            >
+              <div class="p-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold">Products</h2>
+                <p class="text-sm text-gray-500">
+                  Select products to add to cart
+                </p>
+                <div class="mt-2 relative">
+                  <div
+                    class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                  >
+                    <i class="fas fa-search text-gray-400"></i>
+                  </div>
+                  <input
+                    type="search"
+                    id="product-search"
+                    class="block w-full p-2.5 pl-10 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                    placeholder="Search products by name or SKU..."
+                  />
+                </div>
+              </div>
+
+              <div class="p-6">
+                <div
+                  id="products-grid"
+                  class="grid gap-4 sm:grid-cols-2 md:grid-cols-3"
+                >
+                  <!-- Products will be loaded here by JavaScript -->
+                  <div class="text-center p-8 text-gray-500">
+                    Loading products...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shopping Cart -->
+          <div>
+            <div
+              class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6"
+            >
+              <div class="p-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold flex items-center">
+                  <i class="fas fa-shopping-cart mr-2"></i> Cart
+                </h2>
+                <p id="cart-count" class="text-sm text-gray-500">
+                  0 items in cart
+                </p>
+              </div>
+
+              <div id="cart-items" class="p-6 space-y-4 min-h-[200px]">
+                <!-- Cart items will be loaded here by JavaScript -->
+                <div class="text-center py-8 text-gray-500">Cart is empty</div>
+              </div>
+
+              <div class="p-6 border-t border-gray-200 space-y-4">
+                <div class="flex justify-between font-bold">
+                  <span class="text-lg">Total:</span>
+                  <span id="cart-total" class="text-xl">$0.00</span>
+                </div>
+                <button
+                  id="checkout-btn"
+                  class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Checkout
+                </button>
+                <button
+                  id="clear-cart-btn"
+                  class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Clear Cart
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen px-4">
+        <div
+          class="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
+          id="checkout-modal-backdrop"
+        ></div>
+
+        <div
+          class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative z-10"
+        >
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Checkout</h3>
+          </div>
+
+          <form id="checkout-form">
+            <div class="px-6 py-4 space-y-4">
+              <div class="space-y-2">
+                <label
+                  for="customer-name"
+                  class="block text-sm font-medium text-gray-700"
+                  >Customer Name*</label
+                >
+                <input
+                  id="customer-name"
+                  name="customerName"
+                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                  placeholder="Enter customer name"
+                  required
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label
+                  for="customer-email"
+                  class="block text-sm font-medium text-gray-700"
+                  >Customer Email</label
+                >
+                <input
+                  id="customer-email"
+                  name="customerEmail"
+                  type="email"
+                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                  placeholder="Enter customer email (optional)"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700"
+                  >Payment Method</label
+                >
+                <div class="space-y-2">
+                  <div class="flex items-center">
+                    <input
+                      type="radio"
+                      id="payment-cash"
+                      name="paymentMethod"
+                      value="cash"
+                      checked
+                      class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                    />
+                    <label
+                      for="payment-cash"
+                      class="ml-2 block text-sm text-gray-700"
+                      >Cash</label
+                    >
+                  </div>
+                  <div class="flex items-center">
+                    <input
+                      type="radio"
+                      id="payment-credit"
+                      name="paymentMethod"
+                      value="credit"
+                      class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                    />
+                    <label
+                      for="payment-credit"
+                      class="ml-2 block text-sm text-gray-700"
+                      >Credit Card</label
+                    >
+                  </div>
+                  <div class="flex items-center">
+                    <input
+                      type="radio"
+                      id="payment-online"
+                      name="paymentMethod"
+                      value="online"
+                      class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                    />
+                    <label
+                      for="payment-online"
+                      class="ml-2 block text-sm text-gray-700"
+                      >Online Payment</label
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-2 space-y-2 rounded-md bg-gray-50 p-4">
+                <h4 class="font-semibold">Order Summary</h4>
+                <div id="checkout-items" class="space-y-1 text-sm">
+                  <!-- Order items will be loaded here by JavaScript -->
+                </div>
+                <div class="flex justify-between border-t pt-2 font-bold">
+                  <span>Total</span>
+                  <span id="checkout-total">$0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 text-right space-x-2">
+              <button
+                type="button"
+                id="checkout-cancel"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                id="process-sale-btn"
+                class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700"
+              >
+                Process Sale
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast notification container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+
+    <!-- Scripts -->
+    <script src="./js/utils.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/sidebar.js"></script>
+    <script src="./js/sales.js"></script>
+  </body>
+</html>
