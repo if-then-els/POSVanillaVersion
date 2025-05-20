@@ -22,7 +22,7 @@ function loadSidebar() {
     <nav class="p-4">
       <ul class="space-y-2">
         <li>
-          <a href="../public/dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+          <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             pageName === "dashboard.html" ? "bg-gray-100" : ""
           }">
             <i class="fas fa-home w-5"></i>
@@ -30,7 +30,7 @@ function loadSidebar() {
           </a>
         </li>
         <li>
-          <a href="../public/sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+          <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             pageName === "sales.html" ? "bg-gray-100" : ""
           }">
             <i class="fas fa-shopping-cart w-5"></i>
@@ -38,7 +38,7 @@ function loadSidebar() {
           </a>
         </li>
         <li>
-          <a href="../public/inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+          <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             pageName === "inventory.html" ? "bg-gray-100" : ""
           }">
             <i class="fas fa-box w-5"></i>
@@ -46,7 +46,7 @@ function loadSidebar() {
           </a>
         </li>
         <li>
-          <a href="../public/reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+          <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             pageName === "reports.html" ? "bg-gray-100" : ""
           }">
             <i class="fas fa-chart-bar w-5"></i>
@@ -54,7 +54,7 @@ function loadSidebar() {
           </a>
         </li>
         <li>
-          <a href="../public/setting.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+          <a href="./setting.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             pageName === "settings.html" ? "bg-gray-100" : ""
           }">
             <i class="fas fa-cog w-5"></i>

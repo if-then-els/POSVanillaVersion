@@ -230,8 +230,38 @@
             cursor: pointer;
         }
     </style>
+    <script>
+        // Tailwind configuration
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                primary: {
+                  DEFAULT: "#4f46e5",
+                  50: "#eef2ff",
+                  100: "#e0e7ff",
+                  200: "#c7d2fe",
+                  300: "#a5b4fc",
+                  400: "#818cf8",
+                  500: "#6366f1",
+                  600: "#4f46e5",
+                  700: "#4338ca",
+                  800: "#3730a3",
+                  900: "#312e81",
+                  950: "#1e1b4b",
+                },
+              },
+            },
+          },
+        };
+      </script>
 </head>
 <body>
+    <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
+      ></div>
     <div class="setup-container">
         <div class="progress-indicator">
             <div class="step active">
@@ -301,4 +331,6 @@
     </div>
 </body>
 <script src="/public/js/setup.js"></script>
+<script src="./js/sidebar.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 </html>
