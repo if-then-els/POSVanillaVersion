@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+const Owner = require("../models/Owner")
+
 
 const businessDetailsSchema = new mongoose.Schema({
   businessName: {
@@ -16,15 +17,19 @@ const businessDetailsSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Owner",
     required: true,
   },
+  //ownersname from the signup(setup owner logic)
   ownerName: {
-    type: String,
+    type: mongoose.Schema.Types.String,
+    ref:"Owner",
     required: true,
   },
+  //owners idnumber from the signup(setup owner logic)
   ownerNationalIdentificationNumber: {
-    type: String,
+    type: mongoose.Schema.Types.String,
+    ref:"Owner",
     required: true,
   },
 });

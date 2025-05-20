@@ -1,4 +1,5 @@
 const Users = require("../models/user");
+const Business = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -40,3 +41,22 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+exports.loginUser = async (req,res) => {
+  try{
+    const {userName,password,businessName} = req.body;
+    if(!userName || !password || !businessName){
+      return res.status(400).json({message: "All fields are required"});
+    }
+    const user = await Users.findOne({userName});
+    const business = await Business.findOne({businessName});
+    if(!user && !business){
+      return res.status(400).json({message: "User or business not found,check your credentials"});
+    }
+    return res.status(200).json({message:"Login successful",user,business});
+  }catch(error){
+    console.error(error);
+    return res.status(500).json({message:"server error"});
+  }
+}
