@@ -130,8 +130,7 @@
             margin-bottom: 6px;
         }
 
-        .input-group input,
-        .custom-select {
+        .input-group input {
             width: 100%;
             padding: 12px 15px;
             border: 1.5px solid #C5D0DE;
@@ -142,131 +141,13 @@
             background-color: white;
         }
 
-        .input-group input:focus,
-        .custom-select:focus {
+        .input-group input:focus {
             border-color: #2196F3;
             box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
         }
 
         .input-group input::placeholder {
             color: #A0A0A0;
-        }
-
-        /* Custom Select Styling */
-        .custom-select-container {
-            position: relative;
-        }
-
-        .custom-select {
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .custom-select-arrow {
-            border: solid #757575;
-            border-width: 0 2px 2px 0;
-            display: inline-block;
-            padding: 3px;
-            transform: rotate(45deg);
-            transition: transform 0.3s ease;
-        }
-
-        .custom-select.active .custom-select-arrow {
-            transform: rotate(-135deg);
-        }
-
-        .custom-options {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background-color: white;
-            border: 1.5px solid #C5D0DE;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 10;
-            display: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        .custom-option {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .custom-option:hover {
-            background-color: #F5F7FA;
-        }
-
-        .custom-option.selected {
-            background-color: #E3F2FD;
-            color: #2196F3;
-        }
-
-        .custom-input {
-            padding: 10px 15px;
-            border-top: 1px solid #E0E0E0;
-        }
-
-        .custom-input input {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #C5D0DE;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .custom-input input:focus {
-            border-color: #2196F3;
-        }
-
-        .custom-input button {
-            margin-top: 8px;
-            padding: 6px 12px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .custom-input button:hover {
-            background-color: #1976D2;
-        }
-
-        .save-btn {
-            width: 100%;
-            padding: 14px;
-            background-color: #2E7D32;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .save-btn:hover {
-            background-color: #1B5E20;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
-        }
-
-        .save-btn:active {
-            transform: translateY(0);
         }
 
         /* Success message */
@@ -301,8 +182,7 @@
         }
 
         /* Error styles */
-        .input-group.error input,
-        .input-group.error .custom-select {
+        .input-group.error input {
             border-color: #e53935;
         }
 
@@ -316,15 +196,43 @@
         .input-group.error .error-message {
             display: block;
         }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #2E7D32;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .save-btn:hover {
+            background-color: #1B5E20;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+        }
+
+        .save-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Improve datalist styling */
+        input::-webkit-calendar-picker-indicator {
+            opacity: 0.6;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="setup-container">
-         <!-- Sidebar (will be loaded via JS) -->
-      <div
-        id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
-      ></div>
         <div class="progress-indicator">
             <div class="step active">
                 1
@@ -366,24 +274,15 @@
             
             <div class="input-group">
                 <label for="businessType">Business Type</label>
-                <div class="custom-select-container">
-                    <div class="custom-select" id="businessTypeSelect">
-                        <span class="selected-option">Select business type</span>
-                        <span class="custom-select-arrow"></span>
-                    </div>
-                    <div class="custom-options" id="businessTypeOptions">
-                        <div class="custom-option" data-value="Retail">Retail</div>
-                        <div class="custom-option" data-value="Photography">Photography</div>
-                        <div class="custom-option" data-value="Salon">Salon</div>
-                        <div class="custom-option" data-value="Restaurant">Restaurant</div>
-                        <div class="custom-option" data-value="Barbershop">Barbershop</div>
-                        <div class="custom-option" data-value="Other">Other</div>
-                        <div class="custom-input">
-                            <input type="text" id="customBusinessType" placeholder="Enter custom business type">
-                            <button type="button" id="addCustomType">Add Business Type</button>
-                        </div>
-                    </div>
-                </div>
+                <input type="text" id="businessType" list="businessTypeOptions" placeholder="Select or enter your business type" required>
+                <datalist id="businessTypeOptions">
+                    <option value="Retail">
+                    <option value="Photography">
+                    <option value="Salon">
+                    <option value="Restaurant">
+                    <option value="Barbershop">
+                    <option value="Other">
+                </datalist>
                 <div class="error-message">Please select or enter a business type</div>
             </div>
             
@@ -400,158 +299,6 @@
         </div>
         Business details saved successfully!
     </div>
-  <script src="./js/sidebar.js"></script>
-    <script>
-        // Custom Select Functionality
-        const customSelect = document.getElementById('businessTypeSelect');
-        const customOptions = document.getElementById('businessTypeOptions');
-        const selectedOption = customSelect.querySelector('.selected-option');
-        const options = document.querySelectorAll('.custom-option');
-        const customInput = document.getElementById('customBusinessType');
-        const addCustomBtn = document.getElementById('addCustomType');
-        
-        // Toggle custom select dropdown
-        customSelect.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const isActive = this.classList.contains('active');
-            customOptions.style.display = isActive ? 'block' : 'none';
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!customSelect.contains(e.target)) {
-                customSelect.classList.remove('active');
-                customOptions.style.display = 'none';
-            }
-        });
-        
-        // Select option
-        options.forEach(option => {
-            option.addEventListener('click', function() {
-                selectedOption.textContent = this.textContent;
-                selectedOption.dataset.value = this.dataset.value;
-                options.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                customSelect.classList.remove('active');
-                customOptions.style.display = 'none';
-                customSelect.parentElement.parentElement.classList.remove('error');
-            });
-        });
-        
-        // Prevent dropdown from closing when clicking in the custom input field
-        customInput.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-
-        // Prevent dropdown from closing when clicking the add custom button
-        addCustomBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const customValue = customInput.value.trim();
-            if (customValue) {
-                // Create new option
-                const newOption = document.createElement('div');
-                newOption.classList.add('custom-option');
-                newOption.textContent = customValue;
-                newOption.dataset.value = customValue;
-                
-                // Add event listener to new option
-                newOption.addEventListener('click', function() {
-                    selectedOption.textContent = this.textContent;
-                    selectedOption.dataset.value = this.dataset.value;
-                    options.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    customSelect.classList.remove('active');
-                    customOptions.style.display = 'none';
-                    customSelect.parentElement.parentElement.classList.remove('error');
-                });
-                
-                // Insert before the custom input div
-                customOptions.insertBefore(newOption, document.querySelector('.custom-input'));
-                
-                // Select the new option
-                selectedOption.textContent = customValue;
-                selectedOption.dataset.value = customValue;
-                
-                // Clear input
-                customInput.value = '';
-                
-                // Close dropdown
-                customSelect.classList.remove('active');
-                customOptions.style.display = 'none';
-                customSelect.parentElement.parentElement.classList.remove('error');
-            }
-        });
-        
-        // Allow pressing Enter to add custom type
-        customInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addCustomBtn.click();
-            }
-        });
-        
-        // Form Validation
-        const businessSetupForm = document.getElementById('businessSetupForm');
-        const successMessage = document.getElementById('successMessage');
-        
-        businessSetupForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            let isValid = true;
-            
-            // Validate Business Name
-            const businessName = document.getElementById('businessName');
-            if (!businessName.value.trim()) {
-                businessName.parentElement.classList.add('error');
-                isValid = false;
-            } else {
-                businessName.parentElement.classList.remove('error');
-            }
-            
-            // Validate Business Location
-            const businessLocation = document.getElementById('businessLocation');
-            if (!businessLocation.value.trim()) {
-                businessLocation.parentElement.classList.add('error');
-                isValid = false;
-            } else {
-                businessLocation.parentElement.classList.remove('error');
-            }
-            
-            // Validate Business Phone
-            const businessPhone = document.getElementById('businessPhone');
-            const phoneRegex = /^\+?[0-9\s\-()]{8,20}$/;
-            if (!phoneRegex.test(businessPhone.value.trim())) {
-                businessPhone.parentElement.classList.add('error');
-                isValid = false;
-            } else {
-                businessPhone.parentElement.classList.remove('error');
-            }
-            
-            // Validate Business Type
-            if (selectedOption.textContent === 'Select business type') {
-                customSelect.parentElement.parentElement.classList.add('error');
-                isValid = false;
-            } else {
-                customSelect.parentElement.parentElement.classList.remove('error');
-            }
-            
-            if (isValid) {
-                // Form is valid, show success message
-                successMessage.classList.add('show');
-                
-                // Hide success message after 3 seconds
-                setTimeout(() => {
-                    successMessage.classList.remove('show');
-                    
-                    // In a real application, you would redirect to the next step here
-                    console.log('Form submitted successfully with:');
-                    console.log('Business Name:', businessName.value);
-                    console.log('Business Location:', businessLocation.value);
-                    console.log('Business Phone:', businessPhone.value);
-                    console.log('Business Type:', selectedOption.textContent);
-                }, 3000);
-            }
-        });
-    </script>
 </body>
+<script src="/public/js/setup.js"></script>
 </html>

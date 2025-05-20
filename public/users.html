@@ -172,12 +172,12 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // Here you would typically handle the form submission
-            // For example, sending the data to a server
-            console.log('Form submitted');
-        });
+ // Redirect to owners login page on button click
+    document.querySelector('.owner-login-btn').addEventListener('click', function () {
+        window.location.href = '/public/ownerslogin.html';
+    });
+
+
     </script>
 </body>
 </html>
