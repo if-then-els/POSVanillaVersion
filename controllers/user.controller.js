@@ -42,21 +42,61 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-
-exports.loginUser = async (req,res) => {
-  try{
-    const {userName,password,businessName} = req.body;
-    if(!userName || !password || !businessName){
-      return res.status(400).json({message: "All fields are required"});
+exports.loginUser = async (req, res) => {
+  try {
+    const { userName, password, businessName } = req.body;
+    if (!userName || !password || !businessName) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await Users.findOne({userName});
-    const business = await Business.findOne({businessName});
-    if(!user && !business){
-      return res.status(400).json({message: "User or business not found,check your credentials"});
+    const user = await Users.findOne({ userName });
+    const business = await Business.findOne({ businessName });
+    if (!user && !business) {
+      return res
+        .status(400)
+        .json({ message: "User or business not found,check your credentials" });
     }
-    return res.status(200).json({message:"Login successful",user,business});
-  }catch(error){
+    return res
+      .status(200)
+      .json({ message: "Login successful", user, business });
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({message:"server error"});
+    return res.status(500).json({ message: "server error" });
   }
-}
+};
+
+exports.createInitialUser = async (req, res) => {
+  try {
+    const admin = {
+      username: "admin",
+      email: "admin@pos.com",
+      password: "admin",
+      role: "admin",
+      phone: "0114088623",
+    };
+    const existingUser = await Users.findOne({ email: admin.email });
+    if (existingUser) {
+      return res.status(400).json({
+        message:
+          "Admin user already exists,login with the instructions given by the provider",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(admin.password, 10);
+    const newUser = new Users({
+      username: admin.username,
+      email: admin.email,
+      password: hashedPassword,
+      role: admin.role,
+      phone: admin.phone,
+    });
+    await newUser.save();
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+    res.status(201).json({
+      message: "Admin user created successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "server error" });
+  }
+};

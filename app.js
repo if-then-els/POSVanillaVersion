@@ -39,8 +39,12 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //import routes
 const userRoutes = require("./routes/user.routes");
+const inventoryRoutes = require("./routes/inventory.routes");
+const ownerRoutes = require("./routes/owner.route");
 
 app.use("/", userRoutes);
+app.use("/", inventoryRoutes);
+app.use("/", ownerRoutes);
 //start app
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
