@@ -8,6 +8,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const multer = require("multer");
+
 const port = 5000;
 
 dotenv.config();
@@ -23,6 +25,27 @@ mongoose
     console.log("Error connecting to DB", err);
   });
 
+//configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, files, cb) => {
+    cb(null, Date.now() + "_" + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+app.use((req, res, next) => {
+  // Middleware to handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH");
+    return res.status(200).json({});
+  } else {
+    next();
+  }
+});
 // cors
 app.use(
   cors({
