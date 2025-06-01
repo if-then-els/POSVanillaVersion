@@ -83,12 +83,22 @@ exports.addStockByCsv = async (req, res) => {
   }
 };
 
+exports.downloadInventory = async (req, res) => {
+  try {
+    const inventory = await Inventory.find();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "server error", error });
+  }
+};
+
 exports.getInventory = async (req, res) => {
   try {
     const inventory = await Inventory.find();
     return res
       .status(200)
       .json({ message: "Inventory fetched successfully", inventory });
+    
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });
