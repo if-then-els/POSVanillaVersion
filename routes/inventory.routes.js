@@ -10,5 +10,12 @@ router.post(
   upload.single("file"), // <-- This enables file upload
   inventoryController.addStockByCsv
 );
-
+router.get("/getInventoryById/:id", inventoryController.getInventoryById);
+router.get("/downloadInventory", inventoryController.downloadInventory);
+router.put(
+  "/adjustInventoryQuantity/:id",
+  inventoryController.adjustInventoryQuantity
+);
+router.put("/updateProductPrice/:id", inventoryController.adjustProductPrice);
+router.delete("/deleteInventory/:id", inventoryController.deleteProduct);
 module.exports = router;
