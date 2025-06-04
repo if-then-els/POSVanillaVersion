@@ -70,59 +70,6 @@ function checkAuth() {
 }
 
 // Load dashboard data
-function loadDashboardData() {
-  // In a real app, this would fetch data from an API
-  // For demo purposes, we'll use mock data
-
-  // Update dashboard cards
-  document.getElementById("total-sales").textContent = formatCurrency(
-    mockDashboardData.totalSales
-  );
-  document.getElementById("total-orders").textContent =
-    mockDashboardData.totalOrders;
-  document.getElementById("total-products").textContent =
-    mockDashboardData.totalProducts;
-  document.getElementById("low-stock-items").textContent =
-    mockDashboardData.lowStockItems;
-
-  // Load recent transactions
-  const transactionsTable = document.getElementById("transactions-table");
-  if (transactionsTable) {
-    transactionsTable.innerHTML = mockDashboardData.recentTransactions
-      .map(
-        (transaction) => `
-      <tr class="hover:bg-gray-50">
-        <td class="px-6 py-4">#${transaction.id}</td>
-        <td class="px-6 py-4">${transaction.customer}</td>
-        <td class="px-6 py-4">${formatCurrency(transaction.amount)}</td>
-        <td class="px-6 py-4">${transaction.date}</td>
-        <td class="px-6 py-4">
-          <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-            ${transaction.status}
-          </span>
-        </td>
-      </tr>
-    `
-      )
-      .join("");
-  }
-
-  // Load top selling products
-  const topProductsTable = document.getElementById("top-products-table");
-  if (topProductsTable) {
-    topProductsTable.innerHTML = mockDashboardData.topSellingProducts
-      .map(
-        (product) => `
-      <tr class="hover:bg-gray-50">
-        <td class="px-6 py-4">${product.name}</td>
-        <td class="px-6 py-4">${product.sold}</td>
-        <td class="px-6 py-4">${formatCurrency(product.revenue)}</td>
-      </tr>
-    `
-      )
-      .join("");
-  }
-}
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -159,3 +106,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+// integrating  backend functionality for dynamic data
+
+async function loadDashboardData() {
+  try {
+    const response = await fetch("/getInventory", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    const inventory = data.inventory || [];
+
+    document.getElementById("total-products").textContent = inventory.length;
+    document.getElementById("low-stock-items").textContent = inventory.filter(
+      (p) => p.productQuantity < 10
+    ).length;
+
+    // You can also update top-selling products, etc., if your backend provides that data
+  } catch (error) {
+    console.error("Error loading dashboard data:", error);
+  }
+}

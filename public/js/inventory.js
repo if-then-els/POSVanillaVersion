@@ -54,6 +54,9 @@ let mockProducts = [
 // Current product being edited
 let currentProduct = null;
 
+// Global variable to hold products fetched from backend
+let products = [];
+
 // Helper functions for localStorage (you might want to move these to a separate module)
 function getLocalStorage(key) {
   try {
@@ -94,35 +97,44 @@ function showToast(title, message, type = "success") {
   alert(`${title}: ${message}`);
 }
 
-// Load products data
-function loadProducts() {
-  // Get products from localStorage or use mock data
-  const storedProducts = getLocalStorage("products");
-  if (storedProducts) {
-    mockProducts = storedProducts;
-  } else {
-    // Save mock products to localStorage for persistence
-    setLocalStorage("products", mockProducts);
+// Load products data from backend
+async function loadProducts() {
+  try {
+    const response = await fetch("/getInventory", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    if (data && data.inventory) {
+      products = data.inventory;
+    } else {
+      products = [];
+    }
+  } catch (error) {
+    console.error("Error loading inventory data:", error);
+    products = [];
   }
 
   // Update products count
   const productsCount = document.getElementById("products-count");
   if (productsCount) {
-    productsCount.textContent = `${mockProducts.length} products in inventory`;
+    productsCount.textContent = `${products.length} products in inventory`;
   }
 
   // Filter products based on search term
   const searchTerm =
     document.getElementById("inventory-search")?.value.toLowerCase() || "";
-  const filteredProducts = mockProducts.filter(
+  const filteredProducts = products.filter(
     (product) =>
-      product.name.toLowerCase().includes(searchTerm) ||
-      product.sku.toLowerCase().includes(searchTerm)
+      product.productName.toLowerCase().includes(searchTerm) ||
+      product.productBatchNumber.toLowerCase().includes(searchTerm)
   );
 
   // Get low stock products (quantity < 10)
   const lowStockProducts = filteredProducts.filter(
-    (product) => product.quantity < 10
+    (product) => product.productQuantity < 10
   );
 
   // Render all products table
@@ -140,28 +152,28 @@ function loadProducts() {
           (product) => `
         <tr class="hover:bg-gray-50">
           <td class="px-6 py-4">
-            <img src="${product.image}" alt="${
-            product.name
-          }" class="h-10 w-10 rounded-md object-cover">
+            <img src="../assets/images/placeholder.png" alt="${
+              product.productName
+            }" class="h-10 w-10 rounded-md object-cover">
           </td>
-          <td class="px-6 py-4">${product.name}</td>
-          <td class="px-6 py-4">${product.sku}</td>
-          <td class="px-6 py-4">${formatCurrency(product.price)}</td>
+          <td class="px-6 py-4">${product.productName}</td>
+          <td class="px-6 py-4">${product.productBatchNumber}</td>
+          <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
           <td class="px-6 py-4 ${
-            product.quantity < 10 ? "text-red-500 font-medium" : ""
-          }">${product.quantity}</td>
+            product.productQuantity < 10 ? "text-red-500 font-medium" : ""
+          }">${product.productQuantity}</td>
           <td class="px-6 py-4">
             <div class="flex space-x-2">
               <button
                 class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100"
-                data-id="${product.id}"
+                data-id="${product._id}"
                 title="Edit"
               >
                 <i class="fas fa-edit"></i>
               </button>
               <button 
                 class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" 
-                data-id="${product.id}"
+                data-id="${product._id}"
                 title="Delete"
               >
                 <i class="fas fa-trash"></i>
@@ -199,28 +211,28 @@ function loadProducts() {
           (product) => `
         <tr class="hover:bg-gray-50">
           <td class="px-6 py-4">
-            <img src="${product.image}" alt="${
-            product.name
-          }" class="h-10 w-10 rounded-md object-cover">
+            <img src="../assets/images/placeholder.png" alt="${
+              product.productName
+            }" class="h-10 w-10 rounded-md object-cover">
           </td>
-          <td class="px-6 py-4">${product.name}</td>
-          <td class="px-6 py-4">${product.sku}</td>
-          <td class="px-6 py-4">${formatCurrency(product.price)}</td>
+          <td class="px-6 py-4">${product.productName}</td>
+          <td class="px-6 py-4">${product.productBatchNumber}</td>
+          <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
           <td class="px-6 py-4 text-red-500 font-medium">${
-            product.quantity
+            product.productQuantity
           }</td>
           <td class="px-6 py-4">
             <div class="flex space-x-2">
               <button 
                 class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100" 
-                data-id="${product.id}"
+                data-id="${product._id}"
                 title="Edit"
               >
                 <i class="fas fa-edit"></i>
               </button>
               <button 
                 class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" 
-                data-id="${product.id}"
+                data-id="${product._id}"
                 title="Delete"
               >
                 <i class="fas fa-trash"></i>
@@ -232,7 +244,6 @@ function loadProducts() {
         )
         .join("");
 
-      // Add event listeners to edit and delete buttons
       document.querySelectorAll(".edit-product-btn").forEach((button) => {
         button.addEventListener("click", handleEditProduct);
       });
@@ -287,17 +298,42 @@ function handleEditProduct(event) {
 
 // Handle delete product button click
 function handleDeleteProduct(event) {
-  const productId = Number.parseInt(event.currentTarget.dataset.id);
-  currentProduct = mockProducts.find((product) => product.id === productId);
+  const productId = event.currentTarget.dataset.id;
+  currentProduct = products.find((product) => product._id === productId);
 
   if (currentProduct) {
-    // Set confirmation text
     document.getElementById(
       "delete-confirmation-text"
-    ).textContent = `Are you sure you want to delete "${currentProduct.name}"? This action cannot be undone.`;
-
-    // Show modal
+    ).textContent = `Are you sure you want to delete "${currentProduct.productName}"? This action cannot be undone.`;
     document.getElementById("delete-modal").classList.remove("hidden");
+  }
+}
+
+// Handle delete confirmation
+async function handleDeleteConfirmation() {
+  if (currentProduct) {
+    try {
+      const response = await fetch(`/deleteInventory/${currentProduct._id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showToast(
+          "Product Deleted",
+          `${currentProduct.productName} has been removed from inventory`,
+          "success"
+        );
+        document.getElementById("delete-modal").classList.add("hidden");
+        loadProducts();
+      } else {
+        showToast("Error", data.message || "Failed to delete product", "error");
+      }
+    } catch (error) {
+      showToast("Error", "Failed to delete product", "error");
+    }
   }
 }
 
@@ -411,32 +447,6 @@ function handleProductFormSubmit(event) {
 
   // Reload products
   loadProducts();
-}
-
-// Handle delete confirmation
-function handleDeleteConfirmation() {
-  if (currentProduct) {
-    // Remove product from array
-    mockProducts = mockProducts.filter(
-      (product) => product.id !== currentProduct.id
-    );
-
-    // Save to localStorage
-    setLocalStorage("products", mockProducts);
-
-    // Show success message
-    showToast(
-      "Product Deleted",
-      `${currentProduct.name} has been removed from inventory`,
-      "success"
-    );
-
-    // Hide modal
-    document.getElementById("delete-modal").classList.add("hidden");
-
-    // Reload products
-    loadProducts();
-  }
 }
 
 // Mock functions for checkAuth and debounce
