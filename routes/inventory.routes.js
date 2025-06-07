@@ -5,7 +5,6 @@ const inventoryController = require("../controllers/inventory.controller");
 const upload = require("../middleware/multerConfig"); // This 'upload' is now the Multer instance
 
 router.post("/addInventory", inventoryController.addStock);
-router.get("/getInventory", inventoryController.getInventory);
 
 router.post(
   "/uploadStockByCsv",
@@ -20,7 +19,7 @@ router.post(
 );
 
 router.get("/getInventoryById/:id", inventoryController.getInventoryById);
-router.get("/downloadInventory", inventoryController.downloadInventory);
+router.get("/downloadInventory", inventoryController.exportInventoryPdf);
 router.put(
   "/adjustInventoryQuantity/:id",
   inventoryController.adjustInventoryQuantity
@@ -29,5 +28,7 @@ router.put("/updateProductPrice/:id", inventoryController.adjustProductPrice);
 router.put("/updateInventory/:id", inventoryController.updateProduct);
 router.delete("/deleteInventory/:id", inventoryController.deleteProduct);
 router.post("/bulkDelete", inventoryController.bulkDeleteProducts);
+router.get("/export/csv", inventoryController.exportInventoryCsv);
+router.get("/export/excel", inventoryController.exportInventoryExcel);
 
 module.exports = router;

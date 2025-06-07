@@ -109,11 +109,27 @@
                 </button>
                 <button
                   class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                  onclick="exportProducts(); document.getElementById('export-dropdown-menu').classList.add('hidden')"
+                  onclick="exportInventory('csv'); document.getElementById('export-dropdown-menu').classList.add('hidden')"
                   role="menuitem"
                 >
-                  <i class="fas fa-file-export mr-2"></i>
-                  Export Inventory
+                  <i class="fas fa-file-csv mr-2"></i>
+                  Export as CSV
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  onclick="exportInventory('excel'); document.getElementById('export-dropdown-menu').classList.add('hidden')"
+                  role="menuitem"
+                >
+                  <i class="fas fa-file-excel mr-2"></i>
+                  Export as Excel
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  onclick="exportInventory('pdf'); document.getElementById('export-dropdown-menu').classList.add('hidden')"
+                  role="menuitem"
+                >
+                  <i class="fas fa-file-pdf mr-2"></i>
+                  Export as PDF
                 </button>
               </div>
             </div>

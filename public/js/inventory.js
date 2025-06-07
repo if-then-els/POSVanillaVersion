@@ -557,3 +557,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 });
+
+function exportInventory(type) {
+  let url = "";
+  if (type === "csv") url = "/export/csv";
+  else if (type === "excel") url = "/export/excel";
+  else if (type === "pdf") url = "/downloadInventory";
+  else return;
+
+  window.open(url, "_blank");
+}
