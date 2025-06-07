@@ -63,6 +63,77 @@
           >
             <i class="fas fa-plus mr-2"></i> Add Product
           </button>
+          <button
+            id="add-product-by-file-btn"
+            class="hidden md:inline-block ml-2 bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+            onclick="document.getElementById('file-upload').click()"
+          >
+            <i class="fas fa-file-upload mr-2"></i> Upload Products by File
+          </button>
+          <input
+            type="file"
+            id="file-upload"
+            class="hidden"
+            accept=".csv, .xlsx"
+            class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+          />
+          <!-- // Button to trigger file upload -->
+          <div class="relative inline-block text-left">
+            <button
+              id="export-dropdown-btn"
+              type="button"
+              class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+              aria-haspopup="true"
+              aria-expanded="false"
+              onclick="document.getElementById('export-dropdown-menu').classList.toggle('hidden')"
+            >
+              <i class="fas fa-file-export mr-2"></i>
+              Export Products
+              <i class="fas fa-caret-down ml-2"></i>
+            </button>
+            <div
+              id="export-dropdown-menu"
+              class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10"
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="export-dropdown-btn"
+            >
+              <div class="py-1" role="none">
+                <button
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  onclick="downloadSampleFile(); document.getElementById('export-dropdown-menu').classList.add('hidden')"
+                  role="menuitem"
+                >
+                  <i class="fas fa-download mr-2"></i>
+                  Download Sample File
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  onclick="exportProducts(); document.getElementById('export-dropdown-menu').classList.add('hidden')"
+                  role="menuitem"
+                >
+                  <i class="fas fa-file-export mr-2"></i>
+                  Export Inventory
+                </button>
+              </div>
+            </div>
+          </div>
+          <script>
+            // Hide dropdown when clicking outside
+            document.addEventListener("click", function (event) {
+              const btn = document.getElementById("export-dropdown-btn");
+              const menu = document.getElementById("export-dropdown-menu");
+              if (!btn.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.add("hidden");
+              }
+            });
+
+            // Dummy function for sample file download
+            function downloadSampleFile() {
+              // Replace with actual sample file download logic
+              window.location.href = "./sample_inventory.csv";
+            }
+          </script>
         </div>
 
         <!-- Search Bar -->
@@ -256,7 +327,7 @@
                 >
                 <input
                   id="product-name"
-                  name="name"
+                  name="productName"
                   class="col-span-3 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
                 />
               </div>
@@ -269,7 +340,7 @@
                 >
                 <textarea
                   id="product-description"
-                  name="description"
+                  name="productDescription"
                   rows="3"
                   class="col-span-3 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
                 ></textarea>
@@ -279,11 +350,11 @@
                 <label
                   for="product-sku"
                   class="text-right text-sm font-medium text-gray-700"
-                  >SKU*</label
+                  >Batch Number*</label
                 >
                 <input
                   id="product-sku"
-                  name="sku"
+                  name="productBatchNumber"
                   class="col-span-3 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
                 />
               </div>
@@ -296,7 +367,7 @@
                 >
                 <input
                   id="product-price"
-                  name="price"
+                  name="productPrice"
                   type="number"
                   step="0.01"
                   min="0"
@@ -312,9 +383,23 @@
                 >
                 <input
                   id="product-quantity"
-                  name="quantity"
+                  name="productQuantity"
                   type="number"
                   min="0"
+                  class="col-span-3 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                />
+              </div>
+
+              <div class="grid grid-cols-4 items-center gap-4">
+                <label
+                  for="product-quantity"
+                  class="text-right text-sm font-medium text-gray-700"
+                  >Category*</label
+                >
+                <input
+                  id="product-category"
+                  name="productCategory"
+                  type="text"
                   class="col-span-3 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
                 />
               </div>

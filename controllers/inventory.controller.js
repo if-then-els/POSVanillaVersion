@@ -222,3 +222,45 @@ exports.deleteProduct = async (req, res) => {
     return res.status(500).json({ message: "Server Error" });
   }
 };
+
+exports.uploadProductByXlsx = async (req, res) => {
+  try {
+    const xlsx = require("xlsx");
+    const xlsxFile = req.file;
+    console.log("Received file:", xlsxFile);
+    console.log("File path:", xlsxFile ? xlsxFile.path : "No file uploaded");
+    console.log("reqqbody: ", req.body);
+    if (!xlsxFile) {
+      return res.status(400).json({ message: "Please upload a xlsx file" });
+    }
+    const workbook = xlsx.readFile(xlsxFile.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonArray = xlsx.utils.sheet_to_json(worksheet);
+    if (jsonArray.length === 0) {
+      return res.status(400).json({ message: "No data found in xlsx file" });
+    }
+    const products = jsonArray.map((item) => ({
+      productName: item.productName,
+      productPrice: parseFloat(item.productPrice),
+      productQuantity: parseInt(item.productQuantity),
+      productDescription: item.productDescription,
+      productCategory: item.productCategory,
+      productBatchNumber: item.productBatchNumber,
+    }));
+    const existingProducts = await Inventory.find({
+      productBatchNumber: { $in: products.map((p) => p.productBatchNumber) },
+    });
+    if (existingProducts.length > 0) {
+      return res.status(400).json({ message: "Some products already exist" });
+    }
+    const newProducts = await Inventory.insertMany(products);
+    return res.status(201).json({
+      message: "Products added successfully",
+      newProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
