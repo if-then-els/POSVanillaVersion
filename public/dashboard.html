@@ -3,385 +3,299 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>POS System</title>
+    <title>Dashboard - POS System</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css" />
     <script>
+      // Tailwind configuration
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             colors: {
               primary: {
-                50: "#f0f9ff",
-                100: "#e0f2fe",
-                200: "#bae6fd",
-                300: "#7dd3fc",
-                400: "#38bdf8",
-                500: "#0ea5e9",
-                600: "#0284c7",
-                700: "#0369a1",
-                800: "#075985",
-                900: "#0c4a6e",
+                DEFAULT: "#4f46e5",
+                50: "#eef2ff",
+                100: "#e0e7ff",
+                200: "#c7d2fe",
+                300: "#a5b4fc",
+                400: "#818cf8",
+                500: "#6366f1",
+                600: "#4f46e5",
+                700: "#4338ca",
+                800: "#3730a3",
+                900: "#312e81",
+                950: "#1e1b4b",
               },
             },
           },
         },
       };
     </script>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
-
-      body {
-        font-family: "Inter", sans-serif;
-      }
-
-      .sidebar-item.active {
-        background-color: #0ea5e9;
-        color: white;
-      }
-
-      .sidebar-item.active i {
-        color: white;
-      }
-
-      /* Transition for sidebar */
-      .sidebar {
-        transition: transform 0.3s ease-in-out;
-      }
-
-      @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-100%);
-        }
-
-        .sidebar.open {
-          transform: translateX(0);
-        }
-      }
-    </style>
   </head>
-  <body class="bg-gray-100">
+  <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
-      <!-- Sidebar -->
-      <aside
+      <!-- Sidebar (will be loaded via JS) -->
+      <div
         id="sidebar"
-        class="sidebar bg-white w-64 h-full shadow-lg fixed inset-y-0 left-0 z-50 md:relative md:translate-x-0"
-      >
-        <div class="flex flex-col h-full">
-          <!-- Sidebar Header -->
-          <div class="px-4 py-6 border-b">
-            <h1 class="text-2xl font-bold text-primary-600">POS System</h1>
-          </div>
-
-          <!-- Sidebar Navigation -->
-          <nav class="flex-1 px-2 py-4 overflow-y-auto">
-            <ul>
-              <li class="mb-2">
-                <a
-                  href="index.html"
-                  class="sidebar-item active flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-primary-100"
-                >
-                  <i class="fas fa-tachometer-alt mr-3 text-primary-500"></i>
-                  <span>Dashboard</span>
-                </a>
-              </li>
-              <li class="mb-2">
-                <a
-                  href="sales.html"
-                  class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-primary-100"
-                >
-                  <i class="fas fa-shopping-cart mr-3 text-primary-500"></i>
-                  <span>Sales</span>
-                </a>
-              </li>
-              <li class="mb-2">
-                <a
-                  href="products.html"
-                  class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-primary-100"
-                >
-                  <i class="fas fa-box mr-3 text-primary-500"></i>
-                  <span>Products</span>
-                </a>
-              </li>
-              <li class="mb-2">
-                <a
-                  href="inventory.html"
-                  class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-primary-100"
-                >
-                  <i class="fas fa-warehouse mr-3 text-primary-500"></i>
-                  <span>Inventory</span>
-                </a>
-              </li>
-              <li class="mb-2">
-                <a
-                  href="reports.html"
-                  class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-primary-100"
-                >
-                  <i class="fas fa-chart-bar mr-3 text-primary-500"></i>
-                  <span>Reports</span>
-                </a>
-              </li>
-              <li class="mb-2">
-                <a
-                  href="settings.html"
-                  class="sidebar-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-primary-100"
-                >
-                  <i class="fas fa-cog mr-3 text-primary-500"></i>
-                  <span>Settings</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-
-          <!-- Sidebar Footer -->
-          <div class="px-4 py-4 border-t">
-            <button
-              id="logoutBtn"
-              class="flex items-center w-full px-4 py-2 text-gray-700 rounded-lg hover:bg-red-100"
-            >
-              <i class="fas fa-sign-out-alt mr-3 text-red-500"></i>
-              <span>Logout</span>
-            </button>
-          </div>
-        </div>
-      </aside>
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
+      ></div>
 
       <!-- Main Content -->
-      <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- Top Navbar -->
-        <header class="bg-white shadow-sm">
-          <div class="flex items-center justify-between px-6 py-4">
+      <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold">Dashboard</h1>
+          <p class="text-gray-600">Welcome to your POS system overview</p>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <!-- Total Sales Card -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-center">
-              <button
-                id="sidebarToggle"
-                class="text-gray-500 focus:outline-none md:hidden"
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary"
               >
-                <i class="fas fa-bars text-xl"></i>
-              </button>
-              <h2 class="text-xl font-semibold text-gray-800 ml-4">
-                Dashboard
-              </h2>
-            </div>
-            <div class="flex items-center">
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <i class="fas fa-search text-gray-400"></i>
-                </span>
-                <input
-                  type="text"
-                  class="py-2 pl-10 pr-4 w-64 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Search..."
-                />
+                <i class="fas fa-dollar-sign text-lg"></i>
               </div>
-              <div class="ml-4 relative">
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Total Sales</p>
+                <h3 class="text-2xl font-bold" id="total-sales">$0.00</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Orders Card -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600"
+              >
+                <i class="fas fa-shopping-cart text-lg"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Total Orders</p>
+                <h3 class="text-2xl font-bold" id="total-orders">0</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Products Card -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600"
+              >
+                <i class="fas fa-box text-lg"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Total Products</p>
+                <h3 class="text-2xl font-bold" id="total-products">0</h3>
+              </div>
+            </div>
+          </div>
+
+          <!-- Low Stock Items Card -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600"
+              >
+                <i class="fas fa-exclamation-triangle text-lg"></i>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-500">Low Stock Items</p>
+                <h3 class="text-2xl font-bold" id="low-stock-items">0</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Tabs -->
+        <div class="mt-8">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+          >
+            <!-- Tabs Header -->
+            <div class="border-b border-gray-200">
+              <div class="flex">
                 <button
-                  class="flex items-center text-gray-700 focus:outline-none"
+                  id="tab-transactions"
+                  class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary"
                 >
-                  <div
-                    class="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white"
-                  >
-                    <span>JD</span>
-                  </div>
-                  <span class="ml-2">John Doe</span>
-                  <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                  Recent Transactions
+                </button>
+                <button
+                  id="tab-products"
+                  class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                  Top Selling Products
                 </button>
               </div>
             </div>
-          </div>
-        </header>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 bg-gray-100">
-          <!-- Dashboard Content -->
-          <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6"
-          >
-            <!-- Sales Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-              <div class="flex items-center justify-between">
-                <h3 class="text-gray-500 text-sm font-medium">Total Sales</h3>
-                <span
-                  class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
-                  >+12.5%</span
-                >
+            <!-- Tabs Content -->
+            <div class="tab-content" id="transactions-content">
+              <div class="px-6 py-4">
+                <h3 class="font-semibold text-gray-800">Recent Transactions</h3>
+                <p class="text-sm text-gray-500">
+                  Latest sales transactions in the system
+                </p>
               </div>
-              <div class="flex items-center mt-4">
-                <div class="text-2xl font-bold text-gray-900">$24,780</div>
-              </div>
-              <div class="text-xs text-gray-500 mt-2">
-                Compared to $22,032 last month
+              <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                  <thead>
+                    <tr class="bg-gray-50 text-left">
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        ID
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Customer
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Amount
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Date
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="transactions-table"
+                    class="divide-y divide-gray-200"
+                  >
+                    <!-- Transactions will be loaded here by JavaScript -->
+                    <tr>
+                      <td
+                        colspan="5"
+                        class="px-6 py-4 text-center text-gray-500"
+                      >
+                        Loading transactions...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <!-- Orders Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-              <div class="flex items-center justify-between">
-                <h3 class="text-gray-500 text-sm font-medium">Total Orders</h3>
-                <span
-                  class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
-                  >+8.2%</span
-                >
-              </div>
-              <div class="flex items-center mt-4">
-                <div class="text-2xl font-bold text-gray-900">342</div>
-              </div>
-              <div class="text-xs text-gray-500 mt-2">
-                Compared to 316 last month
-              </div>
-            </div>
-
-            <!-- Products Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-              <div class="flex items-center justify-between">
-                <h3 class="text-gray-500 text-sm font-medium">
-                  Total Products
+            <div class="tab-content hidden" id="products-content">
+              <div class="px-6 py-4">
+                <h3 class="font-semibold text-gray-800">
+                  Top Selling Products
                 </h3>
-                <span
-                  class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
-                  >+5</span
-                >
+                <p class="text-sm text-gray-500">
+                  Products with the highest sales volume
+                </p>
               </div>
-              <div class="flex items-center mt-4">
-                <div class="text-2xl font-bold text-gray-900">128</div>
+              <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                  <thead>
+                    <tr class="bg-gray-50 text-left">
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Product
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Units Sold
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Revenue
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="top-products-table"
+                    class="divide-y divide-gray-200"
+                  >
+                    <!-- Top products will be loaded here by JavaScript -->
+                    <tr>
+                      <td
+                        colspan="3"
+                        class="px-6 py-4 text-center text-gray-500"
+                      >
+                        Loading products...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div class="text-xs text-gray-500 mt-2">
-                5 new products added this month
-              </div>
-            </div>
-
-            <!-- Low Stock Card -->
-            <div class="bg-white rounded-lg shadow p-6">
-              <div class="flex items-center justify-between">
-                <h3 class="text-gray-500 text-sm font-medium">
-                  Low Stock Items
-                </h3>
-                <span
-                  class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
-                  >Alert</span
-                >
-              </div>
-              <div class="flex items-center mt-4">
-                <div class="text-2xl font-bold text-gray-900">12</div>
-              </div>
-              <div class="text-xs text-gray-500 mt-2">
-                Items need to be restocked soon
-              </div>
-            </div>
-          </div>
-
-          <!-- Recent Transactions -->
-          <div class="bg-white rounded-lg shadow mb-6">
-            <div class="px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">
-                Recent Transactions
-              </h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Transaction ID
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Customer
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Date
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Amount
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  class="bg-white divide-y divide-gray-200"
-                  id="transactionsTable"
-                >
-                  <!-- Transaction rows will be populated by JavaScript -->
-                </tbody>
-              </table>
             </div>
           </div>
-
-          <!-- Low Stock Products -->
-          <div class="bg-white rounded-lg shadow">
-            <div class="px-6 py-4 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">
-                Low Stock Products
-              </h3>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Product
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      SKU
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Current Stock
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Reorder Level
-                    </th>
-                    <th
-                      scope="col"
-                      class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  class="bg-white divide-y divide-gray-200"
-                  id="lowStockTable"
-                >
-                  <!-- Low stock rows will be populated by JavaScript -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
 
-    <script src="./js/main.js"></script>
-    <script src="./js/dashboard.js"></script>
+    <!-- Toast notification container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+
+    <!-- Scripts -->
+    <script src="./js/utils.js"></script>
+    <script src="./js/auth.js"></script>
+    <script src="./js/sidebar.js"></script>
+    <script src="js/dashboard.js"></script>
+    <!-- <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check if user is logged in
+        checkAuth();
+
+        // Load sidebar
+        loadSidebar();
+
+        // Handle tab switching
+        const tabButtons = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            // Remove active class from all buttons
+            tabButtons.forEach((btn) => {
+              btn.classList.remove("active", "border-primary", "text-primary");
+              btn.classList.add("text-gray-500");
+            });
+
+            // Add active class to clicked button
+            button.classList.add("active", "border-primary", "text-primary");
+            button.classList.remove("text-gray-500");
+
+            // Hide all tab contents
+            tabContents.forEach((content) => {
+              content.classList.add("hidden");
+            });
+
+            // Show the selected tab content
+            const contentId = button.id.replace("tab-", "") + "-content";
+            document.getElementById(contentId).classList.remove("hidden");
+          });
+        });
+
+        // Load dashboard data
+        loadDashboardData();
+      });
+    </script> -->
   </body>
 </html>

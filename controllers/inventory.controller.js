@@ -2,6 +2,9 @@ const Inventory = require("../models/inventory");
 const path = require("path");
 const bodyParser = require("body-parser");
 const multer = require("multer");
+const { Parser } = require("json2csv");
+const XLSX = require("xlsx");
+const fs = require("fs");
 
 exports.addStock = async (req, res) => {
   try {
@@ -83,56 +86,6 @@ exports.addStockByCsv = async (req, res) => {
   }
 };
 
-exports.downloadInventory = async (req, res) => {
-  try {
-    const inventory = await Inventory.find();
-    if (inventory.length === 0) {
-      return res.status(404).json({ message: "No inventory found" });
-    }
-    const pdf = require("pdfkit");
-    const doc = new pdf();
-    const filePath = path.join(__dirname, "../uploads/inventory.pdf");
-    doc.pipe(require("fs").createWriteStream(filePath));
-    doc.fontSize(20).text("Inventory Report", { align: "center" });
-    doc.moveDown();
-    inventory.forEach((item) => {
-      doc
-        .fontSize(12)
-        .text(`Product Name: ${item.productName}`)
-        .text(`Price: $${item.productPrice}`)
-        .text(`Quantity: ${item.productQuantity}`)
-        .text(`Description: ${item.productDescription}`)
-        .text(`Category: ${item.productCategory}`)
-        .text(`Batch Number: ${item.productBatchNumber}`)
-        .moveDown();
-    });
-    doc.end();
-    doc.on("finish", () => {
-      return res.download(filePath, "inventory.pdf", (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ message: "Error downloading file" });
-        }
-      });
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "server error", error });
-  }
-};
-
-exports.getInventory = async (req, res) => {
-  try {
-    const inventory = await Inventory.find();
-    return res
-      .status(200)
-      .json({ message: "Inventory fetched successfully", inventory });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "server error" });
-  }
-};
-
 exports.getInventoryById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -208,15 +161,175 @@ exports.adjustProductPrice = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
-    const { productId } = req.body;
-    if (!productId) {
-      return res.status(400).json({ message: "Product ID is requires" });
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Product ID is required" });
     }
-    const product = await Inventory.findByIdAndDelete(productId);
+    const product = await Inventory.findByIdAndDelete(id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
     return res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.uploadProductByXlsx = async (req, res) => {
+  try {
+    const xlsx = require("xlsx");
+    const xlsxFile = req.file;
+    console.log("Received file:", xlsxFile);
+    console.log("File path:", xlsxFile ? xlsxFile.path : "No file uploaded");
+    console.log("reqqbody: ", req.body);
+    if (!xlsxFile) {
+      return res.status(400).json({ message: "Please upload a xlsx file" });
+    }
+    const workbook = xlsx.readFile(xlsxFile.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonArray = xlsx.utils.sheet_to_json(worksheet);
+    if (jsonArray.length === 0) {
+      return res.status(400).json({ message: "No data found in xlsx file" });
+    }
+    const products = jsonArray.map((item) => ({
+      productName: item.productName,
+      productPrice: parseFloat(item.productPrice),
+      productQuantity: parseInt(item.productQuantity),
+      productDescription: item.productDescription,
+      productCategory: item.productCategory,
+      productBatchNumber: item.productBatchNumber,
+    }));
+    const existingProducts = await Inventory.find({
+      productBatchNumber: { $in: products.map((p) => p.productBatchNumber) },
+    });
+    if (existingProducts.length > 0) {
+      return res.status(400).json({ message: "Some products already exist" });
+    }
+    const newProducts = await Inventory.insertMany(products);
+    return res.status(201).json({
+      message: "Products added successfully",
+      newProducts,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateFields = req.body;
+    const product = await Inventory.findByIdAndUpdate(id, updateFields, {
+      new: true,
+    });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    return res
+      .status(200)
+      .json({ message: "Product updated successfully", product });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.bulkDeleteProducts = async (req, res) => {
+  try {
+    const { ids } = req.body; // array of product IDs
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No product IDs provided" });
+    }
+    const result = await Inventory.deleteMany({ _id: { $in: ids } });
+    return res
+      .status(200)
+      .json({ message: "Products deleted", deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.exportInventoryCsv = async (req, res) => {
+  try {
+    const inventory = await Inventory.find().lean();
+    if (!inventory.length) {
+      return res.status(404).json({ message: "No inventory found" });
+    }
+    const fields = [
+      "productName",
+      "productPrice",
+      "productQuantity",
+      "productDescription",
+      "productCategory",
+      "productBatchNumber",
+    ];
+    const parser = new Parser({ fields });
+    const csv = parser.parse(inventory);
+    res.header("Content-Type", "text/csv");
+    res.attachment("inventory.csv");
+    return res.send(csv);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.exportInventoryExcel = async (req, res) => {
+  try {
+    const inventory = await Inventory.find().lean();
+    if (!inventory.length) {
+      return res.status(404).json({ message: "No inventory found" });
+    }
+    const worksheet = XLSX.utils.json_to_sheet(inventory);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    res.header(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.attachment("inventory.xlsx");
+    return res.send(buffer);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+//export pdf
+exports.exportInventoryPdf = async (req, res) => {
+  try {
+    const PDFDocument = require("pdfkit");
+    const inventory = await Inventory.find().lean();
+    if (!inventory.length) {
+      return res.status(404).json({ message: "No inventory found" });
+    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=inventory.pdf");
+
+    const doc = new PDFDocument();
+    doc.pipe(res);
+
+    doc.fontSize(20).text("Inventory Report", { align: "center" });
+    doc.moveDown();
+
+    inventory.forEach((item) => {
+      doc
+        .fontSize(12)
+        .text(`Product Name: ${item.productName}`)
+        .text(`Price: $${item.productPrice}`)
+        .text(`Quantity: ${item.productQuantity}`)
+        .text(`Description: ${item.productDescription}`)
+        .text(`Category: ${item.productCategory}`)
+        .text(`Batch Number: ${item.productBatchNumber}`)
+        .moveDown();
+    });
+
+    doc.end();
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server Error" });
