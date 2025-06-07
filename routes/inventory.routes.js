@@ -26,6 +26,8 @@ router.put(
   inventoryController.adjustInventoryQuantity
 );
 router.put("/updateProductPrice/:id", inventoryController.adjustProductPrice);
+router.put("/updateInventory/:id", inventoryController.updateProduct);
 router.delete("/deleteInventory/:id", inventoryController.deleteProduct);
+router.post("/bulkDelete", inventoryController.bulkDeleteProducts);
 
 module.exports = router;

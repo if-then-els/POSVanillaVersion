@@ -208,11 +208,11 @@ exports.adjustProductPrice = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
-    const { productId } = req.body;
-    if (!productId) {
-      return res.status(400).json({ message: "Product ID is requires" });
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Product ID is required" });
     }
-    const product = await Inventory.findByIdAndDelete(productId);
+    const product = await Inventory.findByIdAndDelete(id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -259,6 +259,41 @@ exports.uploadProductByXlsx = async (req, res) => {
       message: "Products added successfully",
       newProducts,
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateFields = req.body;
+    const product = await Inventory.findByIdAndUpdate(id, updateFields, {
+      new: true,
+    });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    return res
+      .status(200)
+      .json({ message: "Product updated successfully", product });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.bulkDeleteProducts = async (req, res) => {
+  try {
+    const { ids } = req.body; // array of product IDs
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: "No product IDs provided" });
+    }
+    const result = await Inventory.deleteMany({ _id: { $in: ids } });
+    return res
+      .status(200)
+      .json({ message: "Products deleted", deletedCount: result.deletedCount });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server Error" });

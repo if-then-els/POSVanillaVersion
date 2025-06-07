@@ -25,18 +25,6 @@ mongoose
     console.log("Error connecting to DB", err);
   });
 
-//configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, files, cb) => {
-    cb(null, Date.now() + "_" + file.originalname);
-  },
-});
-
-const upload = multer({ storage: storage });
-
 app.use((req, res, next) => {
   // Middleware to handle CORS preflight requests
   if (req.method === "OPTIONS") {

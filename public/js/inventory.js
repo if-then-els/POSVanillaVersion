@@ -150,38 +150,39 @@ async function loadProducts() {
       productsTable.innerHTML = filteredProducts
         .map(
           (product) => `
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <img src="../assets/images/placeholder.png" alt="${
-              product.productName
-            }" class="h-10 w-10 rounded-md object-cover">
-          </td>
-          <td class="px-6 py-4">${product.productName}</td>
-          <td class="px-6 py-4">${product.productBatchNumber}</td>
-          <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
-          <td class="px-6 py-4 ${
-            product.productQuantity < 10 ? "text-red-500 font-medium" : ""
-          }">${product.productQuantity}</td>
-          <td class="px-6 py-4">
-            <div class="flex space-x-2">
-              <button
-                class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100"
-                data-id="${product._id}"
-                title="Edit"
-              >
-                <i class="fas fa-edit"></i>
-              </button>
-              <button 
-                class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" 
-                data-id="${product._id}"
-                title="Delete"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `
+    <tr class="hover:bg-gray-50">
+      <td class="px-6 py-4">
+        <input type="checkbox" class="product-checkbox" data-id="${
+          product._id
+        }" />
+      </td>
+      <td class="px-6 py-4">
+        <img src="../assets/images/placeholder.png" alt="${
+          product.productName
+        }" class="h-10 w-10 rounded-md object-cover">
+      </td>
+      <td class="px-6 py-4">${product.productName}</td>
+      <td class="px-6 py-4">${product.productBatchNumber}</td>
+      <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
+      <td class="px-6 py-4 ${
+        product.productQuantity < 10 ? "text-red-500 font-medium" : ""
+      }">${product.productQuantity}</td>
+      <td class="px-6 py-4">
+        <div class="flex space-x-2">
+          <button class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100" data-id="${
+            product._id
+          }" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" data-id="${
+            product._id
+          }" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `
         )
         .join("");
 
@@ -273,25 +274,24 @@ function handleAddProduct() {
 
 // Handle edit product button click
 function handleEditProduct(event) {
-  const productId = Number.parseInt(event.currentTarget.dataset.id);
-  currentProduct = mockProducts.find((product) => product.id === productId);
+  const productId = event.currentTarget.dataset.id;
+  currentProduct = products.find((product) => product._id === productId);
 
   if (currentProduct) {
-    // Set form values
-    document.getElementById("product-name").value = currentProduct.name;
+    document.getElementById("product-name").value = currentProduct.productName;
     document.getElementById("product-description").value =
-      currentProduct.description;
-    document.getElementById("product-sku").value = currentProduct.sku;
-    document.getElementById("product-price").value = currentProduct.price;
-    document.getElementById("product-quantity").value = currentProduct.quantity;
+      currentProduct.productDescription;
+    document.getElementById("product-sku").value =
+      currentProduct.productBatchNumber;
+    document.getElementById("product-price").value =
+      currentProduct.productPrice;
+    document.getElementById("product-quantity").value =
+      currentProduct.productQuantity;
+    document.getElementById("product-category").value =
+      currentProduct.productCategory || "";
 
-    // Set modal title
     document.getElementById("modal-title").textContent = "Edit Product";
-
-    // Hide error message
     document.getElementById("form-error").classList.add("hidden");
-
-    // Show modal
     document.getElementById("product-modal").classList.remove("hidden");
   }
 }
@@ -338,115 +338,55 @@ async function handleDeleteConfirmation() {
 }
 
 // Handle product form submission
-function handleProductFormSubmit(event) {
+async function handleProductFormSubmit(event) {
   event.preventDefault();
 
   // Get form values
-  const name = document.getElementById("product-name").value.trim();
-  const description = document
-    .getElementById("product-description")
-    .value.trim();
-  const sku = document.getElementById("product-sku").value.trim();
-  const price = Number.parseFloat(
-    document.getElementById("product-price").value
-  );
-  const quantity = Number.parseInt(
-    document.getElementById("product-quantity").value
-  );
+  const productData = {
+    productName: document.getElementById("product-name").value.trim(),
+    productDescription: document
+      .getElementById("product-description")
+      .value.trim(),
+    productBatchNumber: document.getElementById("product-sku").value.trim(),
+    productPrice: Number.parseFloat(
+      document.getElementById("product-price").value
+    ),
+    productQuantity: Number.parseInt(
+      document.getElementById("product-quantity").value
+    ),
+    productCategory: document.getElementById("product-category").value.trim(),
+  };
 
-  // Validate form
-  if (!name || !sku || isNaN(price) || isNaN(quantity)) {
-    document.getElementById("error-message").textContent =
-      "Please fill in all required fields";
-    document.getElementById("form-error").classList.remove("hidden");
-    return;
+  // Validation (add as needed)
+
+  try {
+    let response, data;
+    if (currentProduct && currentProduct._id) {
+      // Edit
+      response = await fetch(`/updateInventory/${currentProduct._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productData),
+      });
+      data = await response.json();
+      if (response.ok) {
+        showToast(
+          "Product Updated",
+          `${productData.productName} has been updated`,
+          "success"
+        );
+      } else {
+        showToast("Error", data.message || "Failed to update product", "error");
+        return;
+      }
+    } else {
+      // Add (implement as needed)
+    }
+    document.getElementById("product-modal").classList.add("hidden");
+    loadProducts();
+  } catch (error) {
+    showToast("Error", "Failed to save product", "error");
   }
-
-  if (price < 0) {
-    document.getElementById("error-message").textContent =
-      "Price cannot be negative";
-    document.getElementById("form-error").classList.remove("hidden");
-    return;
-  }
-
-  if (quantity < 0) {
-    document.getElementById("error-message").textContent =
-      "Quantity cannot be negative";
-    document.getElementById("form-error").classList.remove("hidden");
-    return;
-  }
-
-  // Check if SKU already exists (for new products)
-  if (!currentProduct && mockProducts.some((product) => product.sku === sku)) {
-    document.getElementById("error-message").textContent = "SKU already exists";
-    document.getElementById("form-error").classList.remove("hidden");
-    return;
-  }
-
-  // Check if SKU already exists (for edited products)
-  if (
-    currentProduct &&
-    mockProducts.some(
-      (product) => product.sku === sku && product.id !== currentProduct.id
-    )
-  ) {
-    document.getElementById("error-message").textContent = "SKU already exists";
-    document.getElementById("form-error").classList.remove("hidden");
-    return;
-  }
-
-  if (currentProduct) {
-    // Update existing product
-    const updatedProduct = {
-      ...currentProduct,
-      name,
-      description,
-      sku,
-      price,
-      quantity,
-    };
-
-    // Update products array
-    mockProducts = mockProducts.map((product) =>
-      product.id === currentProduct.id ? updatedProduct : product
-    );
-
-    // Show success message
-    showToast("Product Updated", `${name} has been updated`, "success");
-  } else {
-    // Create new product
-    const newProduct = {
-      id:
-        mockProducts.length > 0
-          ? Math.max(...mockProducts.map((p) => p.id)) + 1
-          : 1,
-      name,
-      description,
-      sku,
-      price,
-      quantity,
-      image: "../assets/images/placeholder.png",
-    };
-
-    // Add to products array
-    mockProducts.push(newProduct);
-
-    // Show success message
-    showToast(
-      "Product Added",
-      `${name} has been added to inventory`,
-      "success"
-    );
-  }
-
-  // Save to localStorage
-  setLocalStorage("products", mockProducts);
-
-  // Hide modal
-  document.getElementById("product-modal").classList.add("hidden");
-
-  // Reload products
-  loadProducts();
 }
 
 // Mock functions for checkAuth and debounce
@@ -558,4 +498,62 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById(contentId).classList.remove("hidden");
     });
   });
+
+  // Bulk delete functionality
+  document.getElementById("bulk-delete-btn")?.addEventListener("click", () => {
+    const selectedIds = Array.from(
+      document.querySelectorAll(".product-checkbox:checked")
+    ).map((cb) => cb.dataset.id);
+
+    if (selectedIds.length === 0) {
+      return showToast(
+        "No products selected",
+        "Please select products to delete",
+        "info"
+      );
+    }
+
+    if (
+      !confirm(
+        "Are you sure you want to delete the selected products? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    fetch("/bulkDelete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: selectedIds }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          showToast(
+            "Products Deleted",
+            "Selected products have been removed from inventory",
+            "success"
+          );
+          loadProducts();
+        } else {
+          showToast(
+            "Error",
+            data.message || "Failed to delete products",
+            "error"
+          );
+        }
+      })
+      .catch((error) => {
+        showToast("Error", "Failed to delete products", "error");
+      });
+  });
+
+  document
+    .getElementById("select-all-checkbox")
+    ?.addEventListener("change", function () {
+      const checked = this.checked;
+      document.querySelectorAll(".product-checkbox").forEach((cb) => {
+        cb.checked = checked;
+      });
+    });
 });
