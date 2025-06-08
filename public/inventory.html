@@ -63,20 +63,26 @@
           >
             <i class="fas fa-plus mr-2"></i> Add Product
           </button>
-          <button
-            id="add-product-by-file-btn"
-            class="hidden md:inline-block ml-2 bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
-            onclick="document.getElementById('file-upload').click()"
-          >
-            <i class="fas fa-file-upload mr-2"></i> Upload Products by File
-          </button>
-          <input
-            type="file"
-            id="file-upload"
-            class="hidden"
-            accept=".csv, .xlsx"
-            class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
-          />
+          <div class="flex gap-2 mb-4">
+            <button
+              id="upload-csv-btn"
+              class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+            >
+              <i class="fas fa-file-csv mr-2"></i> Upload CSV
+            </button>
+            <button
+              id="upload-excel-btn"
+              class="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+            >
+              <i class="fas fa-file-excel mr-2"></i> Upload Excel
+            </button>
+            <input
+              type="file"
+              id="inventory-file-input"
+              class="hidden"
+              accept=".csv, .xlsx"
+            />
+          </div>
           <!-- // Button to trigger file upload -->
           <div class="relative inline-block text-left">
             <button
@@ -214,6 +220,11 @@
                     <th
                       class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
                     >
+                      Mark
+                    </th>
+                    <th
+                      class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                    >
                       Image
                     </th>
                     <th
@@ -229,7 +240,7 @@
                     <th
                       class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
                     >
-                      Price
+                      Price per unit
                     </th>
                     <th
                       class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
