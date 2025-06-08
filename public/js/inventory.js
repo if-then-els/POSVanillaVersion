@@ -107,8 +107,16 @@ async function loadProducts() {
       },
     });
     const data = await response.json();
-    if (data && data.inventory) {
-      products = data.inventory;
+    if (data && data.products) {
+      products = data.products.map((item) => ({
+        _id: item._id,
+        productName: item.productName || item.name,
+        productBatchNumber: item.productBatchNumber || item.sku,
+        productPrice: item.productPrice ?? item.price,
+        productQuantity: item.productQuantity ?? item.quantity,
+        productDescription: item.productDescription || item.description,
+        productCategory: item.productCategory || "",
+      }));
     } else {
       products = [];
     }
