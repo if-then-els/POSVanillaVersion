@@ -52,10 +52,12 @@ app.use(express.static(path.join(__dirname, "public")));
 const userRoutes = require("./routes/user.routes");
 const inventoryRoutes = require("./routes/inventory.routes");
 const ownerRoutes = require("./routes/owner.route");
+const salesRoutes = require("./routes/sales.routes");
 
 app.use("/", userRoutes);
 app.use("/", inventoryRoutes);
 app.use("/", ownerRoutes);
+app.use("/", salesRoutes);
 //start app
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
