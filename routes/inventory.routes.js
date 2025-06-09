@@ -17,6 +17,7 @@ router.post(
   upload.single("productFile"), // <--- CORRECT: Calling .single() on the Multer instance
   inventoryController.uploadProductByXlsx
 );
+router.get("/getInventory", inventoryController.getAllInventory);
 
 router.get("/getInventoryById/:id", inventoryController.getInventoryById);
 router.get("/downloadInventory", inventoryController.exportInventoryPdf);

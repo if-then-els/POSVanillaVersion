@@ -118,7 +118,7 @@ async function loadDashboardData() {
       },
     });
     const data = await response.json();
-    const inventory = data.inventory || [];
+    const inventory = data.products || [];
 
     document.getElementById("total-products").textContent = inventory.length;
     document.getElementById("low-stock-items").textContent = inventory.filter(

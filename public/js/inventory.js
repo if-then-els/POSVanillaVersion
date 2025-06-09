@@ -84,7 +84,7 @@ function setLocalStorage(key, value) {
 function formatCurrency(number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "KES",
   }).format(number);
 }
 
@@ -107,8 +107,16 @@ async function loadProducts() {
       },
     });
     const data = await response.json();
-    if (data && data.inventory) {
-      products = data.inventory;
+    if (data && data.products) {
+      products = data.products.map((item) => ({
+        _id: item._id,
+        productName: item.productName || item.name,
+        productBatchNumber: item.productBatchNumber || item.sku,
+        productPrice: item.productPrice ?? item.price,
+        productQuantity: item.productQuantity ?? item.quantity,
+        productDescription: item.productDescription || item.description,
+        productCategory: item.productCategory || "",
+      }));
     } else {
       products = [];
     }
@@ -556,7 +564,63 @@ document.addEventListener("DOMContentLoaded", () => {
         cb.checked = checked;
       });
     });
+
+  // Upload CSV
+  document.getElementById("upload-csv-btn")?.addEventListener("click", () => {
+    const fileInput = document.getElementById("inventory-file-input");
+    fileInput.accept = ".csv";
+    fileInput.onchange = async function () {
+      if (fileInput.files.length > 0) {
+        await uploadInventoryFile(fileInput.files[0], "csv");
+        fileInput.value = "";
+      }
+    };
+    fileInput.click();
+  });
+
+  // Upload Excel
+  document.getElementById("upload-excel-btn")?.addEventListener("click", () => {
+    const fileInput = document.getElementById("inventory-file-input");
+    fileInput.accept = ".xlsx";
+    fileInput.onchange = async function () {
+      if (fileInput.files.length > 0) {
+        await uploadInventoryFile(fileInput.files[0], "excel");
+        fileInput.value = "";
+      }
+    };
+    fileInput.click();
+  });
 });
+
+// Helper function to upload inventory file
+async function uploadInventoryFile(file, type) {
+  const formData = new FormData();
+  if (type === "csv") {
+    formData.append("file", file);
+  } else if (type === "excel") {
+    formData.append("productFile", file);
+  } else {
+    showToast("Error", "Unsupported file type", "error");
+    return;
+  }
+
+  try {
+    const url = type === "csv" ? "/uploadStockByCsv" : "/uploadStockByExcel";
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await response.json();
+    if (response.ok) {
+      showToast("Success", data.message || "Inventory uploaded", "success");
+      loadProducts();
+    } else {
+      showToast("Error", data.message || "Failed to upload inventory", "error");
+    }
+  } catch (error) {
+    showToast("Error", "Failed to upload inventory", "error");
+  }
+}
 
 function exportInventory(type) {
   let url = "";
