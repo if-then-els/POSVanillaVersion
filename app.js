@@ -53,11 +53,13 @@ const userRoutes = require("./routes/user.routes");
 const inventoryRoutes = require("./routes/inventory.routes");
 const ownerRoutes = require("./routes/owner.route");
 const salesRoutes = require("./routes/sales.routes");
+const reportsRoutes = require("./routes/reports.routes");
 
 app.use("/", userRoutes);
 app.use("/", inventoryRoutes);
 app.use("/", ownerRoutes);
 app.use("/", salesRoutes);
+app.use("/", reportsRoutes);
 //start app
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
