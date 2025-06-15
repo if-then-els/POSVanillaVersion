@@ -2,63 +2,11 @@
  * Dashboard functionality for POS System
  */
 
-// Mock data for dashboard
-const mockDashboardData = {
-  totalSales: 12580.45,
-  totalOrders: 156,
-  totalProducts: 243,
-  lowStockItems: 12,
-  recentTransactions: [
-    {
-      id: 1,
-      customer: "John Doe",
-      amount: 125.99,
-      date: "2023-05-18",
-      status: "completed",
-    },
-    {
-      id: 2,
-      customer: "Jane Smith",
-      amount: 89.5,
-      date: "2023-05-18",
-      status: "completed",
-    },
-    {
-      id: 3,
-      customer: "Robert Johnson",
-      amount: 245.0,
-      date: "2023-05-17",
-      status: "completed",
-    },
-    {
-      id: 4,
-      customer: "Emily Davis",
-      amount: 45.75,
-      date: "2023-05-17",
-      status: "completed",
-    },
-    {
-      id: 5,
-      customer: "Michael Brown",
-      amount: 189.99,
-      date: "2023-05-16",
-      status: "completed",
-    },
-  ],
-  topSellingProducts: [
-    { id: 1, name: "Product A", sold: 45, revenue: 2250.0 },
-    { id: 2, name: "Product B", sold: 38, revenue: 1900.0 },
-    { id: 3, name: "Product C", sold: 32, revenue: 1600.0 },
-    { id: 4, name: "Product D", sold: 28, revenue: 1400.0 },
-    { id: 5, name: "Product E", sold: 25, revenue: 1250.0 },
-  ],
-};
-
 // Helper function to format currency
 function formatCurrency(amount) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "KES",
   }).format(amount);
 }
 
@@ -130,3 +78,104 @@ async function loadDashboardData() {
     console.error("Error loading dashboard data:", error);
   }
 }
+
+//load sales data
+async function loadSalesData() {
+  try {
+    const response = await fetch("/salesAmount", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+
+    // const sales = data.sales || [];
+    // console.log("Sales data:", sales);
+
+    document.getElementById("total-sales").textContent =
+      "KES " + data.totalAmount;
+    document.getElementById("total-sales-amount").textContent = formatCurrency(
+      sales.reduce((sum, sale) => sum + sale.total, 0)
+    );
+
+    const salesTableBody = document.getElementById("sales-table-body");
+    salesTableBody.innerHTML = ""; // Clear existing rows
+    sales.forEach((sale) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="">${new Date(sale.createdAt).toLocaleDateString()}</td>
+        <td>${sale.customerName || "Walk-in"}</td>
+        <td>${formatCurrency(sale.total)}</td>
+        <td>
+          <a href="/receipt/${
+            sale._id
+          }" class="text-blue-500 hover:underline">View Receipt</a>
+        </td>
+      `;
+      salesTableBody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Error loading sales data:", error);
+  }
+  try {
+    const response = await fetch("/getTotalOrders", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    document.getElementById("total-orders").textContent = data.totalOrders;
+  } catch (error) {
+    console.error("Error loading total orders:", error);
+  }
+  //recent transactions
+  try {
+    const response = await fetch("/getSales", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    console.log("Recent transactions data:", data);
+    const recentTransactions = data.sales || [];
+    console.log("Recent transactions:", recentTransactions);
+
+    const recentTransactionsTableBody = document.getElementById(
+      "recent-transactions-table-body"
+    );
+    recentTransactionsTableBody.innerHTML = ""; // Clear existing rows
+    recentTransactions.forEach((transaction) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${new Date(transaction.createdAt).toLocaleDateString()}</td>
+        <td>${transaction.customerName || "Walk-in"}</td>
+        <td>${formatCurrency(transaction.total)}</td>
+        <td>
+          <a href="/receipt/${
+            transaction._id
+          }" class="text-blue-500 hover:underline">View Receipt</a>
+        </td>
+      `;
+      recentTransactionsTableBody.appendChild(row);
+    });
+  } catch (error) {
+    console.error("Error loading recent transactions:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Load sales data when the dashboard is ready
+  loadSalesData();
+
+  // Add event listener for the "View Sales" button
+  const viewSalesButton = document.getElementById("view-sales-button");
+  if (viewSalesButton) {
+    viewSalesButton.addEventListener("click", () => {
+      // Load sales data when the button is clicked
+      loadSalesData();
+    });
+  }
+});

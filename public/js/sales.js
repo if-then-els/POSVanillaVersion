@@ -176,7 +176,7 @@ async function loadProductsForSale() {
   }
 }
 
-// Example function to process sale
+// After processing sale, fetch and show receipt
 async function processSale(cartItems, total, customerName, paymentMethod) {
   const items = cartItems.map((item) => ({
     productId: item._id,
@@ -191,11 +191,81 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
   });
 
   const data = await response.json();
-  if (response.ok) {
-    // Show success, clear cart, update UI, etc.
+  if (response.ok && data.sale && data.sale._id) {
+    // Fetch receipt details from backend
+    const receiptRes = await fetch(`/receipt/${data.sale._id}`);
+    const receiptData = await receiptRes.json();
+    if (receiptRes.ok && receiptData.sale) {
+      showReceipt(receiptData.sale);
+    }
+    return data;
   } else {
-    // Show error
+    throw new Error(data.message || "Sale failed");
   }
+}
+
+// Show receipt in a new window (already present, just ensure it's called with backend data)
+async function showReceipt(sale) {
+  // Fetch settings
+  const settingsRes = await fetch("/api/settings");
+  const settings = await settingsRes.json();
+
+  const receiptWindow = window.open("", "Receipt", "width=400,height=600");
+  receiptWindow.document.write(`
+    <html>
+      <head>
+        <title>Sales Receipt</title>
+        <style>
+          body { font-family: Arial; padding: 20px; }
+          h2 { text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          td, th { border-bottom: 1px solid #ddd; padding: 8px; }
+          .total { font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        ${
+          settings.showLogo && settings.logoUrl
+            ? `<img src="${settings.logoUrl}" style="max-width:120px;display:block;margin:0 auto 10px auto;">`
+            : ""
+        }
+        <h2>${settings.storeName || "Store Name"}</h2>
+        <div>${settings.storeAddress || ""}</div>
+        ${
+          settings.includeContact
+            ? `<div>${settings.storePhone || ""}</div><div>${
+                settings.storeEmail || ""
+              }</div>`
+            : ""
+        }
+        <hr>
+        <div>Date: ${new Date(sale.createdAt).toLocaleString()}</div>
+        <div>Customer: ${sale.customerName || "-"}</div>
+        <div>Payment: ${sale.paymentMethod}</div>
+        <table>
+          <tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+          ${sale.items
+            .map(
+              (item) =>
+                `<tr>
+                  <td>${item.productName}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price.toFixed(2)}</td>
+                  <td>${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>`
+            )
+            .join("")}
+        </table>
+        <div class="total">Total: ${
+          settings.currency || "$"
+        }${sale.total.toFixed(2)}</div>
+        <hr>
+        <div>${settings.footerText || "Thank you for your purchase!"}</div>
+        <button onclick="window.print()">Print</button>
+      </body>
+    </html>
+  `);
+  receiptWindow.document.close();
 }
 
 let cart = [];
@@ -432,4 +502,68 @@ function showToast(title, message, type = "info") {
   setTimeout(() => {
     toast.remove();
   }, 3000);
+}
+
+// Show receipt
+async function showReceipt(sale) {
+  // Fetch settings
+  const settingsRes = await fetch("/api/settings");
+  const settings = await settingsRes.json();
+
+  const receiptWindow = window.open("", "Receipt", "width=400,height=600");
+  receiptWindow.document.write(`
+    <html>
+      <head>
+        <title>Sales Receipt</title>
+        <style>
+          body { font-family: Arial; padding: 20px; }
+          h2 { text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          td, th { border-bottom: 1px solid #ddd; padding: 8px; }
+          .total { font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        ${
+          settings.showLogo && settings.logoUrl
+            ? `<img src="${settings.logoUrl}" style="max-width:120px;display:block;margin:0 auto 10px auto;">`
+            : ""
+        }
+        <h2>${settings.storeName || "Store Name"}</h2>
+        <div>${settings.storeAddress || ""}</div>
+        ${
+          settings.includeContact
+            ? `<div>${settings.storePhone || ""}</div><div>${
+                settings.storeEmail || ""
+              }</div>`
+            : ""
+        }
+        <hr>
+        <div>Date: ${new Date(sale.createdAt).toLocaleString()}</div>
+        <div>Customer: ${sale.customerName || "-"}</div>
+        <div>Payment: ${sale.paymentMethod}</div>
+        <table>
+          <tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+          ${sale.items
+            .map(
+              (item) =>
+                `<tr>
+                  <td>${item.productName}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price.toFixed(2)}</td>
+                  <td>${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>`
+            )
+            .join("")}
+        </table>
+        <div class="total">Total: ${
+          settings.currency || "$"
+        }${sale.total.toFixed(2)}</div>
+        <hr>
+        <div>${settings.footerText || "Thank you for your purchase!"}</div>
+        <button onclick="window.print()">Print</button>
+      </body>
+    </html>
+  `);
+  receiptWindow.document.close();
 }

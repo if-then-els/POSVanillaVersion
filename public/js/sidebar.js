@@ -6,12 +6,6 @@
 function loadSidebar() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
-
-  // Get current page path
-  const currentPath = window.location.pathname;
-  const pageName = currentPath.split("/").pop();
-
-  // Sidebar HTML content
   sidebar.innerHTML = `
     <div class="flex h-16 items-center justify-between border-b px-4">
       <h1 class="text-xl font-bold">POS System</h1>
@@ -23,7 +17,9 @@ function loadSidebar() {
       <ul class="space-y-2">
         <li>
           <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            pageName === "dashboard.html" ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("dashboard.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-home w-5"></i>
             <span>Dashboard</span>
@@ -31,7 +27,7 @@ function loadSidebar() {
         </li>
         <li>
           <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            pageName === "sales.html" ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("sales.html") ? "bg-gray-100" : ""
           }">
             <i class="fas fa-shopping-cart w-5"></i>
             <span>Sales</span>
@@ -39,7 +35,9 @@ function loadSidebar() {
         </li>
         <li>
           <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            pageName === "inventory.html" ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("inventory.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-box w-5"></i>
             <span>Inventory</span>
@@ -47,15 +45,19 @@ function loadSidebar() {
         </li>
         <li>
           <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            pageName === "reports.html" ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("reports.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-chart-bar w-5"></i>
             <span>Reports</span>
           </a>
         </li>
         <li>
-          <a href="./setting.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            pageName === "settings.html" ? "bg-gray-100" : ""
+          <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+            window.location.pathname.endsWith("settings.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-cog w-5"></i>
             <span>Settings</span>
@@ -85,17 +87,6 @@ function loadSidebar() {
   }
   updateUserInfo();
 
-  // Add event listener to toggle sidebar
-  const toggleSidebarBtn = document.getElementById("toggle-sidebar");
-  const mainContent = document.getElementById("main-content");
-
-  if (toggleSidebarBtn && mainContent) {
-    toggleSidebarBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("open");
-      mainContent.classList.toggle("sidebar-open");
-    });
-  }
-
   // Add event listener to logout button
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
@@ -106,6 +97,20 @@ function loadSidebar() {
     logoutBtn.addEventListener("click", logout);
   }
 }
+
+// Sidebar toggle functionality
+document.addEventListener("DOMContentLoaded", function () {
+  const toggleSidebarBtn = document.getElementById("toggle-sidebar");
+  const sidebar = document.getElementById("sidebar");
+  const mainContent = document.getElementById("main-content");
+
+  if (toggleSidebarBtn && sidebar && mainContent) {
+    toggleSidebarBtn.addEventListener("click", function () {
+      sidebar.classList.toggle("open");
+      mainContent.classList.toggle("sidebar-open");
+    });
+  }
+});
 
 // Initialize sidebar when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {

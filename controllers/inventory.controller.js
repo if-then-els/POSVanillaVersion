@@ -8,6 +8,7 @@ const fs = require("fs");
 
 exports.addStock = async (req, res) => {
   try {
+    const business = req.business; // from JWT middleware
     const {
       productName,
       productPrice,
@@ -26,7 +27,10 @@ exports.addStock = async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const existingProduct = await Inventory.findOne({ productBatchNumber });
+    const existingProduct = await Inventory.findOne({
+      productBatchNumber,
+      business,
+    });
     if (existingProduct) {
       return res.status(400).json({ message: "Product Batch already exists" });
     }
@@ -37,6 +41,7 @@ exports.addStock = async (req, res) => {
       productDescription,
       productCategory,
       productBatchNumber,
+      business,
     });
     await newProduct.save();
     return res
@@ -87,7 +92,11 @@ exports.addStockByCsv = async (req, res) => {
 };
 exports.getAllInventory = async (req, res) => {
   try {
-    const products = await Inventory.find();
+    const { business } = req.query; // or from req.user if using JWT
+    if (!business) {
+      return res.status(400).json({ message: "Business ID required" });
+    }
+    const products = await Inventory.find({ business });
     if (products.length === 0) {
       return res.status(404).json({ message: "No products found" });
     }

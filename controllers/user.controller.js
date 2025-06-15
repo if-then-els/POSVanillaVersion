@@ -5,13 +5,17 @@ const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password, role, phone } = req.body;
-    if ((!username, !email, !role, !password, !role, !phone)) {
+    const { username, email, password, role, phone, business } = req.body;
+    if (!username || !email || !role || !password || !phone || !business) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const existingUser = await Users.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
+    const businessExists = await Business.findById(business);
+    if (!businessExists) {
+      return res.status(400).json({ message: "Business not found" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new Users({
@@ -20,11 +24,19 @@ exports.registerUser = async (req, res) => {
       password: hashedPassword,
       role,
       phone,
+      business,
     });
     await newUser.save();
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Optionally add user to business.users array
+    businessExists.users.push(newUser._id);
+    await businessExists.save();
+    const token = jwt.sign(
+      { id: newUser._id, business },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
     res.status(201).json({
       message: "User registered successfully",
       user: {
@@ -33,6 +45,7 @@ exports.registerUser = async (req, res) => {
         email: newUser.email,
         role: newUser.role,
         phone: newUser.phone,
+        business: newUser.business,
       },
       token,
     });
@@ -44,6 +57,7 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
+    console.log("request received is  :", req.body);
     const { userName, password, businessName } = req.body;
     if (!userName || !password || !businessName) {
       return res.status(400).json({ message: "All fields are required" });
