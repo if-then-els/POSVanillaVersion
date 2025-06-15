@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return data;
       } catch (error) {
         console.error("Error during Login", error);
-        showLoginError(error);
+        showLoginError("An error occurred during login. Please try again.");
       }
     }
 
