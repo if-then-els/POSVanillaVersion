@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     login().then((data) => {
       if (data && data.message === "Login successful") {
-        window.location.href = "/dashboard";
+        window.location.href = "/dashboard.html";
       } else {
         showLoginError(data.message || "Invalid username or password");
       }

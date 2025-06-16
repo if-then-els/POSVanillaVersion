@@ -1,6 +1,6 @@
 const BusinessDetails = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
-const Users = require("../models/users");
+const Users = require("../models/user");
 
 exports.registerBusiness = async (req, res) => {
   try {

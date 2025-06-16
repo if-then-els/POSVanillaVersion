@@ -546,9 +546,7 @@
                     />
                   </div>
                   <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">
-                      Sarah Johnson
-                    </p>
+                    <p class="text-sm font-medium text-gray-900">Sarah Njeri</p>
                     <p class="text-sm text-gray-500">
                       Owner, Urban Trends Boutique
                     </p>
@@ -589,9 +587,9 @@
                   </div>
                   <div class="ml-3">
                     <p class="text-sm font-medium text-gray-900">
-                      Michael Chen
+                      Michael Mugendi
                     </p>
-                    <p class="text-sm text-gray-500">Manager, Bistro 42</p>
+                    <p class="text-sm text-gray-500">Manager, Bistro Chemist</p>
                   </div>
                 </div>
               </div>
@@ -629,9 +627,9 @@
                   </div>
                   <div class="ml-3">
                     <p class="text-sm font-medium text-gray-900">
-                      David Wilson
+                      David Mwangi
                     </p>
-                    <p class="text-sm text-gray-500">Owner, Bean There Cafe</p>
+                    <p class="text-sm text-gray-500">Owner, Delicacy Cafe</p>
                   </div>
                 </div>
               </div>
@@ -649,17 +647,22 @@
             Start your free trial
           </h2>
           <p class="mt-2 text-sm text-gray-600">
-            No credit card required. 14-day free trial.
+            No credit card required. 30-day free trial.
           </p>
         </div>
-        <form class="mt-8 space-y-6" action="#" method="POST">
+        <form
+          id="business-register-form"
+          class="mt-8 space-y-6"
+          action="#"
+          method="POST"
+        >
           <input type="hidden" name="remember" value="true" />
           <div class="rounded-md shadow-sm -space-y-px">
             <div>
-              <label for="business-name" class="sr-only">Business Name</label>
+              <label for="businessName" class="sr-only">Business Name</label>
               <input
-                id="business-name"
-                name="business-name"
+                id="businessName"
+                name="businessName"
                 type="text"
                 required
                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
@@ -667,15 +670,38 @@
               />
             </div>
             <div>
-              <label for="email-address" class="sr-only">Email address</label>
+              <label for="businessLocation" class="sr-only"
+                >Business Location</label
+              >
               <input
-                id="email-address"
-                name="email"
-                type="email"
-                autocomplete="email"
+                id="businessLocation"
+                name="businessLocation"
+                type="text"
                 required
                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder="Business Location"
+              />
+            </div>
+            <div>
+              <label for="businessPhone" class="sr-only">Business Phone</label>
+              <input
+                id="businessPhone"
+                name="businessPhone"
+                type="tel"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Business Phone"
+              />
+            </div>
+            <div>
+              <label for="businessEmail" class="sr-only">Business Email</label>
+              <input
+                id="businessEmail"
+                name="businessEmail"
+                type="email"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Business Email"
               />
             </div>
             <div>
@@ -684,72 +710,64 @@
                 id="password"
                 name="password"
                 type="password"
-                autocomplete="current-password"
                 required
                 class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
             </div>
             <div>
-              <label for="phone" class="sr-only">Phone Number</label>
+              <label for="businessRegistrationNumber" class="sr-only"
+                >Business Registration Number</label
+              >
               <input
-                id="phone"
-                name="phone"
+                id="businessRegistrationNumber"
+                name="businessRegistrationNumber"
+                type="text"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Business Registration Number"
+              />
+            </div>
+            <div>
+              <label for="adminUsername" class="sr-only">Admin Username</label>
+              <input
+                id="adminUsername"
+                name="adminUsername"
+                type="text"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Admin Username"
+              />
+            </div>
+            <div>
+              <label for="adminEmail" class="sr-only">Admin Email</label>
+              <input
+                id="adminEmail"
+                name="adminEmail"
+                type="email"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Admin Email"
+              />
+            </div>
+            <div>
+              <label for="adminPhone" class="sr-only">Admin Phone</label>
+              <input
+                id="adminPhone"
+                name="adminPhone"
                 type="tel"
-                autocomplete="tel"
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Phone Number (optional)"
+                required
+                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                placeholder="Admin Phone"
               />
             </div>
           </div>
-
-          <div>
-            <label for="plan" class="block text-sm font-medium text-gray-700"
-              >Select Plan</label
-            >
-            <select
-              id="plan"
-              name="plan"
-              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-            >
-              <option value="starter">Starter - $29/month</option>
-              <option value="business" selected>Business - $79/month</option>
-              <option value="enterprise">Enterprise - $199/month</option>
-            </select>
-          </div>
-
-          <div class="flex items-center">
-            <input
-              id="terms"
-              name="terms"
-              type="checkbox"
-              class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-            />
-            <label for="terms" class="ml-2 block text-sm text-gray-900">
-              I agree to the
-              <a href="#" class="text-primary hover:text-indigo-700"
-                >Terms of Service</a
-              >
-              and
-              <a href="#" class="text-primary hover:text-indigo-700"
-                >Privacy Policy</a
-              >
-            </label>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                <i
-                  class="fas fa-lock text-indigo-300 group-hover:text-indigo-400"
-                ></i>
-              </span>
-              Create Account
-            </button>
-          </div>
+          <button
+            type="submit"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Register Business
+          </button>
         </form>
       </div>
     </div>
@@ -1115,7 +1133,7 @@
         </div>
       </div>
     </div>
-
+    <script src="js/registration.js"></script>
     <script>
       // Simple mobile menu toggle
       document.addEventListener("DOMContentLoaded", function () {
