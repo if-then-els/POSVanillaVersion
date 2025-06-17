@@ -5,8 +5,8 @@ const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password, role, phone, business } = req.body;
-    if (!username || !email || !role || !password || !phone || !business) {
+    const { email, password, role, phone, business } = req.body;
+    if (!email || !email || !role || !password || !phone || !business) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const existingUser = await Users.findOne({ email });
@@ -19,7 +19,7 @@ exports.registerUser = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new Users({
-      username,
+      userName,
       email,
       password: hashedPassword,
       role,
@@ -41,7 +41,7 @@ exports.registerUser = async (req, res) => {
       message: "User registered successfully",
       user: {
         id: newUser._id,
-        username: newUser.username,
+        userName: newUser.UserName,
         email: newUser.email,
         role: newUser.role,
         phone: newUser.phone,
@@ -58,17 +58,42 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     console.log("request received is  :", req.body);
-    const { userName, password, businessName } = req.body;
-    if (!userName || !password || !businessName) {
+    const { email, password, businessName } = req.body;
+
+    if (!email || !password || !businessName) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await Users.findOne({ userName });
-    const business = await Business.findOne({ businessName });
+    const user = await Users.findOne({ email });
+    // console.log("user is :", user);
+    const business = await Business.findById(user.business);
+    // console.log("Business is  :", business);
     if (!user && !business) {
       return res
         .status(400)
         .json({ message: "User or business not found,check your credentials" });
     }
+    if (business.businessName !== businessName) {
+      return res.status(400).json({ message: "Business name does not match" });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+    const token = jwt.sign(
+      { id: user._id, business: user.business },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+    console.log("token is :", token);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Set to true in production
+      sameSite: "Strict",
+    });
+
     return res
       .status(200)
       .json({ message: "Login successful", user, business });

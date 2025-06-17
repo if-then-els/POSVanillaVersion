@@ -15,7 +15,6 @@ const port = 5000;
 dotenv.config();
 
 //configure mongoose
-console.log(process.env.MONGO_URL);
 mongoose
   .connect(process.env.MONGO_URL, {})
   .then(() => {

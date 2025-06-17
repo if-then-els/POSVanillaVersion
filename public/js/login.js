@@ -7,19 +7,19 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
 
     // Get form values
-    const username = document.getElementById("username").value;
+    const email = document.getElementById("username").value;
     const password = document.getElementById("password").value;
     const businessName = document.getElementById("businessName").value;
 
     // Validate form
-    if (!username || !password || !businessName) {
+    if (!email || !password || !businessName) {
       showLoginError("Please enter both username and password");
       return;
     }
 
     // Send login request
     const loginData = {
-      userName: username,
+      email: email,
       password: password,
       businessName: businessName,
     };
