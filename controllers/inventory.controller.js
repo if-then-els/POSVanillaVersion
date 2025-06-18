@@ -9,6 +9,7 @@ const fs = require("fs");
 exports.addStock = async (req, res) => {
   try {
     const business = req.business; // from JWT middleware
+    console.log("Business ID from request:", business);
     const {
       productName,
       productPrice,

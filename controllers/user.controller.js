@@ -86,7 +86,7 @@ exports.loginUser = async (req, res) => {
         expiresIn: "1h",
       }
     );
-    console.log("token is :", token);
+    //console.log("token is :", token);
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -100,5 +100,36 @@ exports.loginUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });
+  }
+};
+
+//verification for jwt
+exports.verifyAuth = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    console.log("this is the Token: ", token);
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ message: "No token, authorization denied" });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: "Token is not valid" });
+      }
+      // If token is valid, you can optionally attach user info to req for further use
+      req.user = user; // Contains { id: user._id, business: user.business }
+      return res.status(200).json({
+        message: "Authenticated",
+        user: { id: user.id, business: user.business },
+      });
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "Server error during token verification" });
   }
 };

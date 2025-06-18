@@ -2,62 +2,12 @@
  * Inventory management functionality for POS System
  */
 
-// Mock product data
-let mockProducts = [
-  {
-    id: 1,
-    name: "Product A",
-    description: "Description for Product A",
-    sku: "SKU001",
-    price: 49.99,
-    quantity: 25,
-    image: "../assets/images/placeholder.png",
-  },
-  {
-    id: 2,
-    name: "Product B",
-    description: "Description for Product B",
-    sku: "SKU002",
-    price: 29.99,
-    quantity: 42,
-    image: "../assets/images/placeholder.png",
-  },
-  {
-    id: 3,
-    name: "Product C",
-    description: "Description for Product C",
-    sku: "SKU003",
-    price: 19.99,
-    quantity: 8,
-    image: "../assets/images/placeholder.png",
-  },
-  {
-    id: 4,
-    name: "Product D",
-    description: "Description for Product D",
-    sku: "SKU004",
-    price: 59.99,
-    quantity: 15,
-    image: "../assets/images/placeholder.png",
-  },
-  {
-    id: 5,
-    name: "Product E",
-    description: "Description for Product E",
-    sku: "SKU005",
-    price: 39.99,
-    quantity: 5,
-    image: "../assets/images/placeholder.png",
-  },
-];
-
 // Current product being edited
 let currentProduct = null;
-
 // Global variable to hold products fetched from backend
 let products = [];
 
-// Helper functions for localStorage (you might want to move these to a separate module)
+// --- Helper functions for localStorage ---
 function getLocalStorage(key) {
   try {
     const serializedValue = localStorage.getItem(key);
@@ -80,15 +30,15 @@ function setLocalStorage(key, value) {
   }
 }
 
-// Helper function to format currency
+// --- Helper function to format currency ---
 function formatCurrency(number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "KES",
+    currency: "KES", // Kenya Shillings
   }).format(number);
 }
 
-// Helper function to show toast messages
+// --- Helper function to show toast messages ---
 function showToast(title, message, type = "success") {
   // Implement your toast notification logic here.
   // This is a placeholder. You'll likely use a library or custom implementation.
@@ -97,7 +47,7 @@ function showToast(title, message, type = "success") {
   alert(`${title}: ${message}`);
 }
 
-// Load products data from backend
+// --- Load products data from backend and render tables ---
 async function loadProducts() {
   try {
     const response = await fetch("/getInventory", {
@@ -151,57 +101,48 @@ async function loadProducts() {
     if (filteredProducts.length === 0) {
       productsTable.innerHTML = `
         <tr>
-          <td colspan="6" class="px-6 py-4 text-center text-gray-500">No products found</td>
+          <td colspan="7" class="px-6 py-4 text-center text-gray-500">No products found</td>
         </tr>
       `;
     } else {
       productsTable.innerHTML = filteredProducts
         .map(
           (product) => `
-    <tr class="hover:bg-gray-50">
-      <td class="px-6 py-4">
-        <input type="checkbox" class="product-checkbox" data-id="${
-          product._id
-        }" />
-      </td>
-      <td class="px-6 py-4">
-        <img src="../assets/images/placeholder.png" alt="${
-          product.productName
-        }" class="h-10 w-10 rounded-md object-cover">
-      </td>
-      <td class="px-6 py-4">${product.productName}</td>
-      <td class="px-6 py-4">${product.productBatchNumber}</td>
-      <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
-      <td class="px-6 py-4 ${
-        product.productQuantity < 10 ? "text-red-500 font-medium" : ""
-      }">${product.productQuantity}</td>
-      <td class="px-6 py-4">
-        <div class="flex space-x-2">
-          <button class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100" data-id="${
-            product._id
-          }" title="Edit">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" data-id="${
-            product._id
-          }" title="Delete">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </td>
-    </tr>
-  `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+              <input type="checkbox" class="product-checkbox" data-id="${
+                product._id
+              }" />
+            </td>
+            <td class="px-6 py-4">
+              <img src="../assets/images/placeholder.png" alt="${
+                product.productName
+              }" class="h-10 w-10 rounded-md object-cover">
+            </td>
+            <td class="px-6 py-4">${product.productName}</td>
+            <td class="px-6 py-4">${product.productBatchNumber}</td>
+            <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
+            <td class="px-6 py-4 ${
+              product.productQuantity < 10 ? "text-red-500 font-medium" : ""
+            }">${product.productQuantity}</td>
+            <td class="px-6 py-4">
+              <div class="flex space-x-2">
+                <button class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100" data-id="${
+                  product._id
+                }" title="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" data-id="${
+                  product._id
+                }" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `
         )
         .join("");
-
-      // Add event listeners to edit and delete buttons
-      document.querySelectorAll(".edit-product-btn").forEach((button) => {
-        button.addEventListener("click", handleEditProduct);
-      });
-
-      document.querySelectorAll(".delete-product-btn").forEach((button) => {
-        button.addEventListener("click", handleDeleteProduct);
-      });
     }
   }
 
@@ -218,71 +159,71 @@ async function loadProducts() {
       lowStockTable.innerHTML = lowStockProducts
         .map(
           (product) => `
-        <tr class="hover:bg-gray-50">
-          <td class="px-6 py-4">
-            <img src="../assets/images/placeholder.png" alt="${
-              product.productName
-            }" class="h-10 w-10 rounded-md object-cover">
-          </td>
-          <td class="px-6 py-4">${product.productName}</td>
-          <td class="px-6 py-4">${product.productBatchNumber}</td>
-          <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
-          <td class="px-6 py-4 text-red-500 font-medium">${
-            product.productQuantity
-          }</td>
-          <td class="px-6 py-4">
-            <div class="flex space-x-2">
-              <button 
-                class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100" 
-                data-id="${product._id}"
-                title="Edit"
-              >
-                <i class="fas fa-edit"></i>
-              </button>
-              <button 
-                class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" 
-                data-id="${product._id}"
-                title="Delete"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+              <img src="../assets/images/placeholder.png" alt="${
+                product.productName
+              }" class="h-10 w-10 rounded-md object-cover">
+            </td>
+            <td class="px-6 py-4">${product.productName}</td>
+            <td class="px-6 py-4">${product.productBatchNumber}</td>
+            <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
+            <td class="px-6 py-4 text-red-500 font-medium">${
+              product.productQuantity
+            }</td>
+            <td class="px-6 py-4">
+              <div class="flex space-x-2">
+                <button class="edit-product-btn p-1 rounded-md text-gray-500 hover:bg-gray-100" data-id="${
+                  product._id
+                }" title="Edit" >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="delete-product-btn p-1 rounded-md text-red-500 hover:bg-red-50" data-id="${
+                  product._id
+                }" title="Delete" >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `
         )
         .join("");
-
-      document.querySelectorAll(".edit-product-btn").forEach((button) => {
-        button.addEventListener("click", handleEditProduct);
-      });
-
-      document.querySelectorAll(".delete-product-btn").forEach((button) => {
-        button.addEventListener("click", handleDeleteProduct);
-      });
     }
   }
 }
 
-// Handle add product button click
+// --- Event delegation handler for product tables ---
+function handleProductTableClick(event) {
+  const target = event.target.closest("button"); // Get the closest button ancestor
+
+  if (!target) return; // Not a button click
+
+  if (target.classList.contains("edit-product-btn")) {
+    handleEditProduct(target); // Pass the button element itself
+  } else if (target.classList.contains("delete-product-btn")) {
+    handleDeleteProduct(target); // Pass the button element itself
+  }
+}
+
+// --- Handle add product button click ---
 function handleAddProduct() {
   // Reset form
   document.getElementById("product-form").reset();
   document.getElementById("form-error").classList.add("hidden");
+  document.getElementById("form-error").textContent = ""; // Clear previous error messages
 
   // Set modal title
   document.getElementById("modal-title").textContent = "Add Product";
-
   // Clear current product
   currentProduct = null;
-
   // Show modal
   document.getElementById("product-modal").classList.remove("hidden");
 }
 
-// Handle edit product button click
-function handleEditProduct(event) {
-  const productId = event.currentTarget.dataset.id;
+// --- Handle edit product button click ---
+function handleEditProduct(buttonElement) {
+  const productId = buttonElement.dataset.id;
   currentProduct = products.find((product) => product._id === productId);
 
   if (currentProduct) {
@@ -300,13 +241,15 @@ function handleEditProduct(event) {
 
     document.getElementById("modal-title").textContent = "Edit Product";
     document.getElementById("form-error").classList.add("hidden");
+    document.getElementById("form-error").textContent = ""; // Clear previous error messages
+
     document.getElementById("product-modal").classList.remove("hidden");
   }
 }
 
-// Handle delete product button click
-function handleDeleteProduct(event) {
-  const productId = event.currentTarget.dataset.id;
+// --- Handle delete product button click ---
+function handleDeleteProduct(buttonElement) {
+  const productId = buttonElement.dataset.id;
   currentProduct = products.find((product) => product._id === productId);
 
   if (currentProduct) {
@@ -317,7 +260,7 @@ function handleDeleteProduct(event) {
   }
 }
 
-// Handle delete confirmation
+// --- Handle delete confirmation ---
 async function handleDeleteConfirmation() {
   if (currentProduct) {
     try {
@@ -328,6 +271,7 @@ async function handleDeleteConfirmation() {
         },
       });
       const data = await response.json();
+
       if (response.ok) {
         showToast(
           "Product Deleted",
@@ -335,17 +279,22 @@ async function handleDeleteConfirmation() {
           "success"
         );
         document.getElementById("delete-modal").classList.add("hidden");
-        loadProducts();
+        loadProducts(); // Reload products after deletion
       } else {
         showToast("Error", data.message || "Failed to delete product", "error");
       }
     } catch (error) {
-      showToast("Error", "Failed to delete product", "error");
+      showToast(
+        "Error",
+        "Failed to delete product due to a network error.",
+        "error"
+      );
+      console.error("Delete product error:", error);
     }
   }
 }
 
-// Handle product form submission
+// --- Handle product form submission ---
 async function handleProductFormSubmit(event) {
   event.preventDefault();
 
@@ -365,7 +314,43 @@ async function handleProductFormSubmit(event) {
     productCategory: document.getElementById("product-category").value.trim(),
   };
 
-  // Validation (add as needed)
+  // Client-side Validation
+  const formError = document.getElementById("form-error");
+  formError.classList.add("hidden"); // Hide previous errors
+  formError.textContent = "";
+
+  if (!productData.productName) {
+    formError.textContent = "Product Name is required.";
+    formError.classList.remove("hidden");
+    showToast("Validation Error", "Product Name is required.", "error");
+    return;
+  }
+  if (!productData.productBatchNumber) {
+    formError.textContent = "Product Batch Number (SKU) is required.";
+    formError.classList.remove("hidden");
+    showToast(
+      "Validation Error",
+      "Product Batch Number (SKU) is required.",
+      "error"
+    );
+    return;
+  }
+  if (isNaN(productData.productPrice) || productData.productPrice <= 0) {
+    formError.textContent = "Price must be a positive number.";
+    formError.classList.remove("hidden");
+    showToast("Validation Error", "Price must be a positive number.", "error");
+    return;
+  }
+  if (isNaN(productData.productQuantity) || productData.productQuantity < 0) {
+    formError.textContent = "Quantity must be a non-negative integer.";
+    formError.classList.remove("hidden");
+    showToast(
+      "Validation Error",
+      "Quantity must be a non-negative integer.",
+      "error"
+    );
+    return;
+  }
 
   try {
     let response, data;
@@ -373,10 +358,13 @@ async function handleProductFormSubmit(event) {
       // Edit
       response = await fetch(`/updateInventory/${currentProduct._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(productData),
       });
       data = await response.json();
+
       if (response.ok) {
         showToast(
           "Product Updated",
@@ -385,22 +373,85 @@ async function handleProductFormSubmit(event) {
         );
       } else {
         showToast("Error", data.message || "Failed to update product", "error");
-        return;
+        return; // Stop if update fails
       }
     } else {
-      // Add (implement as needed)
+      // Add product
+      const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
+      response = await fetch("/addInventory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}), // Add Authorization header if token exists
+        },
+        body: JSON.stringify(productData),
+      });
+      data = await response.json();
+
+      if (response.ok) {
+        showToast(
+          "Product Added",
+          `${productData.productName} has been added to inventory`,
+          "success"
+        );
+      } else {
+        showToast("Error", data.message || "Failed to add product", "error");
+        return; // Stop if add fails
+      }
     }
+
     document.getElementById("product-modal").classList.add("hidden");
-    loadProducts();
+    loadProducts(); // Reload products after successful add/edit
   } catch (error) {
-    showToast("Error", "Failed to save product", "error");
+    showToast(
+      "Error",
+      "An unexpected error occurred during product saving.",
+      "error"
+    );
+    console.error("Product form submission error:", error);
   }
 }
 
-// Mock functions for checkAuth and debounce
-function checkAuth() {
-  // Replace with your actual authentication logic
-  return true; // Assume user is always authenticated for this example
+//authenticate Token
+async function checkAuth() {
+  try {
+    const response = await fetch("/verifyAuth", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      console.log("User is authenticated.");
+      return true;
+    } else {
+      const errorData = await response.json();
+      console.warn(
+        "Authentication failed:",
+        errorData.message || response.statusText
+      );
+
+      window.location.href = "/login.html";
+      return false;
+    }
+  } catch (error) {
+    console.error("Error during authentication check:", error);
+    showToast(
+      "Authentication Error",
+      "Could not verify login status. Please try again.",
+      "error"
+    );
+
+    window.location.href = "/login.html";
+    return false;
+  }
 }
 
 function debounce(func, delay) {
@@ -411,12 +462,20 @@ function debounce(func, delay) {
   };
 }
 
-// Initialize inventory page when DOM is loaded
+// --- Initialize inventory page when DOM is loaded ---
 document.addEventListener("DOMContentLoaded", () => {
   // Check if user is authenticated
-  if (!checkAuth()) return;
+  if (!checkAuth()) {
+    // Optionally display a message or redirect if not authenticated
+    showToast(
+      "Authentication Required",
+      "Please log in to view inventory.",
+      "info"
+    );
+    return;
+  }
 
-  // Load products
+  // Load products initially
   loadProducts();
 
   // Add event listener to search input
@@ -440,6 +499,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const productForm = document.getElementById("product-form");
   if (productForm) {
     productForm.addEventListener("submit", handleProductFormSubmit);
+  }
+
+  // Add event listener to product table for event delegation
+  const productsTableBody = document.getElementById("products-table");
+  if (productsTableBody) {
+    productsTableBody.addEventListener("click", handleProductTableClick);
+  }
+  const lowStockTableBody = document.getElementById("low-stock-table");
+  if (lowStockTableBody) {
+    lowStockTableBody.addEventListener("click", handleProductTableClick);
   }
 
   // Add event listener to modal cancel button
@@ -480,10 +549,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Handle tab switching
+  // --- Handle tab switching ---
   const tabButtons = document.querySelectorAll(".tab-button");
   const tabContents = document.querySelectorAll(".tab-content");
-
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       // Remove active class from all buttons
@@ -491,23 +559,20 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.classList.remove("active", "border-primary", "text-primary");
         btn.classList.add("text-gray-500");
       });
-
       // Add active class to clicked button
       button.classList.add("active", "border-primary", "text-primary");
       button.classList.remove("text-gray-500");
-
       // Hide all tab contents
       tabContents.forEach((content) => {
         content.classList.add("hidden");
       });
-
       // Show the selected tab content
       const contentId = button.id.replace("tab-", "") + "-content";
       document.getElementById(contentId).classList.remove("hidden");
     });
   });
 
-  // Bulk delete functionality
+  // --- Bulk delete functionality ---
   document.getElementById("bulk-delete-btn")?.addEventListener("click", () => {
     const selectedIds = Array.from(
       document.querySelectorAll(".product-checkbox:checked")
@@ -516,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedIds.length === 0) {
       return showToast(
         "No products selected",
-        "Please select products to delete",
+        "Please select products to delete.",
         "info"
       );
     }
@@ -531,28 +596,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetch("/bulkDelete", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: selectedIds }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ids: selectedIds,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
           showToast(
             "Products Deleted",
-            "Selected products have been removed from inventory",
+            "Selected products have been removed from inventory.",
             "success"
           );
-          loadProducts();
+          loadProducts(); // Reload products after bulk deletion
         } else {
           showToast(
             "Error",
-            data.message || "Failed to delete products",
+            data.message || "Failed to delete products.",
             "error"
           );
         }
       })
       .catch((error) => {
-        showToast("Error", "Failed to delete products", "error");
+        showToast(
+          "Error",
+          "Failed to delete products due to a network error.",
+          "error"
+        );
+        console.error("Bulk delete error:", error);
       });
   });
 
@@ -565,34 +639,34 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-  // Upload CSV
+  // --- Upload CSV ---
   document.getElementById("upload-csv-btn")?.addEventListener("click", () => {
     const fileInput = document.getElementById("inventory-file-input");
     fileInput.accept = ".csv";
     fileInput.onchange = async function () {
       if (fileInput.files.length > 0) {
         await uploadInventoryFile(fileInput.files[0], "csv");
-        fileInput.value = "";
+        fileInput.value = ""; // Clear the file input
       }
     };
     fileInput.click();
   });
 
-  // Upload Excel
+  // --- Upload Excel ---
   document.getElementById("upload-excel-btn")?.addEventListener("click", () => {
     const fileInput = document.getElementById("inventory-file-input");
     fileInput.accept = ".xlsx";
     fileInput.onchange = async function () {
       if (fileInput.files.length > 0) {
         await uploadInventoryFile(fileInput.files[0], "excel");
-        fileInput.value = "";
+        fileInput.value = ""; // Clear the file input
       }
     };
     fileInput.click();
   });
 });
 
-// Helper function to upload inventory file
+// --- Helper function to upload inventory file ---
 async function uploadInventoryFile(file, type) {
   const formData = new FormData();
   if (type === "csv") {
@@ -600,7 +674,7 @@ async function uploadInventoryFile(file, type) {
   } else if (type === "excel") {
     formData.append("productFile", file);
   } else {
-    showToast("Error", "Unsupported file type", "error");
+    showToast("Error", "Unsupported file type selected.", "error");
     return;
   }
 
@@ -611,23 +685,40 @@ async function uploadInventoryFile(file, type) {
       body: formData,
     });
     const data = await response.json();
+
     if (response.ok) {
-      showToast("Success", data.message || "Inventory uploaded", "success");
-      loadProducts();
+      showToast(
+        "Success",
+        data.message || "Inventory uploaded successfully!",
+        "success"
+      );
+      loadProducts(); // Reload products after upload
     } else {
-      showToast("Error", data.message || "Failed to upload inventory", "error");
+      showToast(
+        "Error",
+        data.message || "Failed to upload inventory.",
+        "error"
+      );
     }
   } catch (error) {
-    showToast("Error", "Failed to upload inventory", "error");
+    showToast(
+      "Error",
+      "Failed to upload inventory due to a network error.",
+      "error"
+    );
+    console.error("Upload inventory file error:", error);
   }
 }
 
+// --- Function to export inventory ---
 function exportInventory(type) {
   let url = "";
   if (type === "csv") url = "/export/csv";
   else if (type === "excel") url = "/export/excel";
   else if (type === "pdf") url = "/downloadInventory";
-  else return;
-
+  else {
+    showToast("Error", "Unsupported export type.", "error");
+    return;
+  }
   window.open(url, "_blank");
 }
