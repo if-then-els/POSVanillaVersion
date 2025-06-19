@@ -1,10 +1,12 @@
 const Sale = require("../models/sale");
 const Inventory = require("../models/inventory");
 const Settings = require("../models/settings");
+const mongoose = require("mongoose");
 
 exports.processSale = async (req, res) => {
   try {
-    const { items, total, customerName, paymentMethod, business } = req.body;
+    const business = req.user.business;
+    const { items, total, customerName, paymentMethod } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0 || !business) {
       return res
         .status(400)
@@ -13,7 +15,7 @@ exports.processSale = async (req, res) => {
 
     // Check and update inventory
     for (const item of items) {
-      const product = await Inventory.findById(item.productId);
+      const product = await Inventory.findById(item.productId, item.business);
       if (!product) {
         return res
           .status(404)
@@ -47,7 +49,7 @@ exports.processSale = async (req, res) => {
 
 exports.getSales = async (req, res) => {
   try {
-    const { business } = req.query;
+    const business = req.user.business;
     if (!business) {
       return res.status(400).json({ message: "Business ID required" });
     }
@@ -94,26 +96,52 @@ exports.getReceipt = async (req, res) => {
 
 exports.getTotalSalesAmount = async (req, res) => {
   try {
+    const businessIdString = req.user.business;
+    // console.log("1. Business ID from token (string):", businessIdString);
+
+    if (!businessIdString) {
+      return res.status(400).json({
+        message: "Business ID not found in token. Authorization required.",
+      });
+    }
+
+    let businessObjectId;
+    try {
+      businessObjectId = new mongoose.Types.ObjectId(businessIdString);
+      //console.log("1a. Business ID converted to ObjectId:", businessObjectId);
+    } catch (err) {
+      // console.error("Error converting business ID to ObjectId:", err);
+      return res.status(400).json({ message: "Invalid business ID format." });
+    }
+
+    const testSales = await Sale.find({ business: businessObjectId }).limit(1);
+
+    // Perform the aggregation with the explicitly converted ObjectId
     const totalSales = await Sale.aggregate([
+      { $match: { business: businessObjectId } }, // Use the converted ObjectId for matching
       {
         $group: {
           _id: null,
-          totalAmount: { $sum: "$total" },
+          totalAmount: { $sum: "$total" }, // Keep "$total" as confirmed in your document example
         },
       },
     ]);
 
     const totalAmount = totalSales.length > 0 ? totalSales[0].totalAmount : 0;
+    // console.log("3. Aggregation Result:", JSON.stringify(totalSales, null, 2)); // Use JSON.stringify for aggregation result
+    //console.log("4. Final Total Sales Amount:", totalAmount);
+
     res.status(200).json({ totalAmount });
   } catch (error) {
-    console.error("Error fetching total sales amount: ", error);
+    //console.error("Error fetching total sales amount: ", error);
     res.status(500).json({ message: "Failed to fetch total sales amount" });
   }
 };
-
 exports.getTotalOrders = async (req, res) => {
   try {
-    const totalOrders = await Sale.countDocuments();
+    const totalOrders = await Sale.countDocuments({
+      business: req.user.business,
+    });
     return res.status(200).json({ totalOrders });
   } catch (error) {
     console.error("Error fetching total orders: ", error);
