@@ -57,7 +57,7 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    console.log("request received is  :", req.body);
+    // console.log("request received is  :", req.body);
     const { email, password, businessName } = req.body;
 
     if (!email || !password || !businessName) {
@@ -107,7 +107,7 @@ exports.loginUser = async (req, res) => {
 exports.verifyAuth = async (req, res) => {
   try {
     const token = req.cookies.token;
-    console.log("this is the Token: ", token);
+    // console.log("this is the Token: ", token);
 
     if (!token) {
       return res

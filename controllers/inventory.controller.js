@@ -5,11 +5,14 @@ const multer = require("multer");
 const { Parser } = require("json2csv");
 const XLSX = require("xlsx");
 const fs = require("fs");
+const { verifyToken } = require("../middleware/auth.middleware");
 
 exports.addStock = async (req, res) => {
   try {
-    const business = req.business; // from JWT middleware
+    // Access business ID from req.user.business
+    const business = req.user.business; // <--- CORRECTED: Access req.user.business
     console.log("Business ID from request:", business);
+
     const {
       productName,
       productPrice,
@@ -18,6 +21,7 @@ exports.addStock = async (req, res) => {
       productCategory,
       productBatchNumber,
     } = req.body;
+
     if (
       !productName ||
       !productPrice ||
@@ -28,13 +32,16 @@ exports.addStock = async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
     const existingProduct = await Inventory.findOne({
       productBatchNumber,
       business,
     });
+
     if (existingProduct) {
       return res.status(400).json({ message: "Product Batch already exists" });
     }
+
     const newProduct = new Inventory({
       productName,
       productPrice,
@@ -42,9 +49,11 @@ exports.addStock = async (req, res) => {
       productDescription,
       productCategory,
       productBatchNumber,
-      business,
+      business, // Assign the business ID to the new product
     });
+
     await newProduct.save();
+
     return res
       .status(201)
       .json({ message: "Product added successfully", newProduct });
@@ -93,7 +102,7 @@ exports.addStockByCsv = async (req, res) => {
 };
 exports.getAllInventory = async (req, res) => {
   try {
-    const { business } = req.query; // or from req.user if using JWT
+    const business = req.user.business;
     if (!business) {
       return res.status(400).json({ message: "Business ID required" });
     }

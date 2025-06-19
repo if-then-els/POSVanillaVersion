@@ -1,19 +1,21 @@
 const jwt = require("jsonwebtoken");
 
 function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "No token provided" });
+  const token = req.cookies.token;
+  // console.log("this is the Token: ", token);
+
+  if (!token) {
+    return res.status(401).json({ message: "No token, authorization denied" });
   }
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.id;
-    req.business = decoded.business;
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
-  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: "Token is not valid" });
+    }
+
+    req.user = user; // Contains { id: user._id, business: user.business }
+    next(); // <--- IMPORTANT: Call next() to pass control to the next middleware/route handler
+  });
 }
 
 module.exports = { verifyToken };

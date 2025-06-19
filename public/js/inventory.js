@@ -377,16 +377,11 @@ async function handleProductFormSubmit(event) {
       }
     } else {
       // Add product
-      const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
+
       response = await fetch("/addInventory", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token
-            ? {
-                Authorization: `Bearer ${token}`,
-              }
-            : {}), // Add Authorization header if token exists
         },
         body: JSON.stringify(productData),
       });
