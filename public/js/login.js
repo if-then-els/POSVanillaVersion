@@ -7,39 +7,65 @@ document.addEventListener("DOMContentLoaded", function () {
     e.preventDefault();
 
     // Get form values
-    const username = document.getElementById("username").value;
+    const email = document.getElementById("username").value;
     const password = document.getElementById("password").value;
+    const businessName = document.getElementById("businessName").value;
 
     // Validate form
-    if (!username || !password) {
+    if (!email || !password || !businessName) {
       showLoginError("Please enter both username and password");
       return;
     }
 
-    // In a real application, you would send these credentials to your backend
-    // For this demo, we'll use a simple check
-    if (username === "admin" && password === "password") {
-      // Create a mock JWT token (in a real app, this would come from your server)
-      const mockToken =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIn0.8tat9ElZ3QmPmTOCWZm8Vc1uo3mPLWvWQbYwi1gRMZo";
+    // Send login request
+    const loginData = {
+      email: email,
+      password: password,
+      businessName: businessName,
+    };
+    console.log("Login data:", loginData);
+    async function login() {
+      try {
+        const response = await fetch("/login", {
+          // <--- Changed here
+          method: "POST", // Specify POST method
+          headers: {
+            "Content-Type": "application/json", // Tell the server we're sending JSON
+          },
+          body: JSON.stringify(loginData), // Convert your data to a JSON string
+        });
 
-      // Store token in localStorage
-      localStorage.setItem("posToken", mockToken);
+        if (!response.ok) {
+          throw new Error("HTTP error, status: " + response.status);
+        }
 
-      // Redirect to dashboard
-      window.location.href = "dashboard.html";
-    } else {
-      showLoginError("Invalid username or password");
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error during Login", error);
+        showLoginError("An error occurred during login. Please try again.");
+      }
     }
+
+    login().then((data) => {
+      if (data && data.message === "Login successful") {
+        window.location.href = "/dashboard.html";
+      } else {
+        showLoginError(data.message || "Invalid username or password");
+      }
+    });
   });
 
   function showLoginError(message) {
+    const loginAlertMessage = document.getElementById("loginAlertMessage"); // Assuming these are defined elsewhere
+    const loginAlert = document.getElementById("loginAlert"); // Assuming these are defined elsewhere
+
     loginAlertMessage.textContent = message;
     loginAlert.classList.remove("hidden");
 
-    // Hide alert after 3 seconds
     setTimeout(() => {
       loginAlert.classList.add("hidden");
     }, 3000);
   }
+  loginAlert.classList.add("hidden");
 });

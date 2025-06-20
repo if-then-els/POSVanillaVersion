@@ -16,6 +16,11 @@ const saleSchema = new mongoose.Schema({
   customerName: { type: String },
   paymentMethod: { type: String },
   createdAt: { type: Date, default: Date.now },
+  business: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "BusinessDetails",
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Sale", saleSchema);

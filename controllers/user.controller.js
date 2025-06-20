@@ -5,34 +5,47 @@ const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password, role, phone } = req.body;
-    if ((!username, !email, !role, !password, !role, !phone)) {
+    const { email, password, role, phone, business } = req.body;
+    if (!email || !email || !role || !password || !phone || !business) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const existingUser = await Users.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
+    const businessExists = await Business.findById(business);
+    if (!businessExists) {
+      return res.status(400).json({ message: "Business not found" });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new Users({
-      username,
+      userName,
       email,
       password: hashedPassword,
       role,
       phone,
+      business,
     });
     await newUser.save();
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Optionally add user to business.users array
+    businessExists.users.push(newUser._id);
+    await businessExists.save();
+    const token = jwt.sign(
+      { id: newUser._id, business },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
     res.status(201).json({
       message: "User registered successfully",
       user: {
         id: newUser._id,
-        username: newUser.username,
+        userName: newUser.UserName,
         email: newUser.email,
         role: newUser.role,
         phone: newUser.phone,
+        business: newUser.business,
       },
       token,
     });
@@ -44,17 +57,43 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    const { userName, password, businessName } = req.body;
-    if (!userName || !password || !businessName) {
+    // console.log("request received is  :", req.body);
+    const { email, password, businessName } = req.body;
+
+    if (!email || !password || !businessName) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await Users.findOne({ userName });
-    const business = await Business.findOne({ businessName });
+    const user = await Users.findOne({ email });
+    // console.log("user is :", user);
+    const business = await Business.findById(user.business);
+    // console.log("Business is  :", business);
     if (!user && !business) {
       return res
         .status(400)
         .json({ message: "User or business not found,check your credentials" });
     }
+    if (business.businessName !== businessName) {
+      return res.status(400).json({ message: "Business name does not match" });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+    const token = jwt.sign(
+      { id: user._id, business: user.business },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+    //console.log("token is :", token);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Set to true in production
+      sameSite: "Strict",
+    });
+
     return res
       .status(200)
       .json({ message: "Login successful", user, business });
@@ -64,39 +103,78 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-exports.createInitialUser = async (req, res) => {
+//verification for jwt
+exports.verifyAuth = async (req, res) => {
   try {
-    const admin = {
-      username: "admin",
-      email: "admin@pos.com",
-      password: "admin",
-      role: "admin",
-      phone: "0114088623",
-    };
-    const existingUser = await Users.findOne({ email: admin.email });
-    if (existingUser) {
-      return res.status(400).json({
-        message:
-          "Admin user already exists,login with the instructions given by the provider",
-      });
+    const token = req.cookies.token;
+    // console.log("this is the Token: ", token);
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ message: "No token, authorization denied" });
     }
-    const hashedPassword = await bcrypt.hash(admin.password, 10);
-    const newUser = new Users({
-      username: admin.username,
-      email: admin.email,
-      password: hashedPassword,
-      role: admin.role,
-      phone: admin.phone,
-    });
-    await newUser.save();
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.status(201).json({
-      message: "Admin user created successfully",
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: "Token is not valid" });
+      }
+      // If token is valid, you can optionally attach user info to req for further use
+      req.user = user; // Contains { id: user._id, business: user.business }
+      return res.status(200).json({
+        message: "Authenticated",
+        user: { id: user.id, business: user.business },
+      });
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "server error" });
+    return res
+      .status(500)
+      .json({ message: "Server error during token verification" });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error during logout" });
+  }
+};
+
+exports.fetchUserDetails = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+    //console.log("User ID from token:", userId);
+    //console.log("auth token is :", req.cookies.token);
+    const user = await Users.findById(userId).populate("business");
+    console.log("User details fetched:", user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({
+      user: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        business: {
+          id: user.business._id,
+          name: user.business.businessName,
+          address: user.business.address,
+        },
+        user,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

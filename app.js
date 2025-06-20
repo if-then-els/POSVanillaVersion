@@ -15,7 +15,6 @@ const port = 5000;
 dotenv.config();
 
 //configure mongoose
-
 mongoose
   .connect(process.env.MONGO_URL, {})
   .then(() => {
@@ -54,12 +53,17 @@ const inventoryRoutes = require("./routes/inventory.routes");
 const ownerRoutes = require("./routes/owner.route");
 const salesRoutes = require("./routes/sales.routes");
 const reportsRoutes = require("./routes/reports.routes");
+const settingsRoutes = require("./routes/settings.routes");
+const businessRoutes = require("./routes/business.routes");
 
+app.use("/api/settings", settingsRoutes);
 app.use("/", userRoutes);
 app.use("/", inventoryRoutes);
 app.use("/", ownerRoutes);
 app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
+app.use("/", userRoutes);
+app.use("/api/business", businessRoutes);
 //start app
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
