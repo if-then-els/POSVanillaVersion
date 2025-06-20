@@ -69,10 +69,15 @@ function loadSidebar() {
       <div class="flex items-center gap-3 rounded-md px-3 py-2">
         <i class="fas fa-user w-5"></i>
         <div class="flex flex-col">
-          <span class="text-sm font-medium" id="user-name">Admin User</span>
-          <span class="text-xs text-gray-500" id="user-email">admin@pos.com</span>
-        </div>
+          <span class="text-xs font-medium" id="user-name">Admin User</span>
+         
+            <span class="text-xs text-gray-500" id="user-email">admin@pos.com</span>
       </div>
+        </div>
+       
+      </div>
+       <div class="flex flex-col">
+     
       <button id="logout-btn" class="mt-2 w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50">
         <i class="fas fa-sign-out-alt w-5"></i>
         <span>Logout</span>
@@ -82,10 +87,37 @@ function loadSidebar() {
 
   // Update user info
   function updateUserInfo() {
-    // Placeholder for user info update logic
-    console.log("Updating user info...");
+    const userName = document.getElementById("user-name");
+    const userEmail = document.getElementById("user-email");
+    const businessName = document.getElementById("businessName");
+
+    // fetch user data from API
+    const response = fetch("/userDetails", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${document.cookie.split("=")[1]}`, // Assuming token is stored in a cookie
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.user) {
+          userName.textContent = data.user.business.name || "Admin User";
+          userEmail.textContent = data.user.email || "not logged in @pos.com";
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        userName.textContent = "Admin User";
+        userEmail.textContent = "not logged in @pos.com";
+      });
   }
-  updateUserInfo();
+  document.addEventListener("DOMContentLoaded", updateUserInfo());
 
   // Add event listener to logout button
   const logoutBtn = document.getElementById("logout-btn");

@@ -25,7 +25,8 @@ function groupByPeriod(sales, period) {
 exports.salesOverview = async (req, res) => {
   try {
     const { period = "daily" } = req.query;
-    const sales = await Sale.find();
+    const business = req.user.business;
+    const sales = await Sale.find({ business });
     const grouped = groupByPeriod(sales, period);
 
     const overview = Object.entries(grouped).map(([key, salesArr]) => {
@@ -48,7 +49,9 @@ exports.salesOverview = async (req, res) => {
 
 exports.productSales = async (req, res) => {
   try {
-    const sales = await Sale.find().populate("items.productId");
+    const business = req.user.business;
+    const sales = await Sale.find({ business }).populate("items.productId");
+    //  console.log("sales: ", sales);
     const productMap = {};
     sales.forEach((sale) => {
       sale.items.forEach((item) => {
@@ -78,7 +81,8 @@ exports.productSales = async (req, res) => {
 
 exports.categorySales = async (req, res) => {
   try {
-    const sales = await Sale.find().populate("items.productId");
+    const business = req.user.business;
+    const sales = await Sale.find({ business }).populate("items.productId");
     const categoryMap = {};
     let totalSales = 0;
     sales.forEach((sale) => {
@@ -105,7 +109,10 @@ exports.categorySales = async (req, res) => {
 
 exports.recentTransactions = async (req, res) => {
   try {
-    const sales = await Sale.find().sort({ createdAt: -1 }).limit(20);
+    const business = req.user.business;
+    const sales = await Sale.find({ business })
+      .sort({ createdAt: -1 })
+      .limit(20);
     res.json({ transactions: sales });
   } catch (err) {
     res.status(500).json({ message: "Failed to load transactions" });

@@ -133,3 +133,48 @@ exports.verifyAuth = async (req, res) => {
       .json({ message: "Server error during token verification" });
   }
 };
+
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    });
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error during logout" });
+  }
+};
+
+exports.fetchUserDetails = async (req, res) => {
+  try {
+    const userId = req.user.id; // Assuming user ID is stored in req.user
+    //console.log("User ID from token:", userId);
+    //console.log("auth token is :", req.cookies.token);
+    const user = await Users.findById(userId).populate("business");
+    console.log("User details fetched:", user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({
+      user: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        business: {
+          id: user.business._id,
+          name: user.business.businessName,
+          address: user.business.address,
+        },
+        user,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
