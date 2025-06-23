@@ -154,7 +154,7 @@ exports.fetchUserDetails = async (req, res) => {
     //console.log("User ID from token:", userId);
     //console.log("auth token is :", req.cookies.token);
     const user = await Users.findById(userId).populate("business");
-    console.log("User details fetched:", user);
+    // console.log("User details fetched:", user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

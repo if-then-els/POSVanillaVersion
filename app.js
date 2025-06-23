@@ -56,7 +56,7 @@ const reportsRoutes = require("./routes/reports.routes");
 const settingsRoutes = require("./routes/settings.routes");
 const businessRoutes = require("./routes/business.routes");
 
-app.use("/api/settings", settingsRoutes);
+app.use("/", settingsRoutes);
 app.use("/", userRoutes);
 app.use("/", inventoryRoutes);
 app.use("/", ownerRoutes);
