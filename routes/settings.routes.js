@@ -18,6 +18,8 @@ router.put(
   verifyToken,
   settingsController.saveStoreSettings
 );
+router.get("/settings/store", verifyToken, settingsController.getStoreSettings);
+
 // Receipt settings (receipt tab)
 router.get(
   "/settings/receipt",
@@ -33,7 +35,7 @@ router.put(
 // User settings (user tab)
 router.get("/settings/user", verifyToken, settingsController.getUserSettings);
 router.put(
-  "/settings/user",
+  "/api/settings/user",
   verifyToken,
   settingsController.updateUserSettings
 );
