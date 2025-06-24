@@ -1,48 +1,204 @@
 const Settings = require("../models/settings");
+const Users = require("../models/user");
 
-// Get settings
+// Get all settings for the current business
 exports.getSettings = async (req, res) => {
   try {
-    console.log("Fetching settings...");
-    let settings = await Settings.findOne();
+    const business = req.user.business;
+    let settings = await Settings.findOne({ business });
     if (!settings) {
-      settings = new Settings();
+      settings = new Settings({ business });
       await settings.save();
     }
     res.json(settings);
   } catch (err) {
-    return res.status(500).json({ message: "Failed to fetch settings", error });
+    res.status(500).json({ message: "Failed to fetch settings", error: err });
   }
 };
 
-// Update settings
+// Update all settings for the current business
 exports.updateSettings = async (req, res) => {
   try {
-    console.log("Updating settings with data:", req.body);
-    let settings = await Settings.findOne();
-    if (!settings) settings = new Settings();
+    const business = req.user.business;
+    let settings = await Settings.findOne({ business });
+    if (!settings) settings = new Settings({ business });
     Object.assign(settings, req.body);
     await settings.save();
     res.json({ success: true, message: "Settings updated", settings });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ success: false, message: "Failed to update settings", error });
+    res.status(500).json({
+      success: false,
+      message: "Failed to update settings",
+      error: err,
+    });
   }
 };
 
-//settings for store information, tax rates, currency, etc.
-// exports.saveStoreSettings = async (req, res) => {
-//   try {
-//     let settings = await Settings.findOne();
-//     if (!settings) settings = new Settings();
+// Save or update store settings (name, address, phone, email, tax, currency, logo)
+exports.saveStoreSettings = async (req, res) => {
+  try {
+    const business = req.user.business;
+    let settings = await Settings.findOne({ business });
+    if (!settings) settings = new Settings({ business });
+    settings.storeName = req.body.name;
+    settings.storeAddress = req.body.address;
+    settings.storePhone = req.body.phone;
+    settings.storeEmail = req.body.email;
+    settings.taxRate = req.body.taxRate;
+    settings.currency = req.body.currency;
 
-//     // Update settings with request body
-//     Object.assign(settings, req.body);
+    // associate store setting with the business
+    settings.business = business;
 
-//     await settings.save();
-//     res.json({ success: true, message: "Store settings saved", settings });
-//   } catch (err) {
-//     res.status(500).json({ success: false, message: "Failed to save store settings" });
-//   }
-// }
+    //do not change data if the value is not provided
+    if (
+      settings.storeName ||
+      settings.storeAddress ||
+      settings.storePhone ||
+      settings.storeEmail ||
+      settings.taxRate ||
+      settings.currency === undefined
+    ) {
+      settings.storeName = settings.storeName;
+      settings.storeAddress = settings.storeAddress;
+      settings.storePhone = settings.storePhone;
+      settings.storeEmail = settings.storeEmail;
+      settings.taxRate = settings.taxRate;
+      settings.currency = settings.currency;
+    }
+
+    await settings.save();
+    res.json({ success: true, message: "Store settings saved", settings });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to save store settings",
+      error: err,
+    });
+  }
+};
+
+exports.getStoreSettings = async (req, res) => {
+  try {
+    const business = req.user.business;
+    let settings = await Settings.findOne({ business });
+    if (!settings) {
+      settings = new Settings({ business });
+      await settings.save();
+    }
+    res.json({
+      storeName: settings.storeName || "",
+      storeAddress: settings.storeAddress || "",
+      storePhone: settings.storePhone || "",
+      storeEmail: settings.storeEmail || "",
+      taxRate: settings.taxRate || 0,
+      currency: settings.currency || "USD",
+      showLogo: settings.showLogo,
+      showTax: settings.showTax,
+      includeContact: settings.includeContact,
+      printAuto: settings.printAuto,
+      footerText: settings.footerText || "",
+      logoUrl: settings.logoUrl || "",
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch store settings", error: err });
+  }
+};
+
+// Get receipt settings for the current business
+exports.getReceiptSettings = async (req, res) => {
+  try {
+    const business = req.user.business;
+    let settings = await Settings.findOne({ business });
+    if (!settings) settings = new Settings({ business });
+    res.json({
+      showLogo: settings.showLogo,
+      showTaxDetails: settings.showTax,
+      includeContactInfo: settings.includeContact,
+      printAutomatically: settings.printAuto,
+      footerText: settings.footerText,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch receipt settings", error: err });
+  }
+};
+
+// Update receipt settings for the current business
+exports.saveReceiptSettings = async (req, res) => {
+  try {
+    const business = req.user.business;
+    let settings = await Settings.findOne({ business });
+    if (!settings) settings = new Settings({ business });
+    settings.showLogo = req.body.showLogo;
+    settings.showTax = req.body.showTaxDetails;
+    settings.includeContact = req.body.includeContactInfo;
+    settings.printAuto = req.body.printAutomatically;
+    settings.footerText = req.body.footerText;
+    await settings.save();
+    res.json({ success: true, message: "Receipt settings saved", settings });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to save receipt settings",
+      error: err,
+    });
+  }
+};
+
+// Get user settings (username, email) for the current user
+exports.getUserSettings = async (req, res) => {
+  try {
+    const user = await Users.findById(req.user.id);
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({
+      username: user.userName || user.username,
+      email: user.email,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch user settings", error: err });
+  }
+};
+
+// Update user settings (username, email, password)
+exports.updateUserSettings = async (req, res) => {
+  try {
+    const user = await Users.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Update username/email
+    if (req.body.username) user.username = req.body.username;
+    if (req.body.email) user.email = req.body.email;
+
+    // Handle password change
+    if (req.body.currentPassword && req.body.newPassword) {
+      const bcrypt = require("bcrypt");
+      const valid = await bcrypt.compare(
+        req.body.currentPassword,
+        user.password
+      );
+      if (!valid) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect" });
+      }
+      if (req.body.newPassword !== req.body.confirmPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
+      }
+      user.password = await bcrypt.hash(req.body.newPassword, 10);
+    }
+
+    await user.save();
+    res.json({ success: true, message: "User settings updated" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to update user settings", error: err });
+  }
+};

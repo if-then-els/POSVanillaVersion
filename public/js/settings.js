@@ -20,37 +20,29 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Load settings when the page loads
-  loadSettings();
-
-  // Store Settings Form
-  const storeForm = document.getElementById("store-settings-form");
-  if (storeForm) {
-    storeForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      await saveSettings();
-    });
-  }
+  loadStoreSettings();
+  loadReceiptSettings();
+  loadUserSettings();
 });
 
-// Fetch current settings from backend and populate the form
-async function loadSettings() {
-  try {
-    const res = await fetch("/api/settings");
-    const settings = await res.json();
-    document.getElementById("store-name").value = settings.name || "";
-    document.getElementById("store-address").value = settings.address || "";
-    document.getElementById("store-phone").value = settings.phone || "";
-    document.getElementById("store-email").value = settings.email || "";
-    document.getElementById("tax-rate").value = settings.taxRate || "";
-    document.getElementById("currency").value = settings.currency || "";
-  } catch (err) {
-    showToast("Error", "Failed to load settings", "error");
-    console.error("Error loading settings:", err);
+// --- STORE SETTINGS ---
+async function loadStoreSettings() {
+  const res = await fetch("/settings/store", { credentials: "include" });
+  const data = await res.json();
+  // console.log("data from store settings: ", data);
+  // console.log("data from api settings: ", data);
+  if (res.ok) {
+    document.getElementById("store-name").value = data.storeName;
+    document.getElementById("store-address").value = data.storeAddress;
+    document.getElementById("store-phone").value = data.storePhone;
+    document.getElementById("store-email").value = data.storeEmail;
+    document.getElementById("tax-rate").value = data.taxRate;
+    document.getElementById("currency").value = data.currency;
   }
 }
 
-// Save settings to backend
-async function saveSettings() {
+document.getElementById("store-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
   const payload = {
     name: document.getElementById("store-name").value,
     address: document.getElementById("store-address").value,
@@ -59,25 +51,94 @@ async function saveSettings() {
     taxRate: document.getElementById("tax-rate").value,
     currency: document.getElementById("currency").value,
   };
-  try {
-    const res = await fetch("/api/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (data.success) {
-      showToast("Success", "Settings saved", "success");
-    } else {
-      showToast("Error", data.message, "error");
-    }
-  } catch (err) {
-    showToast("Error", "Failed to save settings", "error");
-    console.error("Error saving settings:", err);
+  const res = await fetch("/settings/store", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  showToast(data.message, res.ok ? "success" : "error");
+});
+
+// --- RECEIPT SETTINGS ---
+async function loadReceiptSettings() {
+  const res = await fetch("/settings/receipt", { credentials: "include" });
+  const data = await res.json();
+  if (res.ok) {
+    document.getElementById("show-logo").checked = !!data.showLogo;
+    document.getElementById("show-tax-details").checked = !!data.showTaxDetails;
+    document.getElementById("include-contact-info").checked =
+      !!data.includeContactInfo;
+    document.getElementById("print-automatically").checked =
+      !!data.printAutomatically;
+    document.getElementById("footer-text").value = data.footerText || "";
   }
 }
 
-// Simple toast function (replace with your own if needed)
-function showToast(title, message, type = "success") {
-  alert(`${title}: ${message}`);
+document
+  .getElementById("receipt-form")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      showLogo: document.getElementById("show-logo").checked,
+      showTaxDetails: document.getElementById("show-tax-details").checked,
+      includeContactInfo: document.getElementById("include-contact-info")
+        .checked,
+      printAutomatically: document.getElementById("print-automatically")
+        .checked,
+      footerText: document.getElementById("footer-text").value,
+    };
+    const res = await fetch("/settings/receipt", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    showToast(data.message, res.ok ? "success" : "error");
+  });
+
+// --- USER SETTINGS ---
+async function loadUserSettings() {
+  const res = await fetch("/settings/user", {
+    method: "GET",
+    credentials: "include",
+  });
+  const data = await res.json();
+  console.log("data from user settings: ", data);
+  if (res.ok) {
+    document.getElementById("user-username").value = data.username || "";
+    document.getElementById("user-email").value = data.email || "";
+  }
+}
+
+document.getElementById("user-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const payload = {
+    username: document.getElementById("user-username").value,
+    email: document.getElementById("user-email").value,
+    currentPassword: document.getElementById("current-password").value,
+    newPassword: document.getElementById("new-password").value,
+    confirmPassword: document.getElementById("confirm-password").value,
+  };
+  const res = await fetch("/settings/user", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  showToast(data.message, res.ok ? "success" : "error");
+});
+
+// --- TOAST UTILITY ---
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `mb-2 px-4 py-2 rounded shadow text-white ${
+    type === "success" ? "bg-green-600" : "bg-red-600"
+  }`;
+  toast.innerText = message;
+  document.getElementById("toast-container").appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }

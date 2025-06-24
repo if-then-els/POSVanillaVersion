@@ -12,7 +12,7 @@ exports.addStock = async (req, res) => {
   try {
     // Access business ID from req.user.business
     const business = req.user.business; // <--- CORRECTED: Access req.user.business
-    console.log("Business ID from request:", business);
+    // console.log("Business ID from request:", business);
 
     const {
       productName,
