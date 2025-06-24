@@ -35,7 +35,6 @@ exports.addStock = async (req, res) => {
     }
 
     const existingProduct = await Inventory.findOne({
-      productBatchNumber,
       business,
     });
 
