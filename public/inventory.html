@@ -63,8 +63,8 @@
       <!-- Overlay -->
       <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40"></div>
 
-      <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
+      <!-- Main Content - Centered on mobile -->
+      <main class="flex-1 overflow-y-auto md:ml-64 p-6 mx-auto md:mx-0 max-w-full md:max-w-none" id="main-content">
         <div
           class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-8"
         >
@@ -229,7 +229,7 @@
               </button>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full table-auto">
+              <table class="w-full table-auto min-w-max md:min-w-0">
                 <thead>
                   <tr class="bg-gray-50 text-left">
                     <th
@@ -292,7 +292,7 @@
               </p>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full table-auto">
+              <table class="w-full table-auto min-w-max md:min-w-0">
                 <thead>
                   <tr class="bg-gray-50 text-left">
                     <th
