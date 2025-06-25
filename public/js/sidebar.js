@@ -6,61 +6,47 @@
 function loadSidebar() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
+
   sidebar.innerHTML = `
     <div class="flex h-16 items-center justify-between border-b px-4">
       <h1 class="text-xl font-bold">POS System</h1>
-      <button id="toggle-sidebar" class="p-2 rounded-md hover:bg-gray-200">
-        <i class="fas fa-bars"></i>
-      </button>
+      <!-- Removed inner toggle -->
     </div>
     <nav class="p-4">
       <ul class="space-y-2">
         <li>
           <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("dashboard.html")
-              ? "bg-gray-100"
-              : ""
+            window.location.pathname.endsWith("dashboard.html") ? "bg-gray-100" : ""
           }">
-            <i class="fas fa-home w-5"></i>
-            <span>Dashboard</span>
+            <i class="fas fa-home w-5"></i><span>Dashboard</span>
           </a>
         </li>
         <li>
           <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             window.location.pathname.endsWith("sales.html") ? "bg-gray-100" : ""
           }">
-            <i class="fas fa-shopping-cart w-5"></i>
-            <span>Sales</span>
+            <i class="fas fa-shopping-cart w-5"></i><span>Sales</span>
           </a>
         </li>
         <li>
           <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("inventory.html")
-              ? "bg-gray-100"
-              : ""
+            window.location.pathname.endsWith("inventory.html") ? "bg-gray-100" : ""
           }">
-            <i class="fas fa-box w-5"></i>
-            <span>Inventory</span>
+            <i class="fas fa-box w-5"></i><span>Inventory</span>
           </a>
         </li>
         <li>
           <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("reports.html")
-              ? "bg-gray-100"
-              : ""
+            window.location.pathname.endsWith("reports.html") ? "bg-gray-100" : ""
           }">
-            <i class="fas fa-chart-bar w-5"></i>
-            <span>Reports</span>
+            <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
           </a>
         </li>
         <li>
           <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("settings.html")
-              ? "bg-gray-100"
-              : ""
+            window.location.pathname.endsWith("settings.html") ? "bg-gray-100" : ""
           }">
-            <i class="fas fa-cog w-5"></i>
-            <span>Settings</span>
+            <i class="fas fa-cog w-5"></i><span>Settings</span>
           </a>
         </li>
       </ul>
@@ -70,39 +56,31 @@ function loadSidebar() {
         <i class="fas fa-user w-5"></i>
         <div class="flex flex-col">
           <span class="text-xs font-medium" id="user-name">Admin User</span>
-         
-            <span class="text-xs text-gray-500" id="user-email">admin@pos.com</span>
-      </div>
+          <span class="text-xs text-gray-500" id="user-email">admin@pos.com</span>
         </div>
-       
       </div>
-       <div class="flex flex-col">
-     
+    </div>
+    <div class="flex flex-col">
       <button id="logout-btn" class="mt-2 w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50">
-        <i class="fas fa-sign-out-alt w-5"></i>
-        <span>Logout</span>
+        <i class="fas fa-sign-out-alt w-5"></i><span>Logout</span>
       </button>
     </div>
   `;
 
-  // Update user info
+  // Fetch and update user info
   function updateUserInfo() {
     const userName = document.getElementById("user-name");
     const userEmail = document.getElementById("user-email");
-    const businessName = document.getElementById("businessName");
 
-    // fetch user data from API
-    const response = fetch("/userDetails", {
+    fetch("/userDetails", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${document.cookie.split("=")[1]}`, // Assuming token is stored in a cookie
+        Authorization: `Bearer ${document.cookie.split("=")[1]}`,
       },
     })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data");
-        }
+        if (!response.ok) throw new Error("Failed to fetch user data");
         return response.json();
       })
       .then((data) => {
@@ -112,39 +90,61 @@ function loadSidebar() {
         }
       })
       .catch((error) => {
-        console.error("Error fetching user data:", error);
+        console.error(error);
         userName.textContent = "Admin User";
         userEmail.textContent = "not logged in @pos.com";
       });
   }
-  document.addEventListener("DOMContentLoaded", updateUserInfo());
+  updateUserInfo();
 
-  // Add event listener to logout button
+  // Logout listener
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
-    function logout() {
-      // Placeholder for logout logic
+    logoutBtn.addEventListener("click", () => {
       console.log("Logging out...");
-    }
-    logoutBtn.addEventListener("click", logout);
+      // Add your logout logic
+    });
   }
 }
 
 // Sidebar toggle functionality
-document.addEventListener("DOMContentLoaded", function () {
-  const toggleSidebarBtn = document.getElementById("toggle-sidebar");
-  const sidebar = document.getElementById("sidebar");
-  const mainContent = document.getElementById("main-content");
-
-  if (toggleSidebarBtn && sidebar && mainContent) {
-    toggleSidebarBtn.addEventListener("click", function () {
-      sidebar.classList.toggle("open");
-      mainContent.classList.toggle("sidebar-open");
-    });
-  }
-});
-
-// Initialize sidebar when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   loadSidebar();
+
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay'); // make sure you have this div
+  const mainContent = document.getElementById('main-content');
+  const toggleButton = document.getElementById('toggle-sidebar');
+
+  if (!sidebar || !overlay || !toggleButton || !mainContent) return;
+
+  const openSidebar = () => {
+    sidebar.classList.remove('-translate-x-full'); // show sidebar
+    overlay.classList.remove('hidden');           // show overlay
+  };
+  
+  const closeSidebar = () => {
+    sidebar.classList.add('-translate-x-full'); // hide sidebar
+    overlay.classList.add('hidden');             // hide overlay
+  };
+  
+  toggleButton.addEventListener('click', openSidebar);
+  overlay.addEventListener('click', closeSidebar);
+
+  // Also close on resize so it's visible at md+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768) {
+      sidebar.classList.remove('-translate-x-full');
+      overlay.classList.add('hidden');
+    } else {
+      closeSidebar();
+    }
+  });
+
+  // Close sidebar when clicking a link inside
+  sidebar.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') closeSidebar();
+  });
 });
+
+// sidebar for sales logic here

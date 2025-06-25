@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Modern POS System for efficient sales and checkout management">
     <title>Sales - POS System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts for better typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="./css/styles.css" />
     <script>
@@ -18,6 +18,9 @@
       tailwind.config = {
         darkMode: "class",
         theme: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
           extend: {
             colors: {
               primary: {
@@ -35,227 +38,418 @@
                 950: "#1e1b4b",
               },
             },
+            boxShadow: {
+              'soft': '0 4px 12px 0 rgba(0, 0, 0, 0.05)',
+              'soft-lg': '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
+            },
+            transitionProperty: {
+              'height': 'height',
+              'spacing': 'margin, padding',
+            },
           },
         },
       };
     </script>
+    <style>
+      /* Custom smooth transitions */
+      .smooth-transition {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      /* Better focus states */
+      [type="text"]:focus, [type="email"]:focus, textarea:focus, select:focus {
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+      }
+      
+      /* Collapsible cart styles */
+      #cart-collapsed {
+        display: flex;
+      }
+      #cart-expanded {
+        display: none;
+      }
+      .cart-has-items #cart-collapsed {
+        display: none;
+      }
+      .cart-has-items #cart-expanded {
+        display: block;
+      }
+    </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50 font-sans antialiased">
     <div class="flex h-screen overflow-hidden">
-      <!-- Sidebar (will be loaded via JS) -->
-      <div
-        id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
-      ></div>
+      <!-- Mobile Header -->
+      <nav class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40 shadow-sm">
+        <h1 class="text-xl font-bold text-primary-700">POS System</h1>
+        <button id="toggle-sidebar" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+          <i class="fas fa-bars text-xl text-gray-700"></i>
+        </button>
+      </nav>
 
-      <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
-        <div class="mb-6">
-          <h1 class="text-3xl font-bold">Sales & Checkout</h1>
-          <p class="text-gray-600">Process sales and manage transactions</p>
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-3">
-          <!-- Product Selection -->
-          <div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div class="p-6 border-b border-gray-200">
-                <h2 class="text-lg font-semibold flex items-center">
-                  <i class="fas fa-box mr-2"></i> Products
-                </h2>
-              </div>
-              <div
-                id="products-grid"
-                class="grid gap-4 sm:grid-cols-2 md:grid-cols-3"
-              >
-                <!-- Products will be loaded here by JavaScript -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Shopping Cart -->
-          <div>
-            <div
-              class="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-6"
-            >
-              <div class="p-6 border-b border-gray-200">
-                <h2 class="text-lg font-semibold flex items-center">
-                  <i class="fas fa-shopping-cart mr-2"></i> Cart
-                </h2>
-                <p id="cart-count" class="text-sm text-gray-500">
-                  0 items in cart
-                </p>
-              </div>
-
-              <div id="cart-items" class="p-6 space-y-4 min-h-[200px]">
-                <!-- Cart items will be loaded here by JavaScript -->
-                <div class="text-center py-8 text-gray-500">Cart is empty</div>
-              </div>
-
-              <div class="p-6 border-t border-gray-200 space-y-4">
-                <div class="flex justify-between font-bold">
-                  <span class="text-lg">Total:</span>
-                  <span id="cart-total" class="text-xl">$0.00</span>
-                </div>
-                <button
-                  id="checkout-btn"
-                  class="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled
-                >
-                  Checkout
-                </button>
-                <button
-                  id="clear-cart-btn"
-                  class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled
-                >
-                  Clear Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- Checkout Modal -->
-    <div id="checkout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-      <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="flex h-screen overflow-hidden pt-16 md:pt-0">
+        <!-- Sidebar -->
         <div
-          class="fixed inset-0 bg-black bg-opacity-25 transition-opacity"
-          id="checkout-modal-backdrop"
+          id="sidebar"
+          class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out smooth-transition"
         ></div>
 
-        <div
-          class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative z-10"
-        >
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-medium text-gray-900">Checkout</h3>
+        <!-- Overlay -->
+        <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40 smooth-transition"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-6 sm:ml-64" id="main-content">
+          <div class="max-w-5xl mx-auto">
+            <!-- Page header with breadcrumbs -->
+            <div class="mb-6">
+              <nav class="flex mb-2" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-2">
+                  <li class="inline-flex items-center">
+                    <a href="#" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary-600">
+                      <i class="fas fa-home mr-2"></i>
+                      Dashboard
+                    </a>
+                  </li>
+                  <li aria-current="page">
+                    <div class="flex items-center">
+                      <i class="fas fa-chevron-right text-gray-400 mx-2 text-xs"></i>
+                      <span class="ml-1 text-sm font-medium text-gray-700 md:ml-2">Sales</span>
+                    </div>
+                  </li>
+                </ol>
+              </nav>
+              
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Sales & Checkout</h1>
+                  <p class="text-gray-600 mt-1">Process sales and manage transactions</p>
+                </div>
+                <div class="mt-3 sm:mt-0">
+                  <!-- <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <i class="fas fa-plus mr-2"></i> New Sale
+                  </button> -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Main grid -->
+            <div class="grid gap-6 lg:grid-cols-3">
+              <!-- Product Selection -->
+              <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                  <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                      <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-box mr-2 text-primary-600"></i> Products
+                      </h2>
+                      <div class="relative">
+                        <input
+                          type="text"
+                          placeholder="Search products..."
+                          class="pl-8 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="p-2 sm:p-4">
+                    <div
+                      id="products-grid"
+                      class="grid gap-3 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                    >
+                      <!-- Products will be loaded here by JavaScript -->
+                      <div class="animate-pulse">
+                        <div class="bg-gray-200 h-32 rounded-md"></div>
+                        <div class="mt-2">
+                          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div class="h-4 bg-gray-200 rounded w-1/2 mt-2"></div>
+                        </div>
+                      </div>
+                      <!-- Repeat skeleton loader as needed -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Shopping Cart -->
+              <div class="lg:col-span-1">
+                <!-- Collapsed Cart (shown when empty) -->
+                <div id="cart-collapsed" class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden cursor-pointer hover:shadow-md smooth-transition">
+                  <div class="p-4 flex items-center justify-center" id="toggle-cart">
+                    <div class="relative">
+                      <i class="fas fa-shopping-cart text-2xl text-primary-600"></i>
+                      <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                    </div>
+                    <span class="ml-3 font-medium">Cart</span>
+                  </div>
+                </div>
+
+                <!-- Expanded Cart (shown when has items or clicked) -->
+                <div id="cart-expanded" class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden">
+                  <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <div>
+                      <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-shopping-cart mr-2 text-primary-600"></i> Cart
+                      </h2>
+                      <p id="cart-count" class="text-sm text-gray-500 mt-1">0 items in cart</p>
+                    </div>
+                    <button id="minimize-cart" class="p-2 rounded-md hover:bg-gray-100">
+                      <i class="fas fa-minus text-gray-500"></i>
+                    </button>
+                  </div>
+
+                  <div id="cart-items" class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    <!-- Cart items will be loaded here by JavaScript -->
+                    <div class="text-center py-8 text-gray-400 flex flex-col items-center">
+                      <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+                      <p>Your cart is empty</p>
+                      <p class="text-sm mt-1">Add products to get started</p>
+                    </div>
+                  </div>
+
+                  <div class="p-4 sm:p-6 border-t border-gray-200 space-y-4 bg-gray-50">
+                    <div class="space-y-2">
+                      <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span id="cart-subtotal" class="font-medium">$0.00</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-gray-600">Tax (10%)</span>
+                        <span id="cart-tax" class="font-medium">$0.00</span>
+                      </div>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold border-t pt-3">
+                      <span>Total:</span>
+                      <span id="cart-total" class="text-xl text-primary-700">$0.00</span>
+                    </div>
+                    <button
+                      id="checkout-btn"
+                      class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition flex items-center justify-center"
+                      disabled
+                    >
+                      <i class="fas fa-credit-card mr-2"></i> Checkout
+                    </button>
+                    <button
+                      id="clear-cart-btn"
+                      class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition"
+                      disabled
+                    >
+                      Clear Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </main>
 
-          <form id="checkout-form">
-            <div class="px-6 py-4 space-y-4">
-              <div class="space-y-2">
-                <label
-                  for="customer-name"
-                  class="block text-sm font-medium text-gray-700"
-                  >Customer Name*</label
-                >
-                <input
-                  id="customer-name"
-                  name="customerName"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Enter customer name"
-                  required
-                />
+        <!-- Checkout Modal -->
+        <div id="checkout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+          <div class="flex items-center justify-center min-h-screen px-4">
+            <div
+              class="fixed inset-0 bg-black bg-opacity-25 transition-opacity smooth-transition"
+              id="checkout-modal-backdrop"
+            ></div>
+
+            <div
+              class="bg-white rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative z-10 smooth-transition"
+            >
+              <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                  <i class="fas fa-cash-register mr-2 text-primary-600"></i> Complete Checkout
+                </h3>
               </div>
 
-              <div class="space-y-2">
-                <label
-                  for="customer-email"
-                  class="block text-sm font-medium text-gray-700"
-                  >Customer Email</label
-                >
-                <input
-                  id="customer-email"
-                  name="customerEmail"
-                  type="email"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  placeholder="Enter customer email (optional)"
-                />
-              </div>
+              <form id="checkout-form">
+                <div class="px-6 py-4 space-y-4">
+                  <div class="space-y-3">
+                    <label
+                      for="customer-name"
+                      class="block text-sm font-medium text-gray-700"
+                    >
+                      Customer Name <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                      <i class="fas fa-user absolute left-3 top-3 text-gray-400 text-sm"></i>
+                      <input
+                        id="customer-name"
+                        name="customerName"
+                        class="w-full pl-10 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter customer name"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-700"
-                  >Payment Method</label
-                >
-                <div class="space-y-2">
-                  <div class="flex items-center">
-                    <input
-                      type="radio"
-                      id="payment-cash"
-                      name="paymentMethod"
-                      value="cash"
-                      checked
-                      class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                    />
+                  <div class="space-y-3">
                     <label
-                      for="payment-cash"
-                      class="ml-2 block text-sm text-gray-700"
-                      >Cash</label
-                    >
+                      for="customer-email"
+                      class="block text-sm font-medium text-gray-700"
+                    >Customer Email</label>
+                    <div class="relative">
+                      <i class="fas fa-envelope absolute left-3 top-3 text-gray-400 text-sm"></i>
+                      <input
+                        id="customer-email"
+                        name="customerEmail"
+                        type="email"
+                        class="w-full pl-10 border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter customer email (optional)"
+                      />
+                    </div>
                   </div>
-                  <div class="flex items-center">
-                    <input
-                      type="radio"
-                      id="payment-credit"
-                      name="paymentMethod"
-                      value="credit"
-                      class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                    />
-                    <label
-                      for="payment-credit"
-                      class="ml-2 block text-sm text-gray-700"
-                      >Credit Card</label
+
+                  <div class="space-y-3">
+                    <label class="block text-sm font-medium text-gray-700"
+                      >Payment Method</label
                     >
+                    <div class="grid grid-cols-3 gap-2">
+                      <div>
+                        <input
+                          type="radio"
+                          id="payment-cash"
+                          name="paymentMethod"
+                          value="cash"
+                          checked
+                          class="hidden peer"
+                        />
+                        <label
+                          for="payment-cash"
+                          class="flex flex-col items-center p-3 border border-gray-300 rounded-md cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-50 hover:bg-gray-50"
+                        >
+                          <i class="fas fa-money-bill-wave text-xl text-gray-700 mb-1"></i>
+                          <span class="text-sm">Cash</span>
+                        </label>
+                      </div>
+                      <div>
+                        <input
+                          type="radio"
+                          id="payment-credit"
+                          name="paymentMethod"
+                          value="credit"
+                          class="hidden peer"
+                        />
+                        <label
+                          for="payment-credit"
+                          class="flex flex-col items-center p-3 border border-gray-300 rounded-md cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-50 hover:bg-gray-50"
+                        >
+                          <i class="fas fa-credit-card text-xl text-gray-700 mb-1"></i>
+                          <span class="text-sm">Credit Card</span>
+                        </label>
+                      </div>
+                      <div>
+                        <input
+                          type="radio"
+                          id="payment-online"
+                          name="paymentMethod"
+                          value="online"
+                          class="hidden peer"
+                        />
+                        <label
+                          for="payment-online"
+                          class="flex flex-col items-center p-3 border border-gray-300 rounded-md cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-50 hover:bg-gray-50"
+                        >
+                          <i class="fas fa-globe text-xl text-gray-700 mb-1"></i>
+                          <span class="text-sm">Online</span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                  <div class="flex items-center">
-                    <input
-                      type="radio"
-                      id="payment-online"
-                      name="paymentMethod"
-                      value="online"
-                      class="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                    />
-                    <label
-                      for="payment-online"
-                      class="ml-2 block text-sm text-gray-700"
-                      >Online Payment</label
-                    >
+
+                  <div class="mt-4 space-y-3 rounded-lg bg-gray-50 p-4 border border-gray-200">
+                    <h4 class="font-semibold text-gray-900 flex items-center">
+                      <i class="fas fa-receipt mr-2 text-primary-600"></i> Order Summary
+                    </h4>
+                    <div id="checkout-items" class="space-y-3 text-sm divide-y divide-gray-200">
+                      <!-- Order items will be loaded here by JavaScript -->
+                    </div>
+                    <div class="pt-3 space-y-2">
+                      <div class="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span id="checkout-subtotal">$0.00</span>
+                      </div>
+                      <div class="flex justify-between text-gray-600">
+                        <span>Tax (10%)</span>
+                        <span id="checkout-tax">$0.00</span>
+                      </div>
+                      <div class="flex justify-between font-bold text-gray-900 border-t pt-2">
+                        <span>Total</span>
+                        <span id="checkout-total">$0.00</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="mt-2 space-y-2 rounded-md bg-gray-50 p-4">
-                <h4 class="font-semibold">Order Summary</h4>
-                <div id="checkout-items" class="space-y-1 text-sm">
-                  <!-- Order items will be loaded here by JavaScript -->
+                <div class="px-6 py-4 bg-gray-50 text-right space-x-3 border-t border-gray-200">
+                  <button
+                    type="button"
+                    id="checkout-cancel"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 smooth-transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    id="process-sale-btn"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 smooth-transition inline-flex items-center"
+                  >
+                    <i class="fas fa-check-circle mr-2"></i> Process Sale
+                  </button>
                 </div>
-                <div class="flex justify-between border-t pt-2 font-bold">
-                  <span>Total</span>
-                  <span id="checkout-total">$0.00</span>
-                </div>
-              </div>
+              </form>
             </div>
-
-            <div class="px-6 py-4 bg-gray-50 text-right space-x-2">
-              <button
-                type="button"
-                id="checkout-cancel"
-                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                id="process-sale-btn"
-                class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700"
-              >
-                Process Sale
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
+
+        <!-- Toast notification container -->
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-3 w-full max-w-xs"></div>
+
+        <!-- Scripts -->
+        <script>
+    
+  // Cart toggle functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleCart = document.getElementById('toggle-cart');
+    const minimizeCart = document.getElementById('minimize-cart');
+    const cartCollapsed = document.getElementById('cart-collapsed');
+    const cartExpanded = document.getElementById('cart-expanded');
+    
+    if (toggleCart) {
+      toggleCart.addEventListener('click', function() {
+        cartCollapsed.classList.add('hidden');
+        cartExpanded.classList.remove('hidden');
+      });
+    }
+    
+    if (minimizeCart) {
+      minimizeCart.addEventListener('click', function() {
+        cartCollapsed.classList.remove('hidden');
+        cartExpanded.classList.add('hidden');
+      });
+    }
+  });
+
+        </script>
+        <script src="./js/sidebar.js"></script>
+        <script src="./js/utils.js"></script>
+        <script src="./js/auth.js"></script>
+        <script src="./js/sales.js"></script>
       </div>
     </div>
-
-    <!-- Toast notification container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
-
-    <!-- Scripts -->
-    <script src="./js/utils.js"></script>
-    <script src="./js/auth.js"></script>
-    <script src="./js/sidebar.js"></script>
-    <script src="./js/sales.js"></script>
   </body>
 </html>
