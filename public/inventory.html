@@ -43,15 +43,30 @@
   <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar (will be loaded via JS) -->
+      <nav
+        class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40"
+      >
+        <h1 class="text-xl font-bold">POS</h1>
+        <button id="toggle-sidebar" class="p-2">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </nav>
+
+      
+    <div class="flex h-screen overflow-hidden pt-16 md:pt-0">
+      <!-- Sidebar -->
       <div
         id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out"
       ></div>
+
+      <!-- Overlay -->
+      <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40"></div>
 
       <!-- Main Content -->
       <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
         <div
-          class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+          class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-8"
         >
           <div>
             <h1 class="text-3xl font-bold">Inventory Management</h1>
@@ -511,9 +526,9 @@
     <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
 
     <!-- Scripts -->
+    <script src="./js/sidebar.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
-    <script src="./js/sidebar.js"></script>
     <script src="./js/inventory.js"></script>
   </body>
 </html>
