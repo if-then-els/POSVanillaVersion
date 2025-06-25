@@ -55,6 +55,9 @@ const salesRoutes = require("./routes/sales.routes");
 const reportsRoutes = require("./routes/reports.routes");
 const settingsRoutes = require("./routes/settings.routes");
 const businessRoutes = require("./routes/business.routes");
+const subscriptionMiddleware = require("./middleware/subscription.middleware");
+const subscriptionsRoutes = require("./routes/subscriptions.routes");
+const paymentsRoutes = require("./routes/payments.routes");
 
 app.use("/", settingsRoutes);
 app.use("/", userRoutes);
@@ -64,6 +67,12 @@ app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
 app.use("/", userRoutes);
 app.use("/api/business", businessRoutes);
+app.use("/", subscriptionsRoutes);
+app.use("/", paymentsRoutes);
+
+// Apply subscription middleware
+app.use(subscriptionMiddleware);
+
 //start app
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
