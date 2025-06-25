@@ -71,44 +71,35 @@
 
           <div class="grid md:grid-cols-3 gap-6">
             <div>
-              <h3 class="text-lg font-semibold text-primary">Premium Plan</h3>
-              <p class="text-2xl font-bold">
-                KES 5,999<span class="text-sm font-normal text-gray-500"
-                  >/month</span
-                >
+              <h3 class="text-lg font-semibold text-primary" id="plan-name">
+                -
+              </h3>
+              <p class="text-2xl font-bold" id="plan-price">
+                <!-- You can fill this dynamically if you have price info -->
               </p>
             </div>
-
             <div>
-              <h4 class="text-sm font-medium text-gray-500">Features</h4>
+              <h4 class="text-sm font-medium text-gray-500">
+                Subscription Info
+              </h4>
               <ul class="mt-2 space-y-1">
-                <li class="flex items-center">
-                  <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                  <span>Unlimited products</span>
+                <li>
+                  <span class="text-gray-600">Status:</span>
+                  <span id="plan-status" class="ml-2 font-medium">-</span>
                 </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                  <span>Multi-store support</span>
+                <li>
+                  <span class="text-gray-600">Start Date:</span>
+                  <span id="plan-start" class="ml-2 font-medium">-</span>
                 </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                  <span>Advanced reporting</span>
+                <li>
+                  <span class="text-gray-600">End Date:</span>
+                  <span id="plan-end" class="ml-2 font-medium">-</span>
+                </li>
+                <li>
+                  <span class="text-gray-600">Auto Renew:</span>
+                  <span id="plan-autorenew" class="ml-2 font-medium">-</span>
                 </li>
               </ul>
-            </div>
-
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">Billing</h4>
-              <div class="mt-2 space-y-2">
-                <p class="flex justify-between">
-                  <span class="text-gray-600">Next billing date:</span>
-                  <span class="font-medium">15 Jul 2024</span>
-                </p>
-                <p class="flex justify-between">
-                  <span class="text-gray-600">Payment method:</span>
-                  <span class="font-medium">VISA ****4242</span>
-                </p>
-              </div>
             </div>
           </div>
 
@@ -378,25 +369,81 @@
     <!-- Scripts -->
     <script src="./js/sidebar.js"></script>
     <script>
-      //function to show toast notifications
-      function showToast(message  = 'Action completed Successfully!', type = 'sucess') {
-        const toastContainer = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `bg-${type === 'success' ? 'green' : 'red'}-500 text-white px-4 py-2 rounded shadow-lg mb-2`;
-        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'times'} mr-2"></i>${message}`;
-        
+      // function to show toast notifications
+      function showToast(
+        message = "Action completed Successfully!",
+        type = "success"
+      ) {
+        const toastContainer = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = `bg-${
+          type === "success" ? "green" : "red"
+        }-500 text-white px-4 py-2 rounded shadow-lg mb-2`;
+        toast.innerHTML = `<i class="fas fa-${
+          type === "success" ? "check" : "times"
+        } mr-2"></i>${message}`;
+
         toastContainer.appendChild(toast);
-        
+
         setTimeout(() => {
           toast.remove();
         }, 3000);
       }
+
       // fetch subscription details and update the ui
-      async function fetchSubscriptionDetails(){
-        try{
-          
+      async function fetchSubscriptionDetails() {
+        try {
+          const response = await fetch("/subscriptions/details");
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const data = await response.json();
+          const sub = data.subscription;
+
+          // Update Plan Name
+          document.getElementById("plan-name").textContent =
+            sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1) + " Plan";
+
+          // Update Status
+          document.getElementById("plan-status").textContent =
+            sub.status.charAt(0).toUpperCase() + sub.status.slice(1);
+
+          // Update Start Date
+          document.getElementById("plan-start").textContent = sub.startDate
+            ? new Date(sub.startDate).toLocaleDateString()
+            : "N/A";
+
+          // Update End Date
+          document.getElementById("plan-end").textContent = sub.endDate
+            ? new Date(sub.endDate).toLocaleDateString()
+            : "N/A";
+
+          // Update Auto Renew
+          document.getElementById("plan-autorenew").textContent = sub.autoRenew
+            ? "Enabled"
+            : "Disabled";
+
+          // Optionally update price if available
+          if (sub.price) {
+            document.getElementById(
+              "plan-price"
+            ).textContent = `KES ${sub.price}`;
+          }
+
+          showToast("Subscription details fetched successfully!", "success");
+        } catch (error) {
+          console.error("Error fetching subscription details:", error);
+          showToast(
+            "Failed to fetch subscription details. Please try again.",
+            "error"
+          );
         }
       }
+
+      // Call the function to fetch subscription details on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        fetchSubscriptionDetails();
+      });
     </script>
   </body>
 </html>
