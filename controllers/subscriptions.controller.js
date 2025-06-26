@@ -1,3 +1,4 @@
+const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
 const SubscriptionLog = require("../models/subscriptionLog.model"); // New: for logging
 
@@ -87,12 +88,12 @@ exports.upgradeSubscription = async (req, res) => {
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
-    const { businessId } = req.user.business;
-    if (!businessId) {
+    const business = req.user.business;
+    if (!business) {
       return res.status(400).json({ message: "Business ID is required" });
     }
     const subscription = await Subscription.findOne({
-      business: businessId,
+      business: business,
       status: "active",
     }).populate("business", "businessName businessEmail");
     if (!subscription) {
@@ -113,12 +114,10 @@ exports.getSubscriptionDetails = async (req, res) => {
       },
     });
   } catch (error) {
-    cconsole.error("Error retrieving subscription details:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error retrieving subscription details",
-        error: error.message,
-      });
+    console.error("Error retrieving subscription details:", error);
+    res.status(500).json({
+      message: "Server error retrieving subscription details",
+      error: error.message,
+    });
   }
 };

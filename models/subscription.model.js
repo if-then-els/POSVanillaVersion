@@ -4,7 +4,7 @@ const SubscriptionSchema = new mongoose.Schema(
   {
     business: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Business",
+      ref: "BusinessDetails",
       required: true,
     },
     plan: { type: String, required: true },
