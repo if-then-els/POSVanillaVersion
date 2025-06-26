@@ -43,7 +43,7 @@
   <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar (will be loaded via JS) -->
-       <nav
+        <nav
         class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40"
       >
         <h1 class="text-xl font-bold">POS</h1>
@@ -52,411 +52,413 @@
         </button>
       </nav>
 
-      
-    <div class="flex h-screen overflow-hidden pt-16 md:pt-0">
-      <!-- Sidebar -->
-      <div
-        id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out"
-      ></div>
-
-      <!-- Overlay -->
-      <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40"></div>
-
-      <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto  p-6" id="main-content">
-        <div class="mb-6">
-          <h1 class="text-3xl font-bold">Settings</h1>
-          <p class="text-gray-600">Configure your POS system</p>
-        </div>
-
-        <!-- Settings Tabs -->
+      <div class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full">
+        <!-- Sidebar -->
         <div
-          class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-        >
-          <div class="border-b border-gray-200">
-            <div class="flex flex-wrap">
-              <button
-                id="tab-store"
-                class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary"
-              >
-                Store Settings
-              </button>
-              <button
-                id="tab-receipt"
-                class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
-              >
-                Receipt Settings
-              </button>
-              <button
-                id="tab-user"
-                class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
-              >
-                User Settings
-              </button>
+          id="sidebar"
+          class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out"
+        ></div>
+
+        <!-- Overlay -->
+        <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto md:ml-64 p-6" id="main-content">
+          <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+              <h1 class="text-3xl font-bold">Settings</h1>
+              <p class="text-gray-600">Configure your POS system</p>
             </div>
-          </div>
 
-          <!-- Store Settings Tab Content -->
-          <div class="tab-content p-6" id="store-content">
-            <h3 class="text-lg font-semibold mb-4">Store Information</h3>
-            <form id="store-settings-form" class="space-y-4">
-              <div class="space-y-2">
-                <label
-                  for="store-name"
-                  class="block text-sm font-medium text-gray-700"
-                  >Store Name</label
+            <!-- Settings Tabs -->
+            <div
+              class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+            >
+              
+            <div class="border-b border-gray-200">
+              <div class="flex flex-wrap">
+                <button
+                  id="tab-store"
+                  class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary"
                 >
-                <input
-                  id="store-name"
-                  name="storeName"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  value="My POS Store"
-                />
+                  Store Settings
+                </button>
+                <button
+                  id="tab-receipt"
+                  class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                  Receipt Settings
+                </button>
+                <button
+                  id="tab-user"
+                  class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                  User Settings
+                </button>
               </div>
+            </div>
 
-              <div class="space-y-2">
-                <label
-                  for="store-address"
-                  class="block text-sm font-medium text-gray-700"
-                  >Address</label
-                >
-                <textarea
-                  id="store-address"
-                  name="storeAddress"
-                  rows="3"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                >
+            <!-- Store Settings Tab Content -->
+            <div class="tab-content p-6" id="store-content">
+              <h3 class="text-lg font-semibold mb-4">Store Information</h3>
+              <form id="store-settings-form" class="space-y-4">
+                <div class="space-y-2">
+                  <label
+                    for="store-name"
+                    class="block text-sm font-medium text-gray-700"
+                    >Store Name</label
+                  >
+                  <input
+                    id="store-name"
+                    name="storeName"
+                    class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                    value="My POS Store"
+                  />
+                </div>
+
+                <div class="space-y-2">
+                  <label
+                    for="store-address"
+                    class="block text-sm font-medium text-gray-700"
+                    >Address</label
+                  >
+                  <textarea
+                    id="store-address"
+                    name="storeAddress"
+                    rows="3"
+                    class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                  >
 123 Main Street, City, Country</textarea
-                >
-              </div>
+                  >
+                </div>
 
-              <div class="space-y-2">
-                <label
-                  for="store-phone"
-                  class="block text-sm font-medium text-gray-700"
-                  >Phone Number</label
-                >
-                <input
-                  id="store-phone"
-                  name="storePhone"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  value="+1 (555) 123-4567"
-                />
-              </div>
-
-              <div class="space-y-2">
-                <label
-                  for="store-email"
-                  class="block text-sm font-medium text-gray-700"
-                  >Email</label
-                >
-                <input
-                  id="store-email"
-                  name="storeEmail"
-                  type="email"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  value="contact@myposstore.com"
-                />
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="space-y-2">
                   <label
-                    for="tax-rate"
+                    for="store-phone"
                     class="block text-sm font-medium text-gray-700"
-                    >Tax Rate (%)</label
+                    >Phone Number</label
                   >
                   <input
-                    id="tax-rate"
-                    name="taxRate"
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    id="store-phone"
+                    name="storePhone"
                     class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                    value="7.5"
+                    value="+1 (555) 123-4567"
                   />
                 </div>
 
                 <div class="space-y-2">
                   <label
-                    for="currency"
+                    for="store-email"
                     class="block text-sm font-medium text-gray-700"
-                    >Currency</label
+                    >Email</label
                   >
                   <input
-                    id="currency"
-                    name="currency"
+                    id="store-email"
+                    name="storeEmail"
+                    type="email"
                     class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                    value="USD"
+                    value="contact@myposstore.com"
                   />
                 </div>
-              </div>
 
-              <div class="space-y-2">
-                <label
-                  for="store-logo"
-                  class="block text-sm font-medium text-gray-700"
-                  >Store Logo</label
-                >
-                <div class="flex items-center gap-4">
-                  <img
-                    src="./images/placeholder.png"
-                    alt="Store Logo"
-                    class="h-16 w-16 rounded-md object-cover border border-gray-200"
-                  />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label
+                      for="tax-rate"
+                      class="block text-sm font-medium text-gray-700"
+                      >Tax Rate (%)</label
+                    >
+                    <input
+                      id="tax-rate"
+                      name="taxRate"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                      value="7.5"
+                    />
+                  </div>
+
+                  <div class="space-y-2">
+                    <label
+                      for="currency"
+                      class="block text-sm font-medium text-gray-700"
+                      >Currency</label
+                    >
+                    <input
+                      id="currency"
+                      name="currency"
+                      class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                      value="USD"
+                    />
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <label
+                    for="store-logo"
+                    class="block text-sm font-medium text-gray-700"
+                    >Store Logo</label
+                  >
+                  <div class="flex items-center gap-4">
+                    <img
+                      src="./images/placeholder.png"
+                      alt="Store Logo"
+                      class="h-16 w-16 rounded-md object-cover border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Upload Logo
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    Recommended size: 200x200 pixels
+                  </p>
+                </div>
+
+                <div class="pt-4">
                   <button
-                    type="button"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   >
-                    Upload Logo
+                    <i class="fas fa-save mr-2"></i> Save Store Settings
                   </button>
                 </div>
-                <p class="text-xs text-gray-500">
-                  Recommended size: 200x200 pixels
-                </p>
-              </div>
+              </form>
+            </div>
 
-              <div class="pt-4">
-                <button
-                  type="submit"
-                  class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                >
-                  <i class="fas fa-save mr-2"></i> Save Store Settings
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- Receipt Settings Tab Content -->
-          <div class="tab-content p-6 hidden" id="receipt-content">
-            <h3 class="text-lg font-semibold mb-4">Receipt Configuration</h3>
-            <form id="receipt-settings-form" class="space-y-4">
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <label
-                    for="show-logo"
-                    class="block text-sm font-medium text-gray-700"
-                    >Show Logo on Receipt</label
-                  >
-                  <p class="text-sm text-gray-500">
-                    Display your store logo at the top of receipts
-                  </p>
+            <!-- Receipt Settings Tab Content -->
+            <div class="tab-content p-6 hidden" id="receipt-content">
+              <h3 class="text-lg font-semibold mb-4">Receipt Configuration</h3>
+              <form id="receipt-settings-form" class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div class="space-y-0.5">
+                    <label
+                      for="show-logo"
+                      class="block text-sm font-medium text-gray-700"
+                      >Show Logo on Receipt</label
+                    >
+                    <p class="text-sm text-gray-500">
+                      Display your store logo at the top of receipts
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="show-logo"
+                      name="showLogo"
+                      class="sr-only peer"
+                      checked
+                    />
+                    <div
+                      class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                    ></div>
+                  </label>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="show-logo"
-                    name="showLogo"
-                    class="sr-only peer"
-                    checked
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
-              </div>
 
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <label
-                    for="show-tax"
-                    class="block text-sm font-medium text-gray-700"
-                    >Show Tax Details</label
-                  >
-                  <p class="text-sm text-gray-500">
-                    Display tax breakdown on receipts
-                  </p>
+                <div class="flex items-center justify-between">
+                  <div class="space-y-0.5">
+                    <label
+                      for="show-tax"
+                      class="block text-sm font-medium text-gray-700"
+                      >Show Tax Details</label
+                    >
+                    <p class="text-sm text-gray-500">
+                      Display tax breakdown on receipts
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="show-tax"
+                      name="showTaxDetails"
+                      class="sr-only peer"
+                      checked
+                    />
+                    <div
+                      class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                    ></div>
+                  </label>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="show-tax"
-                    name="showTaxDetails"
-                    class="sr-only peer"
-                    checked
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
-              </div>
 
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <label
-                    for="include-contact"
-                    class="block text-sm font-medium text-gray-700"
-                    >Include Contact Information</label
-                  >
-                  <p class="text-sm text-gray-500">
-                    Show store contact details on receipts
-                  </p>
+                <div class="flex items-center justify-between">
+                  <div class="space-y-0.5">
+                    <label
+                      for="include-contact"
+                      class="block text-sm font-medium text-gray-700"
+                      >Include Contact Information</label
+                    >
+                    <p class="text-sm text-gray-500">
+                      Show store contact details on receipts
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="include-contact"
+                      name="includeContactInfo"
+                      class="sr-only peer"
+                      checked
+                    />
+                    <div
+                      class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                    ></div>
+                  </label>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="include-contact"
-                    name="includeContactInfo"
-                    class="sr-only peer"
-                    checked
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
-              </div>
 
-              <div class="flex items-center justify-between">
-                <div class="space-y-0.5">
-                  <label
-                    for="print-auto"
-                    class="block text-sm font-medium text-gray-700"
-                    >Print Automatically</label
-                  >
-                  <p class="text-sm text-gray-500">
-                    Automatically print receipt after sale
-                  </p>
-                </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    id="print-auto"
-                    name="printAutomatically"
-                    class="sr-only peer"
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-                  ></div>
-                </label>
-              </div>
-
-              <div class="space-y-2">
-                <label
-                  for="footer-text"
-                  class="block text-sm font-medium text-gray-700"
-                  >Receipt Footer Text</label
-                >
-                <textarea
-                  id="footer-text"
-                  name="footerText"
-                  rows="3"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                >
-Thank you for your purchase!</textarea
-                >
-              </div>
-
-              <div class="pt-4">
-                <button
-                  type="submit"
-                  class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                >
-                  <i class="fas fa-save mr-2"></i> Save Receipt Settings
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <!-- User Settings Tab Content -->
-          <div class="tab-content p-6 hidden" id="user-content">
-            <h3 class="text-lg font-semibold mb-4">User Account</h3>
-            <form id="user-settings-form" class="space-y-4">
-              <div class="space-y-2">
-                <label
-                  for="username"
-                  class="block text-sm font-medium text-gray-700"
-                  >Username</label
-                >
-                <input
-                  id="username"
-                  name="username"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  value="admin"
-                />
-              </div>
-
-              <div class="space-y-2">
-                <label
-                  for="user-email"
-                  class="block text-sm font-medium text-gray-700"
-                  >Email</label
-                >
-                <input
-                  id="user-email"
-                  name="email"
-                  type="email"
-                  class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  value="admin@pos.com"
-                />
-              </div>
-
-              <div class="mt-6">
-                <h4 class="text-md font-medium mb-4">Change Password</h4>
-
-                <!-- Error Alert -->
-                <div
-                  id="password-error"
-                  class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                  role="alert"
-                >
-                  <span id="password-error-message"></span>
+                <div class="flex items-center justify-between">
+                  <div class="space-y-0.5">
+                    <label
+                      for="print-auto"
+                      class="block text-sm font-medium text-gray-700"
+                      >Print Automatically</label
+                    >
+                    <p class="text-sm text-gray-500">
+                      Automatically print receipt after sale
+                    </p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="print-auto"
+                      name="printAutomatically"
+                      class="sr-only peer"
+                    />
+                    <div
+                      class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+                    ></div>
+                  </label>
                 </div>
 
                 <div class="space-y-2">
                   <label
-                    for="current-password"
+                    for="footer-text"
                     class="block text-sm font-medium text-gray-700"
-                    >Current Password</label
+                    >Receipt Footer Text</label
                   >
-                  <input
-                    id="current-password"
-                    name="currentPassword"
-                    type="password"
+                  <textarea
+                    id="footer-text"
+                    name="footerText"
+                    rows="3"
                     class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
-                  />
+                  >
+Thank you for your purchase!</textarea
+                  >
                 </div>
 
-                <div class="space-y-2 mt-2">
+                <div class="pt-4">
+                  <button
+                    type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  >
+                    <i class="fas fa-save mr-2"></i> Save Receipt Settings
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- User Settings Tab Content -->
+            <div class="tab-content p-6 hidden" id="user-content">
+              <h3 class="text-lg font-semibold mb-4">User Account</h3>
+              <form id="user-settings-form" class="space-y-4">
+                <div class="space-y-2">
                   <label
-                    for="new-password"
+                    for="username"
                     class="block text-sm font-medium text-gray-700"
-                    >New Password</label
+                    >Username</label
                   >
                   <input
-                    id="new-password"
-                    name="newPassword"
-                    type="password"
+                    id="username"
+                    name="username"
                     class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                    value="admin"
                   />
                 </div>
 
-                <div class="space-y-2 mt-2">
+                <div class="space-y-2">
                   <label
-                    for="confirm-password"
+                    for="user-email"
                     class="block text-sm font-medium text-gray-700"
-                    >Confirm New Password</label
+                    >Email</label
                   >
                   <input
-                    id="confirm-password"
-                    name="confirmPassword"
-                    type="password"
+                    id="user-email"
+                    name="email"
+                    type="email"
                     class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                    value="admin@pos.com"
                   />
                 </div>
-              </div>
 
-              <div class="pt-4">
-                <button
-                  type="submit"
-                  class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                >
-                  <i class="fas fa-save mr-2"></i> Save User Settings
-                </button>
-              </div>
-            </form>
+                <div class="mt-6">
+                  <h4 class="text-md font-medium mb-4">Change Password</h4>
+
+                  <!-- Error Alert -->
+                  <div
+                    id="password-error"
+                    class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                    role="alert"
+                  >
+                    <span id="password-error-message"></span>
+                  </div>
+
+                  <div class="space-y-2">
+                    <label
+                      for="current-password"
+                      class="block text-sm font-medium text-gray-700"
+                      >Current Password</label
+                    >
+                    <input
+                      id="current-password"
+                      name="currentPassword"
+                      type="password"
+                      class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+
+                  <div class="space-y-2 mt-2">
+                    <label
+                      for="new-password"
+                      class="block text-sm font-medium text-gray-700"
+                      >New Password</label
+                    >
+                    <input
+                      id="new-password"
+                      name="newPassword"
+                      type="password"
+                      class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+
+                  <div class="space-y-2 mt-2">
+                    <label
+                      for="confirm-password"
+                      class="block text-sm font-medium text-gray-700"
+                      >Confirm New Password</label
+                    >
+                    <input
+                      id="confirm-password"
+                      name="confirmPassword"
+                      type="password"
+                      class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                </div>
+
+                <div class="pt-4">
+                  <button
+                    type="submit"
+                    class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                  >
+                    <i class="fas fa-save mr-2"></i> Save User Settings
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </div> <!-- End of container div -->
       </main>
 
       <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
