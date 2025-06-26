@@ -3,23 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Modern POS System for efficient sales and checkout management"
-    />
+    <meta name="description" content="Modern POS System for efficient sales and checkout management">
     <title>Sales - POS System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Google Fonts for better typography -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="./css/styles.css" />
     <script>
@@ -28,7 +19,7 @@
         darkMode: "class",
         theme: {
           fontFamily: {
-            sans: ["Inter", "sans-serif"],
+            sans: ['Inter', 'sans-serif'],
           },
           extend: {
             colors: {
@@ -48,12 +39,12 @@
               },
             },
             boxShadow: {
-              soft: "0 4px 12px 0 rgba(0, 0, 0, 0.05)",
-              "soft-lg": "0 10px 25px -5px rgba(0, 0, 0, 0.08)",
+              'soft': '0 4px 12px 0 rgba(0, 0, 0, 0.05)',
+              'soft-lg': '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
             },
             transitionProperty: {
-              height: "height",
-              spacing: "margin, padding",
+              'height': 'height',
+              'spacing': 'margin, padding',
             },
           },
         },
@@ -64,15 +55,12 @@
       .smooth-transition {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
-
+      
       /* Better focus states */
-      [type="text"]:focus,
-      [type="email"]:focus,
-      textarea:focus,
-      select:focus {
+      [type="text"]:focus, [type="email"]:focus, textarea:focus, select:focus {
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
       }
-
+      
       /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 8px;
@@ -89,7 +77,7 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #a1a1a1;
       }
-
+      
       /* Collapsible cart styles */
       #cart-collapsed {
         display: flex;
@@ -108,14 +96,9 @@
   <body class="bg-gray-50 font-sans antialiased">
     <div class="flex h-screen overflow-hidden">
       <!-- Mobile Header -->
-      <nav
-        class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40 shadow-sm"
-      >
+      <nav class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40 shadow-sm">
         <h1 class="text-xl font-bold text-primary-700">POS System</h1>
-        <button
-          id="toggle-sidebar"
-          class="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-        >
+        <button id="toggle-sidebar" class="p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
           <i class="fas fa-bars text-xl text-gray-700"></i>
         </button>
       </nav>
@@ -128,10 +111,7 @@
         ></div>
 
         <!-- Overlay -->
-        <div
-          id="overlay"
-          class="fixed inset-0 bg-black opacity-50 hidden z-40 smooth-transition"
-        ></div>
+        <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40 smooth-transition"></div>
 
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto p-6 sm:ml-64" id="main-content">
@@ -141,38 +121,24 @@
               <nav class="flex mb-2" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-2">
                   <li class="inline-flex items-center">
-                    <a
-                      href="#"
-                      class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary-600"
-                    >
+                    <a href="#" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary-600">
                       <i class="fas fa-home mr-2"></i>
                       Dashboard
                     </a>
                   </li>
                   <li aria-current="page">
                     <div class="flex items-center">
-                      <i
-                        class="fas fa-chevron-right text-gray-400 mx-2 text-xs"
-                      ></i>
-                      <span
-                        class="ml-1 text-sm font-medium text-gray-700 md:ml-2"
-                        >Sales</span
-                      >
+                      <i class="fas fa-chevron-right text-gray-400 mx-2 text-xs"></i>
+                      <span class="ml-1 text-sm font-medium text-gray-700 md:ml-2">Sales</span>
                     </div>
                   </li>
                 </ol>
               </nav>
-
-              <div
-                class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
-              >
+              
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">
-                    Sales & Checkout
-                  </h1>
-                  <p class="text-gray-600 mt-1">
-                    Process sales and manage transactions
-                  </p>
+                  <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Sales & Checkout</h1>
+                  <p class="text-gray-600 mt-1">Process sales and manage transactions</p>
                 </div>
                 <div class="mt-3 sm:mt-0">
                   <!-- <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
@@ -186,16 +152,11 @@
             <div class="grid gap-6 lg:grid-cols-3">
               <!-- Product Selection -->
               <div class="lg:col-span-2">
-                <div
-                  class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-                >
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50">
                     <div class="flex items-center justify-between">
-                      <h2
-                        class="text-lg font-semibold text-gray-900 flex items-center"
-                      >
-                        <i class="fas fa-box mr-2 text-primary-600"></i>
-                        Products
+                      <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-box mr-2 text-primary-600"></i> Products
                       </h2>
                       <div class="relative">
                         <input
@@ -203,9 +164,7 @@
                           placeholder="Search products..."
                           class="pl-8 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full"
                         />
-                        <i
-                          class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"
-                        ></i>
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
                       </div>
                     </div>
                   </div>
@@ -228,7 +187,8 @@
                 </div>
               </div>
 
-             <!-- Shopping Cart -->
+              <!-- Shopping Cart -->
+           <!-- Inside your HTML file, replace the Shopping Cart div with this: -->
 <div class="lg:col-span-1">
   <!-- Mobile floating cart container -->
   <div class="lg:hidden fixed bottom-4 right-4 z-30">
@@ -319,17 +279,14 @@
   <div class="hidden lg:block">
     <!-- Collapsed Cart (shown when empty) -->
     <div
-      id="cart-collapsed-desktop"
+      id="cart-collapsed"
       class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden cursor-pointer hover:shadow-md smooth-transition"
     >
-      <div
-        class="p-4 flex items-center justify-center"
-        id="toggle-cart-desktop"
-      >
+      <div class="p-4 flex items-center justify-center" id="toggle-cart">
         <div class="relative">
           <i class="fas fa-shopping-cart text-2xl text-primary-600"></i>
           <span
-            id="cart-count-badge-desktop"
+            id="cart-count-badge"
             class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
             >0</span
           >
@@ -340,71 +297,54 @@
 
     <!-- Expanded Cart (shown when has items or clicked) -->
     <div
-      id="cart-expanded-desktop"
+      id="cart-expanded"
       class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden"
     >
-      <div
-        class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center"
-      >
+      <div class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
         <div>
           <h2 class="text-lg font-semibold text-gray-900 flex items-center">
-            <i class="fas fa-shopping-cart mr-2 text-primary-600"></i>
-            Cart
+            <i class="fas fa-shopping-cart mr-2 text-primary-600"></i> Cart
           </h2>
-          <p id="cart-count-desktop" class="text-sm text-gray-500 mt-1">
-            0 items in cart
-          </p>
+          <p id="cart-count" class="text-sm text-gray-500 mt-1">0 items in cart</p>
         </div>
-        <button
-          id="minimize-cart-desktop"
-          class="p-2 rounded-md hover:bg-gray-100"
-        >
+        <button id="minimize-cart" class="p-2 rounded-md hover:bg-gray-100">
           <i class="fas fa-minus text-gray-500"></i>
         </button>
       </div>
 
-      <div
-        id="cart-items-desktop"
-        class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto"
-      >
+      <div id="cart-items" class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto">
         <!-- Cart items will be loaded here by JavaScript -->
-        <div
-          class="text-center py-8 text-gray-400 flex flex-col items-center"
-        >
+        <div class="text-center py-8 text-gray-400 flex flex-col items-center">
           <i class="fas fa-shopping-cart text-3xl mb-2"></i>
           <p>Your cart is empty</p>
           <p class="text-sm mt-1">Add products to get started</p>
         </div>
       </div>
 
-      <div
-        class="p-4 sm:p-6 border-t border-gray-200 space-y-4 bg-gray-50"
-      >
+      <div class="p-4 sm:p-6 border-t border-gray-200 space-y-4 bg-gray-50">
         <div class="space-y-2">
           <div class="flex justify-between">
             <span class="text-gray-600">Subtotal</span>
-            <span id="cart-subtotal-desktop" class="font-medium">$0.00</span>
+            <span id="cart-subtotal" class="font-medium">$0.00</span>
           </div>
           <div class="flex justify-between">
             <span class="text-gray-600">Tax (10%)</span>
-            <span id="cart-tax-desktop" class="font-medium">$0.00</span>
+            <span id="cart-tax" class="font-medium">$0.00</span>
           </div>
         </div>
-        <div
-          class="flex justify-between text-lg font-bold border-t pt-3"
-        >
+        <div class="flex justify-between text-lg font-bold border-t pt-3">
           <span>Total:</span>
-          <span id="cart-total-desktop" class="text-xl text-primary-700">$0.00</span>
+          <span id="cart-total" class="text-xl text-primary-700">$0.00</span>
         </div>
         <button
-          id="checkout-btn-desktop"
+          id="checkout-btn"
           class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition flex items-center justify-center"
           disabled
         >
           <i class="fas fa-credit-card mr-2"></i> Checkout
         </button>
         <button
-          id="clear-cart-btn-desktop"
+          id="clear-cart-btn"
           class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition"
           disabled
         >
@@ -414,11 +354,9 @@
     </div>
   </div>
 </div>
+
         <!-- Checkout Modal -->
-        <div
-          id="checkout-modal"
-          class="fixed inset-0 z-50 hidden overflow-y-auto"
-        >
+        <div id="checkout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
           <div class="flex items-center justify-center min-h-screen px-4">
             <div
               class="fixed inset-0 bg-black bg-opacity-25 transition-opacity smooth-transition"
@@ -430,8 +368,7 @@
             >
               <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                 <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                  <i class="fas fa-cash-register mr-2 text-primary-600"></i>
-                  Complete Checkout
+                  <i class="fas fa-cash-register mr-2 text-primary-600"></i> Complete Checkout
                 </h3>
               </div>
 
@@ -445,9 +382,7 @@
                       Customer Name <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                      <i
-                        class="fas fa-user absolute left-3 top-3 text-gray-400 text-sm"
-                      ></i>
+                      <i class="fas fa-user absolute left-3 top-3 text-gray-400 text-sm"></i>
                       <input
                         id="customer-name"
                         name="customerName"
@@ -462,12 +397,9 @@
                     <label
                       for="customer-email"
                       class="block text-sm font-medium text-gray-700"
-                      >Customer Email</label
-                    >
+                    >Customer Email</label>
                     <div class="relative">
-                      <i
-                        class="fas fa-envelope absolute left-3 top-3 text-gray-400 text-sm"
-                      ></i>
+                      <i class="fas fa-envelope absolute left-3 top-3 text-gray-400 text-sm"></i>
                       <input
                         id="customer-email"
                         name="customerEmail"
@@ -496,9 +428,7 @@
                           for="payment-cash"
                           class="flex flex-col items-center p-3 border border-gray-300 rounded-md cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-50 hover:bg-gray-50"
                         >
-                          <i
-                            class="fas fa-money-bill-wave text-xl text-gray-700 mb-1"
-                          ></i>
+                          <i class="fas fa-money-bill-wave text-xl text-gray-700 mb-1"></i>
                           <span class="text-sm">Cash</span>
                         </label>
                       </div>
@@ -514,9 +444,7 @@
                           for="payment-credit"
                           class="flex flex-col items-center p-3 border border-gray-300 rounded-md cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-50 hover:bg-gray-50"
                         >
-                          <i
-                            class="fas fa-credit-card text-xl text-gray-700 mb-1"
-                          ></i>
+                          <i class="fas fa-credit-card text-xl text-gray-700 mb-1"></i>
                           <span class="text-sm">Credit Card</span>
                         </label>
                       </div>
@@ -532,26 +460,18 @@
                           for="payment-online"
                           class="flex flex-col items-center p-3 border border-gray-300 rounded-md cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-50 hover:bg-gray-50"
                         >
-                          <i
-                            class="fas fa-globe text-xl text-gray-700 mb-1"
-                          ></i>
+                          <i class="fas fa-globe text-xl text-gray-700 mb-1"></i>
                           <span class="text-sm">Online</span>
                         </label>
                       </div>
                     </div>
                   </div>
 
-                  <div
-                    class="mt-4 space-y-3 rounded-lg bg-gray-50 p-4 border border-gray-200"
-                  >
+                  <div class="mt-4 space-y-3 rounded-lg bg-gray-50 p-4 border border-gray-200">
                     <h4 class="font-semibold text-gray-900 flex items-center">
-                      <i class="fas fa-receipt mr-2 text-primary-600"></i> Order
-                      Summary
+                      <i class="fas fa-receipt mr-2 text-primary-600"></i> Order Summary
                     </h4>
-                    <div
-                      id="checkout-items"
-                      class="space-y-3 text-sm divide-y divide-gray-200"
-                    >
+                    <div id="checkout-items" class="space-y-3 text-sm divide-y divide-gray-200">
                       <!-- Order items will be loaded here by JavaScript -->
                     </div>
                     <div class="pt-3 space-y-2">
@@ -563,9 +483,7 @@
                         <span>Tax (10%)</span>
                         <span id="checkout-tax">$0.00</span>
                       </div>
-                      <div
-                        class="flex justify-between font-bold text-gray-900 border-t pt-2"
-                      >
+                      <div class="flex justify-between font-bold text-gray-900 border-t pt-2">
                         <span>Total</span>
                         <span id="checkout-total">$0.00</span>
                       </div>
@@ -573,9 +491,7 @@
                   </div>
                 </div>
 
-                <div
-                  class="px-6 py-4 bg-gray-50 text-right space-x-3 border-t border-gray-200"
-                >
+                <div class="px-6 py-4 bg-gray-50 text-right space-x-3 border-t border-gray-200">
                   <button
                     type="button"
                     id="checkout-cancel"
@@ -597,113 +513,67 @@
         </div>
 
         <!-- Toast notification container -->
-        <div
-          id="toast-container"
-          class="fixed top-4 right-4 z-50 space-y-3 w-full max-w-xs"
-        ></div>
+        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-3 w-full max-w-xs"></div>
 
         <!-- Scripts -->
         <script>
-            // Mobile cart toggle function
-  function toggleMobileCart() {
-    const cartPanel = document.getElementById('mobile-cart-panel');
-    cartPanel.classList.toggle('hidden');
     
-    // Toggle aria-expanded for accessibility
-    const isExpanded = cartPanel.classList.contains('hidden') ? 'false' : 'true';
-    document.getElementById('mobile-cart-button').setAttribute('aria-expanded', isExpanded);
-  }
+  // Cart toggle functionality
+// Mobile cart toggle function
+function toggleMobileCart() {
+  const cartPanel = document.getElementById('mobile-cart-panel');
+  cartPanel.classList.toggle('hidden');
+  
+  // Toggle aria-expanded for accessibility
+  const isExpanded = cartPanel.classList.contains('hidden') ? 'false' : 'true';
+  document.getElementById('mobile-cart-button').setAttribute('aria-expanded', isExpanded);
+}
 
-  // Example function to update cart (call this when items are added/removed)
-  function updateMobileCart(items) {
-    const itemCount = items.length;
-    const badge = document.getElementById('mobile-cart-badge');
-    const countDisplay = document.getElementById('mobile-cart-count');
-    const emptyState = document.querySelector('#mobile-cart-items > div');
-    const checkoutBtn = document.getElementById('mobile-checkout-btn');
-    const clearBtn = document.getElementById('mobile-clear-cart-btn');
+// Example function to update cart (call this when items are added/removed)
+function updateMobileCart(items) {
+  const itemCount = items.length;
+  const badge = document.getElementById('mobile-cart-badge');
+  const countDisplay = document.getElementById('mobile-cart-count');
+  const emptyState = document.querySelector('#mobile-cart-items > div');
+  const checkoutBtn = document.getElementById('mobile-checkout-btn');
+  const clearBtn = document.getElementById('mobile-clear-cart-btn');
+  
+  // Update badge
+  if (itemCount > 0) {
+    badge.classList.remove('hidden');
+    badge.textContent = itemCount;
+    emptyState.classList.add('hidden');
     
-    // Update badge
-    if (itemCount > 0) {
-      badge.classList.remove('hidden');
-      badge.textContent = itemCount;
-      emptyState.classList.add('hidden');
-      
-      // Auto-expand cart when items are added
-      if (document.getElementById('mobile-cart-panel').classList.contains('hidden')) {
-        toggleMobileCart();
-      }
-    } else {
-      badge.classList.add('hidden');
-      emptyState.classList.remove('hidden');
+    // Auto-expand cart when items are added
+    if (document.getElementById('mobile-cart-panel').classList.contains('hidden')) {
+      toggleMobileCart();
     }
-    
-    // Update count display
-    countDisplay.textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`;
-    
-    // Enable/disable buttons
-    checkoutBtn.disabled = itemCount === 0;
-    clearBtn.disabled = itemCount === 0;
-    
-    // TODO: Update cart items list, subtotal, tax, and total
-    // updateCartItems(items);
-    // calculateTotals(items);
+  } else {
+    badge.classList.add('hidden');
+    emptyState.classList.remove('hidden');
   }
+  
+  // Update count display
+  countDisplay.textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`;
+  
+  // Enable/disable buttons
+  checkoutBtn.disabled = itemCount === 0;
+  clearBtn.disabled = itemCount === 0;
+  
+  // TODO: Update cart items list, subtotal, tax, and total
+  // updateCartItems(items);
+  // calculateTotals(items);
+}
 
-  // Initialize mobile cart
-  document.addEventListener('DOMContentLoaded', function() {
-    // Make cart button accessible
-    document.getElementById('mobile-cart-button').setAttribute('aria-expanded', 'false');
-    document.getElementById('mobile-cart-button').setAttribute('aria-label', 'Toggle cart');
-    
-    // Example: Test with some items
-    // updateMobileCart([{}, {}, {}]); // Uncomment to test with 3 items
-  });
-
-
-
-  const toggleCart = document.getElementById("toggle-cart");
-  const minimizeCart = document.getElementById("minimize-cart");
-  const cartCollapsed = document.getElementById("cart-collapsed");
-  const cartExpanded = document.getElementById("cart-expanded");
-
-  if (toggleCart) {
-    toggleCart.addEventListener("click", function () {
-      cartCollapsed.classList.add("hidden");
-      cartExpanded.classList.remove("hidden");
-    });
-  }
-
-  if (minimizeCart) {
-    minimizeCart.addEventListener("click", function () {
-      cartCollapsed.classList.remove("hidden");
-      cartExpanded.classList.add("hidden");
-    
-    });
-  }
-
-  // Desktop cart toggle
-  const toggleCartDesktop = document.getElementById("toggle-cart-desktop");
-  const minimizeCartDesktop = document.getElementById("minimize-cart-desktop");
-  const cartCollapsedDesktop = document.getElementById("cart-collapsed-desktop");
-  const cartExpandedDesktop = document.getElementById("cart-expanded-desktop");
-
-  if (toggleCartDesktop) {
-    toggleCartDesktop.addEventListener("click", function () {
-      cartCollapsedDesktop.classList.add("hidden");
-      cartExpandedDesktop.classList.remove("hidden");
-    });
-  }
-
-  if (minimizeCartDesktop) {
-    minimizeCartDesktop.addEventListener("click", function () {
-      cartCollapsedDesktop.classList.remove("hidden");
-      cartExpandedDesktop.classList.add("hidden");
-    });
-  }
-
-
-
+// Initialize mobile cart
+document.addEventListener('DOMContentLoaded', function() {
+  // Make cart button accessible
+  document.getElementById('mobile-cart-button').setAttribute('aria-expanded', 'false');
+  document.getElementById('mobile-cart-button').setAttribute('aria-label', 'Toggle cart');
+  
+  // Example: Test with some items
+  // updateMobileCart([{}, {}, {}]); // Uncomment to test with 3 items
+});
         </script>
         <script src="./js/sidebar.js"></script>
         <script src="./js/utils.js"></script>
