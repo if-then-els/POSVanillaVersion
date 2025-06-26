@@ -518,18 +518,23 @@
         <!-- Scripts -->
         <script>
     
-  // Cart toggle functionality
 // Mobile cart toggle function
 function toggleMobileCart() {
   const cartPanel = document.getElementById('mobile-cart-panel');
+  const cartButton = document.getElementById('mobile-cart-button');
+  
+  // Toggle panel visibility
   cartPanel.classList.toggle('hidden');
+  
+  // Toggle button visibility (inverse of panel visibility)
+  cartButton.classList.toggle('hidden', !cartPanel.classList.contains('hidden'));
   
   // Toggle aria-expanded for accessibility
   const isExpanded = cartPanel.classList.contains('hidden') ? 'false' : 'true';
-  document.getElementById('mobile-cart-button').setAttribute('aria-expanded', isExpanded);
+  cartButton.setAttribute('aria-expanded', isExpanded);
 }
 
-// Example function to update cart (call this when items are added/removed)
+// Update cart function should also handle the button visibility
 function updateMobileCart(items) {
   const itemCount = items.length;
   const badge = document.getElementById('mobile-cart-badge');
@@ -537,6 +542,7 @@ function updateMobileCart(items) {
   const emptyState = document.querySelector('#mobile-cart-items > div');
   const checkoutBtn = document.getElementById('mobile-checkout-btn');
   const clearBtn = document.getElementById('mobile-clear-cart-btn');
+  const cartButton = document.getElementById('mobile-cart-button');
   
   // Update badge
   if (itemCount > 0) {
@@ -545,8 +551,11 @@ function updateMobileCart(items) {
     emptyState.classList.add('hidden');
     
     // Auto-expand cart when items are added
-    if (document.getElementById('mobile-cart-panel').classList.contains('hidden')) {
-      toggleMobileCart();
+    const cartPanel = document.getElementById('mobile-cart-panel');
+    if (cartPanel.classList.contains('hidden')) {
+      cartPanel.classList.remove('hidden');
+      cartButton.classList.add('hidden');
+      cartButton.setAttribute('aria-expanded', 'true');
     }
   } else {
     badge.classList.add('hidden');
@@ -559,20 +568,14 @@ function updateMobileCart(items) {
   // Enable/disable buttons
   checkoutBtn.disabled = itemCount === 0;
   clearBtn.disabled = itemCount === 0;
-  
-  // TODO: Update cart items list, subtotal, tax, and total
-  // updateCartItems(items);
-  // calculateTotals(items);
 }
 
 // Initialize mobile cart
 document.addEventListener('DOMContentLoaded', function() {
   // Make cart button accessible
-  document.getElementById('mobile-cart-button').setAttribute('aria-expanded', 'false');
-  document.getElementById('mobile-cart-button').setAttribute('aria-label', 'Toggle cart');
-  
-  // Example: Test with some items
-  // updateMobileCart([{}, {}, {}]); // Uncomment to test with 3 items
+  const cartButton = document.getElementById('mobile-cart-button');
+  cartButton.setAttribute('aria-expanded', 'false');
+  cartButton.setAttribute('aria-label', 'Toggle cart');
 });
         </script>
         <script src="./js/sidebar.js"></script>
