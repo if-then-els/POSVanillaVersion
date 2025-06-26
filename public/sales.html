@@ -228,118 +228,192 @@
                 </div>
               </div>
 
-              <!-- Shopping Cart -->
-              <div class="lg:col-span-1">
-                <!-- Collapsed Cart (shown when empty) -->
-                <div
-                  id="cart-collapsed"
-                  class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden cursor-pointer hover:shadow-md smooth-transition"
-                >
-                  <div
-                    class="p-4 flex items-center justify-center"
-                    id="toggle-cart"
-                  >
-                    <div class="relative">
-                      <i
-                        class="fas fa-shopping-cart text-2xl text-primary-600"
-                      ></i>
-                      <span
-                        id="cart-count-badge"
-                        class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
-                        >0</span
-                      >
-                    </div>
-                    <span class="ml-3 font-medium">Cart</span>
-                  </div>
-                </div>
+             <!-- Shopping Cart -->
+<div class="lg:col-span-1">
+  <!-- Mobile floating cart container -->
+  <div class="lg:hidden fixed bottom-4 right-4 z-30">
+    <!-- Floating cart button (always visible) -->
+    <div
+      id="mobile-cart-button"
+      class="bg-white rounded-full shadow-lg border border-gray-200 cursor-pointer hover:shadow-xl transition-all duration-300 w-16 h-16 flex items-center justify-center relative"
+      onclick="toggleMobileCart()"
+    >
+      <i class="fas fa-shopping-cart text-2xl text-primary-600"></i>
+      <span
+        id="mobile-cart-badge"
+        class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+        >0</span
+      >
+    </div>
 
-                <!-- Expanded Cart (shown when has items or clicked) -->
-                <div
-                  id="cart-expanded"
-                  class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden"
-                >
-                  <div
-                    class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center"
-                  >
-                    <div>
-                      <h2
-                        class="text-lg font-semibold text-gray-900 flex items-center"
-                      >
-                        <i
-                          class="fas fa-shopping-cart mr-2 text-primary-600"
-                        ></i>
-                        Cart
-                      </h2>
-                      <p id="cart-count" class="text-sm text-gray-500 mt-1">
-                        0 items in cart
-                      </p>
-                    </div>
-                    <button
-                      id="minimize-cart"
-                      class="p-2 rounded-md hover:bg-gray-100"
-                    >
-                      <i class="fas fa-minus text-gray-500"></i>
-                    </button>
-                  </div>
+    <!-- Expanded Cart Panel -->
+    <div
+      id="mobile-cart-panel"
+      class="hidden bg-white rounded-lg shadow-lg border border-gray-200 w-[calc(100vw-2rem)] max-w-md transition-all duration-300 transform translate-y-2"
+      style="max-height: 70vh;"
+    >
+      <div class="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+            <i class="fas fa-shopping-cart mr-2 text-primary-600"></i>
+            Cart
+          </h2>
+          <p id="mobile-cart-count" class="text-sm text-gray-500 mt-1">
+            0 items in cart
+          </p>
+        </div>
+        <button
+          onclick="toggleMobileCart()"
+          class="p-2 rounded-md hover:bg-gray-100"
+        >
+          <i class="fas fa-times text-gray-500"></i>
+        </button>
+      </div>
 
-                  <div
-                    id="cart-items"
-                    class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto"
-                  >
-                    <!-- Cart items will be loaded here by JavaScript -->
-                    <div
-                      class="text-center py-8 text-gray-400 flex flex-col items-center"
-                    >
-                      <i class="fas fa-shopping-cart text-3xl mb-2"></i>
-                      <p>Your cart is empty</p>
-                      <p class="text-sm mt-1">Add products to get started</p>
-                    </div>
-                  </div>
+      <div
+        id="mobile-cart-items"
+        class="p-4 space-y-4 overflow-y-auto"
+        style="max-height: calc(70vh - 180px);"
+      >
+        <div class="text-center py-8 text-gray-400 flex flex-col items-center">
+          <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+          <p>Your cart is empty</p>
+          <p class="text-sm mt-1">Add products to get started</p>
+        </div>
+      </div>
 
-                  <div
-                    class="p-4 sm:p-6 border-t border-gray-200 space-y-4 bg-gray-50"
-                  >
-                    <div class="space-y-2">
-                      <div class="flex justify-between">
-                        <span class="text-gray-600">Subtotal</span>
-                        <span id="cart-subtotal" class="font-medium"
-                          >$0.00</span
-                        >
-                      </div>
-                      <div class="flex justify-between">
-                        <span class="text-gray-600">Tax (10%)</span>
-                        <span id="cart-tax" class="font-medium">$0.00</span>
-                      </div>
-                    </div>
-                    <div
-                      class="flex justify-between text-lg font-bold border-t pt-3"
-                    >
-                      <span>Total:</span>
-                      <span id="cart-total" class="text-xl text-primary-700"
-                        >$0.00</span
-                      >
-                    </div>
-                    <button
-                      id="checkout-btn"
-                      class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition flex items-center justify-center"
-                      disabled
-                    >
-                      <i class="fas fa-credit-card mr-2"></i> Checkout
-                    </button>
-                    <button
-                      id="clear-cart-btn"
-                      class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition"
-                      disabled
-                    >
-                      Clear Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div class="p-4 border-t border-gray-200 space-y-4 bg-gray-50">
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Subtotal</span>
+            <span id="mobile-cart-subtotal" class="font-medium">$0.00</span>
           </div>
-        </main>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Tax (10%)</span>
+            <span id="mobile-cart-tax" class="font-medium">$0.00</span>
+          </div>
+        </div>
+        <div class="flex justify-between text-lg font-bold border-t pt-3">
+          <span>Total:</span>
+          <span id="mobile-cart-total" class="text-xl text-primary-700">$0.00</span>
+        </div>
+        <button
+          id="mobile-checkout-btn"
+          class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center"
+          disabled
+        >
+          <i class="fas fa-credit-card mr-2"></i> Checkout
+        </button>
+        <button
+          id="mobile-clear-cart-btn"
+          class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300"
+          disabled
+        >
+          Clear Cart
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Desktop cart (unchanged) -->
+  <div class="hidden lg:block">
+    <!-- Collapsed Cart (shown when empty) -->
+    <div
+      id="cart-collapsed-desktop"
+      class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden cursor-pointer hover:shadow-md smooth-transition"
+    >
+      <div
+        class="p-4 flex items-center justify-center"
+        id="toggle-cart-desktop"
+      >
+        <div class="relative">
+          <i class="fas fa-shopping-cart text-2xl text-primary-600"></i>
+          <span
+            id="cart-count-badge-desktop"
+            class="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+            >0</span
+          >
+        </div>
+        <span class="ml-3 font-medium">Cart</span>
+      </div>
+    </div>
+
+    <!-- Expanded Cart (shown when has items or clicked) -->
+    <div
+      id="cart-expanded-desktop"
+      class="bg-white rounded-lg shadow-soft border border-gray-200 sticky top-6 overflow-hidden"
+    >
+      <div
+        class="p-4 sm:p-6 border-b border-gray-200 bg-gray-50 flex justify-between items-center"
+      >
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+            <i class="fas fa-shopping-cart mr-2 text-primary-600"></i>
+            Cart
+          </h2>
+          <p id="cart-count-desktop" class="text-sm text-gray-500 mt-1">
+            0 items in cart
+          </p>
+        </div>
+        <button
+          id="minimize-cart-desktop"
+          class="p-2 rounded-md hover:bg-gray-100"
+        >
+          <i class="fas fa-minus text-gray-500"></i>
+        </button>
+      </div>
+
+      <div
+        id="cart-items-desktop"
+        class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto"
+      >
+        <!-- Cart items will be loaded here by JavaScript -->
+        <div
+          class="text-center py-8 text-gray-400 flex flex-col items-center"
+        >
+          <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+          <p>Your cart is empty</p>
+          <p class="text-sm mt-1">Add products to get started</p>
+        </div>
+      </div>
+
+      <div
+        class="p-4 sm:p-6 border-t border-gray-200 space-y-4 bg-gray-50"
+      >
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Subtotal</span>
+            <span id="cart-subtotal-desktop" class="font-medium">$0.00</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Tax (10%)</span>
+            <span id="cart-tax-desktop" class="font-medium">$0.00</span>
+          </div>
+        </div>
+        <div
+          class="flex justify-between text-lg font-bold border-t pt-3"
+        >
+          <span>Total:</span>
+          <span id="cart-total-desktop" class="text-xl text-primary-700">$0.00</span>
+        </div>
+        <button
+          id="checkout-btn-desktop"
+          class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition flex items-center justify-center"
+          disabled
+        >
+          <i class="fas fa-credit-card mr-2"></i> Checkout
+        </button>
+        <button
+          id="clear-cart-btn-desktop"
+          class="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed smooth-transition"
+          disabled
+        >
+          Clear Cart
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
         <!-- Checkout Modal -->
         <div
           id="checkout-modal"
@@ -530,28 +604,106 @@
 
         <!-- Scripts -->
         <script>
-          // Cart toggle functionality
-          document.addEventListener("DOMContentLoaded", function () {
-            const toggleCart = document.getElementById("toggle-cart");
-            const minimizeCart = document.getElementById("minimize-cart");
-            const cartCollapsed = document.getElementById("cart-collapsed");
-            const cartExpanded = document.getElementById("cart-expanded");
+            // Mobile cart toggle function
+  function toggleMobileCart() {
+    const cartPanel = document.getElementById('mobile-cart-panel');
+    cartPanel.classList.toggle('hidden');
+    
+    // Toggle aria-expanded for accessibility
+    const isExpanded = cartPanel.classList.contains('hidden') ? 'false' : 'true';
+    document.getElementById('mobile-cart-button').setAttribute('aria-expanded', isExpanded);
+  }
 
-            if (toggleCart) {
-              toggleCart.addEventListener("click", function () {
-                console.log("cart clicked ");
-                cartCollapsed.classList.add("hidden");
-                cartExpanded.classList.remove("hidden");
-              });
-            }
+  // Example function to update cart (call this when items are added/removed)
+  function updateMobileCart(items) {
+    const itemCount = items.length;
+    const badge = document.getElementById('mobile-cart-badge');
+    const countDisplay = document.getElementById('mobile-cart-count');
+    const emptyState = document.querySelector('#mobile-cart-items > div');
+    const checkoutBtn = document.getElementById('mobile-checkout-btn');
+    const clearBtn = document.getElementById('mobile-clear-cart-btn');
+    
+    // Update badge
+    if (itemCount > 0) {
+      badge.classList.remove('hidden');
+      badge.textContent = itemCount;
+      emptyState.classList.add('hidden');
+      
+      // Auto-expand cart when items are added
+      if (document.getElementById('mobile-cart-panel').classList.contains('hidden')) {
+        toggleMobileCart();
+      }
+    } else {
+      badge.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+    }
+    
+    // Update count display
+    countDisplay.textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`;
+    
+    // Enable/disable buttons
+    checkoutBtn.disabled = itemCount === 0;
+    clearBtn.disabled = itemCount === 0;
+    
+    // TODO: Update cart items list, subtotal, tax, and total
+    // updateCartItems(items);
+    // calculateTotals(items);
+  }
 
-            if (minimizeCart) {
-              minimizeCart.addEventListener("click", function () {
-                cartCollapsed.classList.remove("hidden");
-                cartExpanded.classList.add("hidden");
-              });
-            }
-          });
+  // Initialize mobile cart
+  document.addEventListener('DOMContentLoaded', function() {
+    // Make cart button accessible
+    document.getElementById('mobile-cart-button').setAttribute('aria-expanded', 'false');
+    document.getElementById('mobile-cart-button').setAttribute('aria-label', 'Toggle cart');
+    
+    // Example: Test with some items
+    // updateMobileCart([{}, {}, {}]); // Uncomment to test with 3 items
+  });
+
+
+
+  const toggleCart = document.getElementById("toggle-cart");
+  const minimizeCart = document.getElementById("minimize-cart");
+  const cartCollapsed = document.getElementById("cart-collapsed");
+  const cartExpanded = document.getElementById("cart-expanded");
+
+  if (toggleCart) {
+    toggleCart.addEventListener("click", function () {
+      cartCollapsed.classList.add("hidden");
+      cartExpanded.classList.remove("hidden");
+    });
+  }
+
+  if (minimizeCart) {
+    minimizeCart.addEventListener("click", function () {
+      cartCollapsed.classList.remove("hidden");
+      cartExpanded.classList.add("hidden");
+    
+    });
+  }
+
+  // Desktop cart toggle
+  const toggleCartDesktop = document.getElementById("toggle-cart-desktop");
+  const minimizeCartDesktop = document.getElementById("minimize-cart-desktop");
+  const cartCollapsedDesktop = document.getElementById("cart-collapsed-desktop");
+  const cartExpandedDesktop = document.getElementById("cart-expanded-desktop");
+
+  if (toggleCartDesktop) {
+    toggleCartDesktop.addEventListener("click", function () {
+      cartCollapsedDesktop.classList.add("hidden");
+      cartExpandedDesktop.classList.remove("hidden");
+    });
+  }
+
+  if (minimizeCartDesktop) {
+    minimizeCartDesktop.addEventListener("click", function () {
+      cartCollapsedDesktop.classList.remove("hidden");
+      cartExpandedDesktop.classList.add("hidden");
+    });
+  }
+
+
+
         </script>
         <script src="./js/sidebar.js"></script>
         <script src="./js/utils.js"></script>
