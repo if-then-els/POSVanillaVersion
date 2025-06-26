@@ -42,6 +42,16 @@ function loadSidebar() {
             <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
           </a>
         </li>
+         <li>
+          <a href="./manageSubscriptions.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+            window.location.pathname.endsWith("manageSubscriptions.html")
+              ? "bg-gray-100"
+              : ""
+          }">
+            <i class="fas fa-cog w-5"></i>
+            <span>Subscriptions</span>
+          </a>
+        </li>
         <li>
           <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             window.location.pathname.endsWith("settings.html") ? "bg-gray-100" : ""
@@ -49,6 +59,7 @@ function loadSidebar() {
             <i class="fas fa-cog w-5"></i><span>Settings</span>
           </a>
         </li>
+        
       </ul>
     </nav>
     <div class="border-t mt-auto p-4">

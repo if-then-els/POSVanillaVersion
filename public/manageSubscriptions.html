@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Subscription Management - POS System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script>
+      // Tailwind configuration
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                DEFAULT: "#4f46e5",
+                50: "#eef2ff",
+                100: "#e0e7ff",
+                200: "#c7d2fe",
+                300: "#a5b4fc",
+                400: "#818cf8",
+                500: "#6366f1",
+                600: "#4f46e5",
+                700: "#4338ca",
+                800: "#3730a3",
+                900: "#312e81",
+                950: "#1e1b4b",
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-gray-50 font-sans">
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar (will be loaded via JS) -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm transition-transform duration-300 ease-in-out"
+      ></div>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto ml-64 p-6" id="main-content">
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-gray-900">
+            Subscription Management
+          </h1>
+          <p class="text-gray-600">View and manage your POS subscription</p>
+        </div>
+
+        <!-- Current Plan Section -->
+        <div
+          class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8"
+        >
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h2 class="text-xl font-bold text-gray-800">Your Current Plan</h2>
+              <p class="text-gray-500">Active subscription details</p>
+            </div>
+            <span
+              class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+            >
+              Active
+            </span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <div>
+              <h3 class="text-lg font-semibold text-primary" id="plan-name">
+                Loading...
+              </h3>
+              <p class="text-2xl font-bold text-gray-900" id="plan-price">
+                <!-- You can fill this dynamically if you have price info -->
+              </p>
+            </div>
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">
+                Subscription Info
+              </h4>
+              <ul class="mt-2 space-y-1">
+                <li>
+                  <span class="text-gray-600">Status:</span>
+                  <span id="plan-status" class="ml-2 font-medium">-</span>
+                </li>
+                <li>
+                  <span class="text-gray-600">Start Date:</span>
+                  <span id="plan-start" class="ml-2 font-medium">-</span>
+                </li>
+                <li>
+                  <span class="text-gray-600">End Date:</span>
+                  <span id="plan-end" class="ml-2 font-medium">-</span>
+                </li>
+                <li>
+                  <span class="text-gray-600">Auto Renew:</span>
+                  <span id="plan-autorenew" class="ml-2 font-medium">-</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex justify-end mt-6 space-x-3">
+            <button
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Update Payment Method
+            </button>
+            <button
+              class="px-4 py-2 bg-red-100 text-red-700 rounded-md text-sm font-medium hover:bg-red-200 transition-colors"
+            >
+              Cancel Subscription
+            </button>
+          </div>
+        </div>
+
+        <!-- Plan Comparison Section -->
+        <div
+          class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8"
+        >
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Available Plans</h2>
+          <p class="text-gray-500 mb-6">
+            Choose the plan that fits your business needs
+          </p>
+
+          <div class="grid md:grid-cols-3 gap-6">
+            <!-- Basic Plan -->
+            <div
+              class="border border-gray-200 rounded-lg p-6 hover:border-primary transition-colors flex flex-col"
+            >
+              <div class="mb-4">
+                <h3 class="text-lg font-semibold">Basic</h3>
+                <p class="text-2xl font-bold text-gray-900">
+                  KES 2,999<span class="text-sm font-normal text-gray-500"
+                    >/month</span
+                  >
+                </p>
+              </div>
+              <ul class="space-y-2 mb-6 flex-grow">
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Up to 100 products</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Single store</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Basic reporting</span>
+                </li>
+                <li class="flex items-center text-gray-400">
+                  <i class="fas fa-times mr-2"></i>
+                  <span>No multi-user support</span>
+                </li>
+              </ul>
+              <button
+                class="w-full px-4 py-2 border border-primary text-primary rounded-md text-sm font-medium hover:bg-primary-50 transition-colors"
+                data-plan="basic"
+              >
+                Select Plan
+              </button>
+            </div>
+
+            <!-- Premium Plan (Current) -->
+            <div
+              class="border-2 border-primary rounded-lg p-6 relative flex flex-col"
+            >
+              <div
+                class="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-2 py-1 rounded-bl rounded-tr"
+              >
+                CURRENT PLAN
+              </div>
+              <div class="mb-4">
+                <h3 class="text-lg font-semibold">Premium</h3>
+                <p class="text-2xl font-bold text-gray-900">
+                  KES 5,999<span class="text-sm font-normal text-gray-500"
+                    >/month</span
+                  >
+                </p>
+              </div>
+              <ul class="space-y-2 mb-6 flex-grow">
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Unlimited products</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Up to 3 stores</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Advanced reporting</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>3 user accounts</span>
+                </li>
+              </ul>
+              <button
+                class="w-full px-4 py-2 bg-primary text-white rounded-md text-sm font-medium opacity-70 cursor-not-allowed"
+                disabled
+              >
+                Current Plan
+              </button>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div
+              class="border border-gray-200 rounded-lg p-6 hover:border-primary transition-colors flex flex-col"
+            >
+              <div class="mb-4">
+                <h3 class="text-lg font-semibold">Enterprise</h3>
+                <p class="text-2xl font-bold text-gray-900">
+                  KES 9,999<span class="text-sm font-normal text-gray-500"
+                    >/month</span
+                  >
+                </p>
+              </div>
+              <ul class="space-y-2 mb-6 flex-grow">
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Unlimited products</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Unlimited stores</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Advanced analytics</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Unlimited users</span>
+                </li>
+                <li class="flex items-center">
+                  <i class="fas fa-check text-primary mr-2"></i>
+                  <span>Priority support</span>
+                </li>
+              </ul>
+              <button
+                class="w-full px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
+                data-plan="enterprise"
+              >
+                Upgrade Plan
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing History Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-xl font-bold text-gray-800 mb-4">Billing History</h2>
+          <p class="text-gray-500 mb-6">Your past subscription payments</p>
+
+          <div class="overflow-x-auto">
+            <table class="w-full table-auto">
+              <thead>
+                <tr class="bg-gray-50 text-left">
+                  <th
+                    class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Date
+                  </th>
+                  <th
+                    class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Description
+                  </th>
+                  <th
+                    class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Amount
+                  </th>
+                  <th
+                    class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Status
+                  </th>
+                  <th
+                    class="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    Receipt
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+                    15 Jun 2024
+                  </td>
+                  <td class="px-6 py-4 text-gray-700">
+                    Premium Plan Subscription
+                  </td>
+                  <td class="px-6 py-4 text-gray-700">KES 5,999</td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+                      >Paid</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <button
+                      class="text-primary hover:text-primary-700 text-sm font-medium transition-colors"
+                    >
+                      <i class="fas fa-download mr-1"></i> Download
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+                    15 May 2024
+                  </td>
+                  <td class="px-6 py-4 text-gray-700">
+                    Premium Plan Subscription
+                  </td>
+                  <td class="px-6 py-4 text-gray-700">KES 5,999</td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+                      >Paid</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <button
+                      class="text-primary hover:text-primary-700 text-sm font-medium transition-colors"
+                    >
+                      <i class="fas fa-download mr-1"></i> Download
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+                    15 Apr 2024
+                  </td>
+                  <td class="px-6 py-4 text-gray-700">
+                    Premium Plan Subscription
+                  </td>
+                  <td class="px-6 py-4 text-gray-700">KES 5,999</td>
+                  <td class="px-6 py-4">
+                    <span
+                      class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
+                      >Paid</span
+                    >
+                  </td>
+                  <td class="px-6 py-4">
+                    <button
+                      class="text-primary hover:text-primary-700 text-sm font-medium transition-colors"
+                    >
+                      <i class="fas fa-download mr-1"></i> Download
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex justify-between items-center mt-4">
+            <p class="text-sm text-gray-500">Showing 1 to 3 of 3 entries</p>
+            <div class="flex space-x-2">
+              <button
+                class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+                disabled
+              >
+                Previous
+              </button>
+              <button
+                class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 transition-colors"
+                disabled
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast notification container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[999]"></div>
+
+    <!-- Confirmation Modal HTML -->
+    <div
+      id="confirmation-modal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[1000] hidden"
+    >
+      <div
+        class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-auto p-6 transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold text-gray-900" id="modal-title">
+            Confirm Plan Change
+          </h3>
+          <button
+            id="close-modal-button"
+            class="text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="Close modal"
+          >
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div class="mb-6">
+          <p class="text-gray-700">
+            Are you sure you want to change your subscription to the
+            <span id="confirm-plan-name" class="font-bold text-primary"></span>
+            plan?
+          </p>
+          <p class="text-sm text-gray-500 mt-2">
+            This action cannot be undone immediately.
+          </p>
+        </div>
+        <div class="flex justify-end space-x-3">
+          <button
+            id="cancel-plan-change"
+            class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirm-plan-change"
+            class="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
+            data-plan=""
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- End Confirmation Modal HTML -->
+
+    <!-- Scripts -->
+    <script src="./js/sidebar.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("DOM Content Loaded. Initializing scripts...");
+
+        // --- Toast Notification Function ---
+        function showToast(
+          message = "Action completed Successfully!",
+          type = "success"
+        ) {
+          const toastContainer = document.getElementById("toast-container");
+
+          const toast = document.createElement("div");
+          toast.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white transform transition-transform duration-300 ease-out z-50 opacity-0 -translate-y-full
+                             ${
+                               type === "success"
+                                 ? "bg-green-600"
+                                 : "bg-red-600"
+                             }`;
+          toast.innerHTML = `<i class="fas fa-${
+            type === "success" ? "check-circle" : "times-circle"
+          } mr-2"></i>${message}`;
+
+          if (toastContainer) {
+            toastContainer.appendChild(toast);
+          } else {
+            document.body.appendChild(toast);
+            console.warn("Toast container not found. Appending toast to body.");
+          }
+
+          // Trigger animation
+          setTimeout(() => {
+            toast.classList.add("translate-y-0", "opacity-100");
+            toast.classList.remove("-translate-y-full");
+          }, 10);
+
+          // Hide and remove toast after 3 seconds
+          setTimeout(() => {
+            toast.classList.remove("opacity-100");
+            toast.classList.add("-translate-y-full");
+            setTimeout(() => {
+              toast.remove();
+            }, 300); // Match CSS transition duration
+          }, 3000);
+        }
+
+        // --- Fetch Subscription Details Function ---
+        async function fetchSubscriptionDetails() {
+          try {
+            console.log(
+              "Attempting to fetch subscription details from /subscriptions/details..."
+            );
+            // IMPORTANT: If this URL does not resolve, you may need to provide a full absolute URL
+            // e.g., 'https://your-backend.com/subscriptions/details'
+            const response = await fetch("/subscriptions/details");
+            if (!response.ok) {
+              const errorText = await response.text(); // Get more detail from response
+              throw new Error(
+                `Network response was not ok: ${response.status} ${response.statusText}. Details: ${errorText}`
+              );
+            }
+            const data = await response.json();
+            const sub = data.subscription;
+            console.log("Subscription details fetched:", sub);
+
+            // Update UI elements
+            document.getElementById("plan-name").textContent =
+              sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1) + " Plan";
+            document.getElementById("plan-status").textContent =
+              sub.status.charAt(0).toUpperCase() + sub.status.slice(1);
+            document.getElementById("plan-start").textContent = sub.startDate
+              ? new Date(sub.startDate).toLocaleDateString()
+              : "N/A";
+            document.getElementById("plan-end").textContent = sub.endDate
+              ? new Date(sub.endDate).toLocaleDateString()
+              : "N/A";
+            document.getElementById("plan-autorenew").textContent =
+              sub.autoRenew ? "Enabled" : "Disabled";
+
+            if (sub.price) {
+              document.getElementById(
+                "plan-price"
+              ).textContent = `KES ${sub.price.toFixed(2)}`;
+            }
+
+            showToast("Subscription details fetched successfully!", "success");
+          } catch (error) {
+            console.error("Error fetching subscription details:", error);
+            showToast(
+              "Failed to fetch subscription details. Please ensure your backend is running and the API path is correct.",
+              "error"
+            );
+          }
+        }
+
+        // --- Update Subscription Plan Function ---
+        async function updateSubscriptionPlan(plan) {
+          try {
+            console.log(
+              "Attempting to update subscription to plan:",
+              plan,
+              "at /subscriptions/upgrade..."
+            );
+            // IMPORTANT: If this URL does not resolve, you may need to provide a full absolute URL
+            // e.g., 'https://your-backend.com/subscriptions/upgrade'
+            const response = await fetch("/subscriptions/upgrade", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ plan: plan }),
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text(); // Get more detail from response
+              throw new Error(
+                `Network response was not ok: ${response.status} ${response.statusText}. Details: ${errorText}`
+              );
+            }
+
+            const data = await response.json();
+            console.log("Subscription update response:", data);
+
+            if (data.success) {
+              showToast(`Successfully upgraded to ${plan} plan!`, "success");
+              fetchSubscriptionDetails(); // Refresh details
+            } else {
+              showToast(data.message || "Failed to upgrade plan", "error");
+            }
+          } catch (error) {
+            console.error("Error updating subscription plan:", error);
+            showToast(
+              "An error occurred while updating your plan. Please ensure your backend is running and the API path is correct.",
+              "error"
+            );
+          }
+        }
+
+        // --- Confirmation Modal Logic ---
+        const confirmationModal = document.getElementById("confirmation-modal");
+        const confirmPlanName = document.getElementById("confirm-plan-name");
+        const confirmPlanChangeButton = document.getElementById(
+          "confirm-plan-change"
+        );
+        const cancelPlanChangeButton =
+          document.getElementById("cancel-plan-change");
+        const closeModalButton = document.getElementById("close-modal-button");
+
+        let selectedPlanForConfirmation = ""; // Store the plan temporarily
+
+        function openConfirmationModal(plan) {
+          console.log("Opening confirmation modal for plan:", plan);
+          selectedPlanForConfirmation = plan;
+          confirmPlanName.textContent =
+            plan.charAt(0).toUpperCase() + plan.slice(1);
+          confirmPlanChangeButton.setAttribute("data-plan", plan);
+          confirmationModal.classList.remove("hidden");
+          confirmationModal.classList.add("flex"); // Show the modal
+          console.log(
+            "Modal display style:",
+            window.getComputedStyle(confirmationModal).display
+          );
+        }
+
+        function closeConfirmationModal() {
+          console.log("Closing confirmation modal.");
+          confirmationModal.classList.add("hidden");
+          confirmationModal.classList.remove("flex"); // Hide the modal
+          selectedPlanForConfirmation = ""; // Clear stored plan
+        }
+
+        // Event listener for confirming the plan change
+        confirmPlanChangeButton.addEventListener("click", () => {
+          console.log("Confirm button clicked.");
+          const planToUpgrade =
+            confirmPlanChangeButton.getAttribute("data-plan");
+          if (planToUpgrade) {
+            updateSubscriptionPlan(planToUpgrade);
+          }
+          closeConfirmationModal();
+        });
+
+        // Event listeners for canceling the plan change
+        cancelPlanChangeButton.addEventListener("click", () => {
+          console.log("Cancel button clicked.");
+          closeConfirmationModal();
+        });
+        closeModalButton.addEventListener("click", () => {
+          console.log("Close modal button (X) clicked.");
+          closeConfirmationModal();
+        });
+
+        // Close modal when clicking outside of it
+        confirmationModal.addEventListener("click", (event) => {
+          if (event.target === confirmationModal) {
+            console.log("Clicked outside modal, closing.");
+            closeConfirmationModal();
+          }
+        });
+
+        // --- Initial Call & Plan Button Event Listeners ---
+
+        // Fetch subscription details on page load
+        fetchSubscriptionDetails();
+
+        // Add event listeners to all "Select Plan" and "Upgrade Plan" buttons
+        // Targeting buttons with 'data-plan' attribute for more robust selection
+        document
+          .querySelectorAll("button[data-plan]")
+          .forEach((button, index) => {
+            const buttonText = button.textContent.trim();
+            console.log(
+              `Attaching listener to button ${index}: "${buttonText}" (data-plan: ${button.dataset.plan})`
+            );
+
+            // The "Current Plan" button (if present) does not have a data-plan attribute
+            // and is already disabled in HTML, so it won't be caught by this selector by default.
+            // However, if a future "Current Plan" button was added with data-plan but disabled,
+            // it would be caught. The `disabled` attribute prevents click events.
+            if (!button.disabled) {
+              // Explicitly check if the button is not disabled
+              button.addEventListener("click", () => {
+                console.log(
+                  `Click detected on actionable button: "${buttonText}" (data-plan: ${button.dataset.plan}).`
+                );
+                let plan = button.dataset.plan; // Get plan name from data-plan attribute
+
+                if (plan) {
+                  openConfirmationModal(plan);
+                } else {
+                  console.error(
+                    "No data-plan attribute found for the clicked button. Cannot open modal."
+                  );
+                  showToast(
+                    "Failed to determine plan from button. Please try again.",
+                    "error"
+                  );
+                }
+              });
+            } else {
+              console.log(
+                `Skipping event listener for disabled button: "${buttonText}".`
+              );
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

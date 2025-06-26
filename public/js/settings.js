@@ -27,16 +27,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- STORE SETTINGS ---
 async function loadStoreSettings() {
-  const res = await fetch("/api/settings", { credentials: "include" });
+  const res = await fetch("/settings/store", { credentials: "include" });
   const data = await res.json();
-  console.log("data from api settings: ", data);
+  // console.log("data from store settings: ", data);
+  // console.log("data from api settings: ", data);
   if (res.ok) {
-    document.getElementById("store-name").value = data.storeName || "";
-    document.getElementById("store-address").value = data.storeAddress || "";
-    document.getElementById("store-phone").value = data.storePhone || "";
-    document.getElementById("store-email").value = data.storeEmail || "";
-    document.getElementById("tax-rate").value = data.taxRate || "";
-    document.getElementById("currency").value = data.currency || "";
+    document.getElementById("store-name").value = data.storeName;
+    document.getElementById("store-address").value = data.storeAddress;
+    document.getElementById("store-phone").value = data.storePhone;
+    document.getElementById("store-email").value = data.storeEmail;
+    document.getElementById("tax-rate").value = data.taxRate;
+    document.getElementById("currency").value = data.currency;
   }
 }
 
@@ -50,7 +51,7 @@ document.getElementById("store-form").addEventListener("submit", async (e) => {
     taxRate: document.getElementById("tax-rate").value,
     currency: document.getElementById("currency").value,
   };
-  const res = await fetch("/api/settings/store", {
+  const res = await fetch("/settings/store", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -100,8 +101,12 @@ document
 
 // --- USER SETTINGS ---
 async function loadUserSettings() {
-  const res = await fetch("/settings/user", { credentials: "include" });
+  const res = await fetch("/settings/user", {
+    method: "GET",
+    credentials: "include",
+  });
   const data = await res.json();
+  console.log("data from user settings: ", data);
   if (res.ok) {
     document.getElementById("user-username").value = data.username || "";
     document.getElementById("user-email").value = data.email || "";

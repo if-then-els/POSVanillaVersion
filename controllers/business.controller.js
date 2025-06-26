@@ -1,6 +1,7 @@
 const BusinessDetails = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const Users = require("../models/user");
+const Subscription = require("../models/subscription.model");
 
 exports.registerBusiness = async (req, res) => {
   try {
@@ -55,6 +56,18 @@ exports.registerBusiness = async (req, res) => {
     await adminUser.save();
     newBusiness.users.push(adminUser._id);
     await newBusiness.save();
+
+    // Create free trial subscription
+    const trialEnd = new Date();
+    trialEnd.setMonth(trialEnd.getMonth() + 1);
+    await Subscription.create({
+      business: newBusiness._id,
+      plan: "trial",
+      startDate: new Date(),
+      endDate: trialEnd,
+      status: "active",
+      autoRenew: false,
+    });
 
     res.status(201).json({
       message: "Business and admin user registered successfully",
