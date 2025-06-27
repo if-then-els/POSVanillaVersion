@@ -567,34 +567,44 @@
         // --- Update Subscription Plan Function ---
         async function updateSubscriptionPlan(plan) {
           try {
-            console.log(
-              "Attempting to update subscription to plan:",
-              plan,
-              "at /subscriptions/upgrade..."
-            );
-            // IMPORTANT: If this URL does not resolve, you may need to provide a full absolute URL
-            // e.g., 'https://your-backend.com/subscriptions/upgrade'
-            const response = await fetch("/subscriptions/upgrade", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ plan: plan }),
-            });
+            // Fetch current businessId and plan price from the UI or session
+            // For demo, you may need to fetch these from your backend or session
+            const businessId = window.currentBusinessId || "YOUR_BUSINESS_ID"; // Replace with actual logic
+            let newPlanPrice = 2999;
+            if (plan === "premium") newPlanPrice = 5999;
+            if (plan === "enterprise") newPlanPrice = 9999;
+            const durationMonths = 1; // Or let user select
 
-            if (!response.ok) {
-              const errorText = await response.text(); // Get more detail from response
-              throw new Error(
-                `Network response was not ok: ${response.status} ${response.statusText}. Details: ${errorText}`
-              );
+            // Optionally, ask for phone if plan is not free/trial
+            let phone = null;
+            if (plan !== "basic" && plan !== "trial") {
+              phone = prompt("Enter your M-Pesa phone number for payment:");
+              if (!phone) {
+                showToast("Phone number is required for paid plans.", "error");
+                return;
+              }
             }
 
-            const data = await response.json();
-            console.log("Subscription update response:", data);
+            const response = await fetch("/subscriptions/upgrade", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                businessId,
+                newPlan: plan,
+                durationMonths,
+                newPlanPrice,
+                phone,
+              }),
+            });
 
-            if (data.success) {
+            const data = await response.json();
+            if (response.ok) {
               showToast(`Successfully upgraded to ${plan} plan!`, "success");
-              fetchSubscriptionDetails(); // Refresh details
+              fetchSubscriptionDetails();
+              // If payment is required, show M-Pesa modal or instructions
+              if (data.requirePayment) {
+                document.getElementById("mpesa-modal").classList.remove("hidden");
+              }
             } else {
               showToast(data.message || "Failed to upgrade plan", "error");
             }
@@ -685,7 +695,7 @@
             );
 
             // The "Current Plan" button (if present) does not have a data-plan attribute
-            // and is already disabled in HTML, so it won't be caught by this selector by default.
+            // and is already disabled in HTML, so it won't be caught by default.
             // However, if a future "Current Plan" button was added with data-plan but disabled,
             // it would be caught. The `disabled` attribute prevents click events.
             if (!button.disabled) {
@@ -756,6 +766,31 @@
       alert("Network error. Please try again.");
     }
   };
+
+document.querySelectorAll("button").forEach(btn => {
+  if (btn.textContent.includes("Cancel Subscription")) {
+    btn.addEventListener("click", async () => {
+      const businessId = window.currentBusinessId || "YOUR_BUSINESS_ID"; // Replace with actual logic
+      if (!confirm("Are you sure you want to cancel your subscription?")) return;
+      try {
+        const res = await fetch("/subscriptions/cancel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ businessId }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast("Subscription cancelled.", "success");
+          fetchSubscriptionDetails();
+        } else {
+          showToast(data.message || "Failed to cancel subscription", "error");
+        }
+      } catch (err) {
+        showToast("Network error. Please try again.", "error");
+      }
+    });
+  }
+});
       });
     </script>
   </body>

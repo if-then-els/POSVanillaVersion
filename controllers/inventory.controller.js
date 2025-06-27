@@ -121,7 +121,7 @@ exports.addStockByCsv = async (req, res) => {
 exports.getAllInventory = async (req, res) => {
   try {
     const business = req.user.business;
-    console.log("token", req.cookies.token);
+    //  console.log("token", req.cookies.token);
     if (!business) {
       return res.status(400).json({ message: "Business ID required" });
     }
