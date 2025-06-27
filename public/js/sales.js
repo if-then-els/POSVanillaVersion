@@ -81,25 +81,27 @@ function loadSidebar() {
     const userName = document.getElementById("user-name");
     const userEmail = document.getElementById("user-email");
 
-    // Fetch user info from backend (placeholder data for now)
-    const response = await fetch("/userDetails", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(productData),
-    });
-    data = await response.json();
+    try {
+      const response = await fetch("/userDetails", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
 
-    if (response.ok) {
-      showToast(
-        "Product Added",
-        `${productData.productName} has been added to inventory`,
-        "success"
-      );
-    } else {
-      showToast("Error", data.message || "Failed to add product", "error");
-      return; // Stop if add fails
+      if (response.ok && data) {
+        if (userName && data.username) userName.textContent = data.name;
+        if (userEmail && data.email) userEmail.textContent = data.email;
+      } else {
+        showToast(
+          "Error",
+          data.message || "Failed to fetch user info",
+          "error"
+        );
+      }
+    } catch (err) {
+      showToast("Error", "Failed to fetch user info", "error");
     }
   }
   updateUserInfo();
