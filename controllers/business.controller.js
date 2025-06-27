@@ -31,7 +31,7 @@ exports.registerBusiness = async (req, res) => {
     }
     const existingBusiness = await BusinessDetails.findOne({ businessEmail });
     if (existingBusiness) {
-      return res.status(400).json({ message: "Business already exists" });
+      return res.status(400).json({ message: "Business carts" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newBusiness = new BusinessDetails({

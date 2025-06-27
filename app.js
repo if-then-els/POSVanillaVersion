@@ -72,6 +72,9 @@ app.use("/", paymentsRoutes);
 
 // Apply subscription middleware
 app.use(subscriptionMiddleware);
+app.route("/ping").get((req, res) => {
+  res.status(200).json({ message: "pong" });
+});
 
 //start app
 app.listen(port, () => {

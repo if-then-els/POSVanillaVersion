@@ -35,7 +35,8 @@ exports.addStock = async (req, res) => {
     }
 
     const existingProduct = await Inventory.findOne({
-      business,
+      productBatchNumber,
+      business, // Ensure the batch number is unique within the same business
     });
 
     if (existingProduct) {
