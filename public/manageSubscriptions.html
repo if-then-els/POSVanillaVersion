@@ -447,6 +447,27 @@
     </div>
     <!-- End Confirmation Modal HTML -->
 
+    <!-- Add this modal at the end of your body -->
+<div id="mpesa-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+    <h3 class="text-lg font-bold mb-4">Update Payment Method (M-Pesa)</h3>
+    <form id="mpesa-payment-form" class="space-y-4">
+      <div>
+        <label for="mpesa-phone" class="block text-sm font-medium text-gray-700">M-Pesa Phone Number</label>
+        <input type="tel" id="mpesa-phone" required class="w-full border border-gray-300 rounded-md p-2" placeholder="e.g. 2547XXXXXXXX">
+      </div>
+      <div>
+        <label for="mpesa-amount" class="block text-sm font-medium text-gray-700">Amount (KES)</label>
+        <input type="number" id="mpesa-amount" required min="1" class="w-full border border-gray-300 rounded-md p-2" placeholder="Amount">
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="mpesa-cancel" class="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Pay</button>
+      </div>
+    </form>
+  </div>
+</div>
+
     <!-- Scripts -->
     <script src="./js/sidebar.js"></script>
     <script>
@@ -693,6 +714,48 @@
               );
             }
           });
+
+          // Show modal on button click
+  document.querySelectorAll("button").forEach(btn => {
+    if (btn.textContent.includes("Update Payment Method")) {
+      btn.addEventListener("click", () => {
+        document.getElementById("mpesa-modal").classList.remove("hidden");
+      });
+    }
+  });
+
+  // Hide modal
+  document.getElementById("mpesa-cancel").onclick = () => {
+    document.getElementById("mpesa-modal").classList.add("hidden");
+  };
+
+  // Handle M-Pesa payment form submit
+  document.getElementById("mpesa-payment-form").onsubmit = async function(e) {
+    e.preventDefault();
+    const phone = document.getElementById("mpesa-phone").value.trim();
+    const amount = document.getElementById("mpesa-amount").value.trim();
+    // You may want to get businessId, plan, durationMonths from your context/session
+    const businessId = "YOUR_BUSINESS_ID"; // Replace with actual value
+    const plan = "Premium"; // Replace as needed
+    const durationMonths = 1; // Replace as needed
+
+    try {
+      const res = await fetch("/payments/mpesa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, amount, businessId, plan, durationMonths })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("STK Push sent! Complete payment on your phone.");
+        document.getElementById("mpesa-modal").classList.add("hidden");
+      } else {
+        alert(data.message || "Failed to initiate payment.");
+      }
+    } catch (err) {
+      alert("Network error. Please try again.");
+    }
+  };
       });
     </script>
   </body>
