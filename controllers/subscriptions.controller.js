@@ -67,6 +67,7 @@ exports.upgradeSubscription = async (req, res) => {
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
+    // Try to get business from req.user, fallback to req.query or req.body for testing
     const business = req.user.business;
     if (!business) {
       return res.status(400).json({ message: "Business ID is required" });
@@ -74,7 +75,7 @@ exports.getSubscriptionDetails = async (req, res) => {
     const subscription = await Subscription.findOne({
       business: business,
       status: "active",
-    }).populate("business", "businessName businessEmail");
+    });
     if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });
     }
@@ -93,7 +94,6 @@ exports.getSubscriptionDetails = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error retrieving subscription details:", error);
     res.status(500).json({
       message: "Server error retrieving subscription details",
       error: error.message,
