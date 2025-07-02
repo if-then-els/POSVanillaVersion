@@ -1,14 +1,21 @@
 const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
 const SubscriptionLog = require("../models/subscriptionLog.model");
+const Plan = require("../models/plan.model");
 
 exports.upgradeSubscription = async (req, res) => {
   try {
-    const { businessId, newPlan, durationMonths, newPlanPrice, phone } =
-      req.body;
-    if (!businessId || !newPlan || !durationMonths || !newPlanPrice) {
+    const { businessId, newPlan, durationMonths, phone } = req.body;
+    if (!businessId || !newPlan || !durationMonths) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    // Fetch plan price from DB
+    const planDoc = await Plan.findOne({ name: newPlan });
+    if (!planDoc) {
+      return res.status(400).json({ message: "Selected plan does not exist" });
+    }
+    const newPlanPrice = planDoc.price;
 
     // Expire current subscription
     await Subscription.updateMany(
@@ -74,7 +81,6 @@ exports.getSubscriptionDetails = async (req, res) => {
     }
     const subscription = await Subscription.findOne({
       business: business,
-      status: "active",
     });
     if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });

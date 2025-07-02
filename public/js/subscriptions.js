@@ -246,6 +246,33 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(step).classList.remove("hidden");
   }
 
+  // --- Fetch plans from backend and render in modal ---
+  async function fetchAndRenderPlans() {
+    try {
+      const res = await fetch("/plans");
+      const data = await res.json();
+      const plans = data.plans || [];
+      const plansContainer = document.getElementById("plans-list");
+      plansContainer.innerHTML = "";
+      plans.forEach((plan) => {
+        const div = document.createElement("div");
+        div.className =
+          "border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200";
+        div.onclick = () => selectPlan(plan.name, plan.price);
+        div.innerHTML = `
+        <h3 class="font-semibold">${
+          plan.name.charAt(0).toUpperCase() + plan.name.slice(1)
+        } Plan</h3>
+        <p class="text-gray-600">KES ${plan.price.toLocaleString()}/month</p>
+        <p class="text-gray-500 text-sm">${plan.description || ""}</p>
+      `;
+        plansContainer.appendChild(div);
+      });
+    } catch (err) {
+      showToast("Failed to load plans.", "error");
+    }
+  }
+
   // --- Show M-Pesa modal and fetch current plan/price ---
   const updatePaymentBtn = document.getElementById("update-payment-button");
   if (updatePaymentBtn) {
@@ -262,16 +289,39 @@ document.addEventListener("DOMContentLoaded", () => {
         const sub = data.subscription;
         window.selectedPlan = sub.plan;
         window.selectedPlanPrice = sub.price;
+        if (sub.plan === "trial") {
+          // Show plan selection step and fetch plans
+          await fetchAndRenderPlans();
+          showStep("step2");
+          document.getElementById("mpesa-modal").style.display = "block";
+          return;
+        }
         document.getElementById("paymentAmount").value = `KES ${sub.price}`;
         showStep("step3");
-        document.getElementById("mpesa-modal").classList.remove("hidden");
+        document.getElementById("mpesa-modal").style.display = "block";
       } catch (error) {
         showToast("Failed to fetch current plan details.", "error");
       }
     });
   }
 
-  // --- Upgrade Plan Step ---
+  // Modal close logic
+  document.getElementById("mpesa-modal").addEventListener("click", (event) => {
+    if (event.target === document.getElementById("mpesa-modal")) {
+      document.getElementById("mpesa-modal").style.display = "none";
+    }
+  });
+
+  // Optional: Add a close button inside the modal
+  const closeModalBtn = document.getElementById("close-modal-button");
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener("click", () => {
+      document.getElementById("mpesa-modal").style.display = "none";
+    });
+  }
+
+  // --- Upgrade Plan Step and update db ---
+
   window.selectPlan = function (plan, amount) {
     window.selectedPlan = plan;
     window.selectedPlanPrice = amount;
@@ -317,28 +367,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("processingPopup").classList.remove("hidden");
     try {
-      const res = await fetch("/subscriptions/upgrade", {
+      // Initiate payment (this should create a pending subscription and trigger STK push)
+      const upgradeRes = await fetch("/subscriptions/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           businessId: window.currentBusinessId,
           newPlan: window.selectedPlan,
           durationMonths: 1,
-          newPlanPrice: window.selectedPlanPrice,
           phone: mobileNumber,
         }),
       });
-      const data = await res.json();
-      document.getElementById("processingPopup").classList.add("hidden");
-      if (res.ok && data.requirePayment) {
-        showToast("STK Push sent! Complete payment on your phone.", "success");
-        document.getElementById("approvedPopup").classList.remove("hidden");
-        fetchSubscriptionDetails();
-      } else if (res.ok) {
-        showToast("Plan upgraded!", "success");
-        fetchSubscriptionDetails();
+      const upgradeData = await upgradeRes.json();
+      if (
+        upgradeRes.ok &&
+        upgradeData.requirePayment &&
+        upgradeData.subscription &&
+        upgradeData.subscription._id
+      ) {
+        // Now trigger the STK push
+        const paymentRes = await fetch("/payments/mpesa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: mobileNumber,
+            amount: window.selectedPlanPrice,
+            businessId: window.currentBusinessId,
+            plan: window.selectedPlan,
+            durationMonths: 1,
+          }),
+        });
+        const paymentData = await paymentRes.json();
+        if (paymentRes.ok) {
+          await pollPaymentStatus(upgradeData.subscription._id);
+        } else {
+          document.getElementById("processingPopup").classList.add("hidden");
+          showToast(
+            paymentData.message || "Failed to initiate payment.",
+            "error"
+          );
+        }
+      } else if (
+        upgradeRes.ok &&
+        upgradeData.subscription &&
+        upgradeData.subscription._id
+      ) {
+        // No payment required, just poll for status
+        await pollPaymentStatus(upgradeData.subscription._id);
       } else {
-        showToast(data.message || "Failed to initiate payment.", "error");
+        document.getElementById("processingPopup").classList.add("hidden");
+        showToast(
+          upgradeData.message || "Failed to initiate payment.",
+          "error"
+        );
       }
     } catch (err) {
       document.getElementById("processingPopup").classList.add("hidden");
@@ -385,4 +466,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Initial Fetch ---
   fetchSubscriptionDetails();
+
+  // --- After initiating payment and showing processing popup ---
+  async function pollPaymentStatus(
+    subscriptionId,
+    maxAttempts = 10,
+    interval = 3000
+  ) {
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+      const res = await fetch(`/subscriptions/status?id=${subscriptionId}`);
+      const data = await res.json();
+      if (data.status === "active") {
+        document.getElementById("processingPopup").classList.add("hidden");
+        document.getElementById("approvedPopup").classList.remove("hidden");
+        fetchSubscriptionDetails();
+        return;
+      }
+      await new Promise((r) => setTimeout(r, interval));
+      attempts++;
+    }
+    document.getElementById("processingPopup").classList.add("hidden");
+    showToast("Payment not successful. Please try again.", "error");
+  }
 });

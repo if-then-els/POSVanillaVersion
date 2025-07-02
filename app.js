@@ -9,6 +9,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const multer = require("multer");
+const Plan = require("./models/plan.model");
 
 const port = 5000;
 
@@ -67,13 +68,30 @@ app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
 app.use("/", userRoutes);
 app.use("/api/business", businessRoutes);
-app.use("/", subscriptionsRoutes);
-app.use("/", paymentsRoutes);
+app.use("/", paymentsRoutes); // public
+app.use(subscriptionMiddleware); // protected
+app.use("/", subscriptionsRoutes); // protected
 
 // Apply subscription middleware
 app.use(subscriptionMiddleware);
 app.route("/ping").get((req, res) => {
   res.status(200).json({ message: "pong" });
+});
+
+async function seedPlans() {
+  const plans = [
+    { name: "basic", price: 1, description: "Basic Plan" },
+    { name: "Standard", price: 5500, description: "Standard Plan" },
+    { name: "premium", price: 9500, description: "Premium Plan" },
+  ];
+  for (const plan of plans) {
+    await Plan.updateOne({ name: plan.name }, { $set: plan }, { upsert: true });
+  }
+}
+
+// Call this after mongoose.connect(...)
+mongoose.connection.once("open", () => {
+  seedPlans().then(() => console.log("Plans seeded"));
 });
 
 //start app

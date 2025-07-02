@@ -122,9 +122,9 @@
             <button
               class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               id="update-payment-button"
-              >
-              Update Payment Method
-            </button>
+>
+  Update Payment Method
+</button>
             <button
               class="px-4 py-2 bg-red-100 text-red-700 rounded-md text-sm font-medium hover:bg-red-200 transition-colors"
             >
@@ -351,7 +351,7 @@
   }
   #mpesa-modal .container .processing-popup,
   #mpesa-modal .container .approved-popup {
-    position: fixed;
+    position: relative;
     top: 0;
     left: 0;
     width: 100%;
@@ -438,33 +438,7 @@
           <h2 class="text-xl font-semibold">Select New Plan</h2>
         </div>
 
-        <p class="text-gray-600 mb-6">
-          Choose your preferred plan to upgrade to:
-        </p>
-
-        <div class="space-y-4">
-          <div
-            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
-            onclick="selectPlan('Basic', '500')"
-          >
-            <h3 class="font-semibold">Basic Plan</h3>
-            <p class="text-gray-600">KES 500/month</p>
-          </div>
-          <div
-            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
-            onclick="selectPlan('Standard', '1000')"
-          >
-            <h3 class="font-semibold">Standard Plan</h3>
-            <p class="text-gray-600">KES 1,000/month</p>
-          </div>
-          <div
-            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
-            onclick="selectPlan('Premium', '1500')"
-          >
-            <h3 class="font-semibold">Premium Plan</h3>
-            <p class="text-gray-600">KES 1,500/month</p>
-          </div>
-        </div>
+        <div id="plans-list" class="space-y-4"></div>
 
         <button
           onclick="backToStep1()"
@@ -489,7 +463,7 @@
 
         <div class="mb-6 p-4 bg-blue-50 rounded-lg flex items-center">
           <img
-            src="https://via.placeholder.com/40"
+            src="data:image/png;base64,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"
             alt="M-Pesa"
             class="w-10 h-10 mr-3"
           />
@@ -518,7 +492,7 @@
 
         <button
           onclick="processPayment()"
-          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
+          class="w-full py-3 px-4 bg-green-600 hover:bg-green-300 text-white rounded-lg transition duration-200"
         >
           Pay Now
         </button>
@@ -573,7 +547,7 @@
             </p>
           </div>
           <button
-            onclick="closePopup()"
+          id="close-modal-button"
             class="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
           >
             Done

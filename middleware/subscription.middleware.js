@@ -39,7 +39,7 @@ module.exports = async (req, res, next) => {
     // Query for an active and unexpired subscription
     const subscription = await Subscription.findOne({
       business: businessId,
-      status: "active",
+
       endDate: { $gte: new Date() },
     });
 
