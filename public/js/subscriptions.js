@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok) throw new Error("Failed to fetch subscription details");
       const data = await response.json();
-      console.log("subscription Data : ", data);
+      // console.log("subscription Data : ", data);
       const sub = data.subscription;
       // Update UI
       document.getElementById("plan-name").textContent =
@@ -206,9 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Targeting buttons with 'data-plan' attribute for more robust selection
   document.querySelectorAll("button[data-plan]").forEach((button, index) => {
     const buttonText = button.textContent.trim();
-    console.log(
-      `Attaching listener to button ${index}: "${buttonText}" (data-plan: ${button.dataset.plan})`
-    );
 
     // The "Current Plan" button (if present) does not have a data-plan attribute
     // and is already disabled in HTML, so it won't be caught by default.
@@ -241,58 +238,129 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Show modal on button click
-  document.querySelectorAll("button").forEach((btn) => {
-    if (btn.textContent.includes("Update Payment Method")) {
-      btn.addEventListener("click", () => {
-        document.getElementById("mpesa-modal").classList.remove("hidden");
-      });
-    }
-  });
+  // --- Modal Step Logic ---
+  function showStep(step) {
+    ["step1", "step2", "step3"].forEach((id) => {
+      document.getElementById(id).classList.add("hidden");
+    });
+    document.getElementById(step).classList.remove("hidden");
+  }
 
-  // Hide modal
-  document.getElementById("mpesa-cancel").onclick = () => {
-    document.getElementById("mpesa-modal").classList.add("hidden");
+  // --- Show M-Pesa modal and fetch current plan/price ---
+  const updatePaymentBtn = document.getElementById("update-payment-button");
+  if (updatePaymentBtn) {
+    updatePaymentBtn.addEventListener("click", async () => {
+      try {
+        const response = await fetch("/subscriptions/details", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (!response.ok)
+          throw new Error("Failed to fetch subscription details");
+        const data = await response.json();
+        const sub = data.subscription;
+        window.selectedPlan = sub.plan;
+        window.selectedPlanPrice = sub.price;
+        document.getElementById("paymentAmount").value = `KES ${sub.price}`;
+        showStep("step3");
+        document.getElementById("mpesa-modal").classList.remove("hidden");
+      } catch (error) {
+        showToast("Failed to fetch current plan details.", "error");
+      }
+    });
+  }
+
+  // --- Upgrade Plan Step ---
+  window.selectPlan = function (plan, amount) {
+    window.selectedPlan = plan;
+    window.selectedPlanPrice = amount;
+    document.getElementById("paymentAmount").value = `KES ${amount}`;
+    showStep("step3");
   };
 
-  // Handle M-Pesa payment form submit
-  document.getElementById("mpesa-payment-form").onsubmit = async function (e) {
-    e.preventDefault();
-    const phone = document.getElementById("mpesa-phone").value.trim();
-    const amount = document.getElementById("mpesa-amount").value.trim();
-    // You may want to get businessId, plan, durationMonths from your context/session
-    const businessId = "YOUR_BUSINESS_ID"; // Replace with actual value
-    const plan = "Premium"; // Replace as needed
-    const durationMonths = 1; // Replace as needed
+  // --- Step Navigation ---
+  window.showUpgradeOptions = function () {
+    showStep("step2");
+  };
+  window.continueToPayment = function () {
+    showStep("step3");
+  };
+  window.backToStep1 = function () {
+    showStep("step1");
+  };
+  window.backToPreviousStep = function () {
+    if (!document.getElementById("step2").classList.contains("hidden")) {
+      showStep("step1");
+    } else {
+      showStep("step1");
+    }
+  };
 
+  // --- Payment Processing ---
+  window.processPayment = async function () {
+    const mobileNumber = document.getElementById("mobileNumber").value.trim();
+    if (!mobileNumber) {
+      alert("Please enter your mobile number");
+      return;
+    }
+    if (
+      !window.currentBusinessId ||
+      !window.selectedPlan ||
+      !window.selectedPlanPrice
+    ) {
+      showToast(
+        "Missing plan or business info. Please reload the page.",
+        "error"
+      );
+      return;
+    }
+    document.getElementById("processingPopup").classList.remove("hidden");
     try {
-      const res = await fetch("/payments/mpesa", {
+      const res = await fetch("/subscriptions/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone,
-          amount,
-          businessId,
-          plan,
-          durationMonths,
+          businessId: window.currentBusinessId,
+          newPlan: window.selectedPlan,
+          durationMonths: 1,
+          newPlanPrice: window.selectedPlanPrice,
+          phone: mobileNumber,
         }),
       });
       const data = await res.json();
-      if (res.ok) {
-        alert("STK Push sent! Complete payment on your phone.");
-        document.getElementById("mpesa-modal").classList.add("hidden");
+      document.getElementById("processingPopup").classList.add("hidden");
+      if (res.ok && data.requirePayment) {
+        showToast("STK Push sent! Complete payment on your phone.", "success");
+        document.getElementById("approvedPopup").classList.remove("hidden");
+        fetchSubscriptionDetails();
+      } else if (res.ok) {
+        showToast("Plan upgraded!", "success");
+        fetchSubscriptionDetails();
       } else {
-        alert(data.message || "Failed to initiate payment.");
+        showToast(data.message || "Failed to initiate payment.", "error");
       }
     } catch (err) {
-      alert("Network error. Please try again.");
+      document.getElementById("processingPopup").classList.add("hidden");
+      showToast("Network error. Please try again.", "error");
     }
   };
 
+  // --- Modal Close Logic ---
+  document.getElementById("close-modal-button").onclick = () => {
+    document.getElementById("mpesa-modal").classList.add("hidden");
+  };
+  document.getElementById("mpesa-modal").addEventListener("click", (event) => {
+    if (event.target === document.getElementById("mpesa-modal")) {
+      document.getElementById("mpesa-modal").classList.add("hidden");
+    }
+  });
+
+  // --- Cancel Subscription ---
   document.querySelectorAll("button").forEach((btn) => {
     if (btn.textContent.includes("Cancel Subscription")) {
       btn.addEventListener("click", async () => {
-        const businessId = window.currentBusinessId || "YOUR_BUSINESS_ID"; // Replace with actual logic
+        const businessId = window.currentBusinessId;
         if (!confirm("Are you sure you want to cancel your subscription?"))
           return;
         try {
@@ -314,88 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   });
+
+  // --- Initial Fetch ---
+  fetchSubscriptionDetails();
 });
-
-//handle paymnent processing
-let currentPlan = "Current Plan";
-let currentAmount = "0";
-
-function showUpgradeOptions() {
-  document.getElementById("step1").classList.add("hidden");
-  document.getElementById("step2").classList.remove("hidden");
-}
-
-function continueToPayment() {
-  document.getElementById("step1").classList.add("hidden");
-  document.getElementById("step3").classList.remove("hidden");
-  document.getElementById("paymentAmount").value = "KES 0 (Current Plan)";
-}
-
-function backToStep1() {
-  document.getElementById("step2").classList.add("hidden");
-  document.getElementById("step1").classList.remove("hidden");
-}
-
-function backToPreviousStep() {
-  if (!document.getElementById("step2").classList.contains("hidden")) {
-    backToStep1();
-  } else {
-    document.getElementById("step3").classList.add("hidden");
-    document.getElementById("step1").classList.remove("hidden");
-  }
-}
-
-let selectedPlan = null;
-let selectedPlanPrice = null;
-
-function selectPlan(plan, amount) {
-  selectedPlan = plan;
-  selectedPlanPrice = amount;
-  document.getElementById("step2").classList.add("hidden");
-  document.getElementById("step3").classList.remove("hidden");
-  document.getElementById("paymentAmount").value = `KES ${amount}`;
-}
-
-async function processPayment() {
-  const mobileNumber = document.getElementById("mobileNumber").value.trim();
-  if (!mobileNumber) {
-    alert("Please enter your mobile number");
-    return;
-  }
-  if (!window.currentBusinessId || !selectedPlan || !selectedPlanPrice) {
-    showToast(
-      "Missing plan or business info. Please reload the page.",
-      "error"
-    );
-    return;
-  }
-  document.getElementById("processingPopup").classList.remove("hidden");
-  try {
-    const res = await fetch("/subscriptions/upgrade", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        businessId: window.currentBusinessId,
-        newPlan: selectedPlan,
-        durationMonths: 1,
-        newPlanPrice: selectedPlanPrice,
-        phone: mobileNumber,
-      }),
-    });
-    const data = await res.json();
-    document.getElementById("processingPopup").classList.add("hidden");
-    if (res.ok && data.requirePayment) {
-      showToast("STK Push sent! Complete payment on your phone.", "success");
-      document.getElementById("approvedPopup").classList.remove("hidden");
-      fetchSubscriptionDetails();
-    } else if (res.ok) {
-      showToast("Plan upgraded!", "success");
-      fetchSubscriptionDetails();
-    } else {
-      showToast(data.message || "Failed to initiate payment.", "error");
-    }
-  } catch (err) {
-    document.getElementById("processingPopup").classList.add("hidden");
-    showToast("Network error. Please try again.", "error");
-  }
-}

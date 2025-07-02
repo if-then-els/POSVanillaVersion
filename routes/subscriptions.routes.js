@@ -6,12 +6,14 @@ const subscriptionMiddleware = require("../middleware/subscription.middleware");
 // Upgrade subscription
 router.post(
   "/subscriptions/upgrade",
+  subscriptionMiddleware,
   subscriptionsController.upgradeSubscription
 );
 
 // Cancel subscription
 router.post(
   "/subscriptions/cancel",
+  subscriptionMiddleware,
   subscriptionsController.cancelSubscription
 );
 

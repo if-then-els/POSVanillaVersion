@@ -12,7 +12,7 @@ const SubscriptionSchema = new mongoose.Schema(
     endDate: { type: Date },
     status: {
       type: String,
-      enum: ["active", "inactive", "cancelled", "expired"],
+      enum: ["active", "inactive", "cancelled", "expired", "pending"],
       default: "inactive",
     },
     autoRenew: { type: Boolean, default: false },

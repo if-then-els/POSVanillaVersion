@@ -121,7 +121,8 @@
           <div class="flex justify-end mt-6 space-x-3">
             <button
               class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
+              id="update-payment-button"
+              >
               Update Payment Method
             </button>
             <button
@@ -133,138 +134,7 @@
         </div>
 
         <!-- Plan Comparison Section -->
-        <div
-          class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8"
-        >
-          <h2 class="text-xl font-bold text-gray-800 mb-4">Available Plans</h2>
-          <p class="text-gray-500 mb-6">
-            Choose the plan that fits your business needs
-          </p>
-
-          <div class="grid md:grid-cols-3 gap-6">
-            <!-- Basic Plan -->
-            <div
-              class="border border-gray-200 rounded-lg p-6 hover:border-primary transition-colors flex flex-col"
-            >
-              <div class="mb-4">
-                <h3 class="text-lg font-semibold">Basic</h3>
-                <p class="text-2xl font-bold text-gray-900">
-                  KES 2,999<span class="text-sm font-normal text-gray-500"
-                    >/month</span
-                  >
-                </p>
-              </div>
-              <ul class="space-y-2 mb-6 flex-grow">
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Up to 100 products</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Single store</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Basic reporting</span>
-                </li>
-                <li class="flex items-center text-gray-400">
-                  <i class="fas fa-times mr-2"></i>
-                  <span>No multi-user support</span>
-                </li>
-              </ul>
-              <button
-                class="w-full px-4 py-2 border border-primary text-primary rounded-md text-sm font-medium hover:bg-primary-50 transition-colors"
-                data-plan="basic"
-              >
-                Select Plan
-              </button>
-            </div>
-
-            <!-- Premium Plan (Current) -->
-            <div
-              class="border-2 border-primary rounded-lg p-6 relative flex flex-col"
-            >
-              <div
-                class="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-2 py-1 rounded-bl rounded-tr"
-              >
-                CURRENT PLAN
-              </div>
-              <div class="mb-4">
-                <h3 class="text-lg font-semibold">Premium</h3>
-                <p class="text-2xl font-bold text-gray-900">
-                  KES 5,999<span class="text-sm font-normal text-gray-500"
-                    >/month</span
-                  >
-                </p>
-              </div>
-              <ul class="space-y-2 mb-6 flex-grow">
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Unlimited products</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Up to 3 stores</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Advanced reporting</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>3 user accounts</span>
-                </li>
-              </ul>
-              <button
-                class="w-full px-4 py-2 bg-primary text-white rounded-md text-sm font-medium opacity-70 cursor-not-allowed"
-                disabled
-              >
-                Current Plan
-              </button>
-            </div>
-
-            <!-- Enterprise Plan -->
-            <div
-              class="border border-gray-200 rounded-lg p-6 hover:border-primary transition-colors flex flex-col"
-            >
-              <div class="mb-4">
-                <h3 class="text-lg font-semibold">Enterprise</h3>
-                <p class="text-2xl font-bold text-gray-900">
-                  KES 9,999<span class="text-sm font-normal text-gray-500"
-                    >/month</span
-                  >
-                </p>
-              </div>
-              <ul class="space-y-2 mb-6 flex-grow">
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Unlimited products</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Unlimited stores</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Advanced analytics</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Unlimited users</span>
-                </li>
-                <li class="flex items-center">
-                  <i class="fas fa-check text-primary mr-2"></i>
-                  <span>Priority support</span>
-                </li>
-              </ul>
-              <button
-                class="w-full px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-700 transition-colors"
-                data-plan="enterprise"
-              >
-                Upgrade Plan
-              </button>
-            </div>
-          </div>
+        
         </div>
 
         <!-- Billing History Section -->
@@ -446,7 +316,271 @@
       </div>
     </div>
     <!-- End Confirmation Modal HTML -->
+<!-- start the model for payment process -->
+ <Style>
+  /* show pop up for the mpesa modal */
+  #mpesa-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+  #mpesa-modal .container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 600px;
+    margin: 50px auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  #mpesa-modal .container h2 {
+    margin-bottom: 20px;
+  }
+  #mpesa-modal .container button {
+    margin-top: 10px;
+  }
+  #mpesa-modal .container .hidden {
+    display: none;
+  }
+  #mpesa-modal .container .visible {
+    display: block;
+  }
+  #mpesa-modal .container .processing-popup,
+  #mpesa-modal .container .approved-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  }
+  #mpesa-modal .container .processing-popup .popup-content,
+  #mpesa-modal .container .approved-popup .popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  #mpesa-modal .container .processing-popup .popup-content h3,
+  #mpesa-modal .container .approved-popup .popup-content h3 {
+    margin-bottom: 10px;
+  }
+  #mpesa-modal .container .processing-popup .popup-content p,
+  #mpesa-modal .container .approved-popup .popup-content p {
+    margin-bottom: 20px;
+  }
+  #mpesa-modal .container .processing-popup .popup-content button,
+  #mpesa-modal .container .approved-popup .popup-content button {
+    padding: 10px 20px;
+    background-color: #4f46e5; /* Tailwind primary color */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #mpesa-modal .container .processing-popup .popup-content button:hover,
+  #mpesa-modal .container .approved-popup .popup-content button:hover {
+    background-color: #4338ca; /* Darker shade for hover effect */
+  }
+  
+ </Style>
+  <div id="mpesa-modal" class="container mx-auto px-4 py-8 max-w-md hidden">
+      <!-- Step 1: Plan Selection -->
+      <div id="step1" class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-center mb-6">
+          <div
+            class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3"
+          >
+            1
+          </div>
+          <h2 class="text-xl font-semibold">Select Your Plan</h2>
+        </div>
 
+        <p class="text-gray-600 mb-6">
+          Choose whether to upgrade your plan or continue with your current
+          subscription.
+        </p>
+
+        <div class="space-y-4">
+          <button
+            onclick="showUpgradeOptions()"
+            class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
+          >
+            Upgrade Plan
+          </button>
+          <button
+            onclick="continueToPayment()"
+            class="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition duration-200"
+          >
+            Continue with Current Plan
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Upgrade Options (Hidden Initially) -->
+      <div id="step2" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
+        <div class="flex items-center mb-6">
+          <div
+            class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3"
+          >
+            2
+          </div>
+          <h2 class="text-xl font-semibold">Select New Plan</h2>
+        </div>
+
+        <p class="text-gray-600 mb-6">
+          Choose your preferred plan to upgrade to:
+        </p>
+
+        <div class="space-y-4">
+          <div
+            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
+            onclick="selectPlan('Basic', '500')"
+          >
+            <h3 class="font-semibold">Basic Plan</h3>
+            <p class="text-gray-600">KES 500/month</p>
+          </div>
+          <div
+            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
+            onclick="selectPlan('Standard', '1000')"
+          >
+            <h3 class="font-semibold">Standard Plan</h3>
+            <p class="text-gray-600">KES 1,000/month</p>
+          </div>
+          <div
+            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
+            onclick="selectPlan('Premium', '1500')"
+          >
+            <h3 class="font-semibold">Premium Plan</h3>
+            <p class="text-gray-600">KES 1,500/month</p>
+          </div>
+        </div>
+
+        <button
+          onclick="backToStep1()"
+          class="mt-6 text-blue-600 hover:text-blue-800"
+        >
+          Back
+        </button>
+      </div>
+
+      <!-- Step 3: Payment Method (Hidden Initially) -->
+      <div id="step3" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
+        <div class="flex items-center mb-6">
+          <div
+            class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3"
+          >
+            3
+          </div>
+          <h2 class="text-xl font-semibold">Payment Method</h2>
+        </div>
+
+        <p class="text-gray-600 mb-6">Complete your payment using M-Pesa:</p>
+
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg flex items-center">
+          <img
+            src="https://via.placeholder.com/40"
+            alt="M-Pesa"
+            class="w-10 h-10 mr-3"
+          />
+          <span class="font-medium">M-Pesa Mobile Payment</span>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">Mobile Number</label>
+          <input
+            type="tel"
+            id="mobileNumber"
+            placeholder="e.g. 254712345678"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2">Amount</label>
+          <input
+            type="text"
+            id="paymentAmount"
+            readonly
+            class="w-full px-4 py-2 border rounded-lg bg-gray-100 font-semibold"
+          />
+        </div>
+
+        <button
+          onclick="processPayment()"
+          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
+        >
+          Pay Now
+        </button>
+
+        <button
+          onclick="backToPreviousStep()"
+          class="mt-4 text-blue-600 hover:text-blue-800"
+        >
+          Back
+        </button>
+      </div>
+
+      <!-- Processing Popup (Hidden Initially) -->
+      <div
+        id="processingPopup"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+      >
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 text-center">
+          <div class="mb-4">
+            <div
+              class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3"
+            >
+              <i class="fas fa-spinner fa-spin text-blue-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-blue-600">
+              Processing Payment
+            </h3>
+            <p class="text-gray-600 mt-2">
+              Please wait while we process your transaction...
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Approved Popup (Hidden Initially) -->
+      <div
+        id="approvedPopup"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+      >
+        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 text-center">
+          <div class="mb-4">
+            <div
+              class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"
+            >
+              <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-green-600">
+              Payment Approved
+            </h3>
+            <p class="text-gray-600 mt-2">
+              Your payment has been successfully processed!
+            </p>
+          </div>
+          <button
+            onclick="closePopup()"
+            class="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- Scripts -->
     <script src="./js/sidebar.js"></script>
    <script src="./js/subscriptions.js"></script>
