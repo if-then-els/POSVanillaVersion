@@ -76,12 +76,15 @@ exports.getSubscriptionDetails = async (req, res) => {
   try {
     // Try to get business from req.user, fallback to req.query or req.body for testing
     const business = req.user.business;
+    console.log("business from req.user:", business);
     if (!business) {
       return res.status(400).json({ message: "Business ID is required" });
     }
     const subscription = await Subscription.findOne({
       business: business,
+      status: "active",
     });
+    console.log("Found subscription:", subscription);
     if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });
     }
@@ -97,6 +100,7 @@ exports.getSubscriptionDetails = async (req, res) => {
         price: subscription.price,
         discount: subscription.discount,
         totalPrice: subscription.totalPrice,
+        business: subscription.business,
       },
     });
   } catch (error) {

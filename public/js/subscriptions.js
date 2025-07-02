@@ -79,7 +79,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // Store for later use
       window.currentPlan = sub.plan;
       window.currentPlanPrice = sub.price;
-      window.currentBusinessId = sub.id || sub.business; // Adjust as needed
+      console.log("window.selectedPlan:", window.selectedPlan);
+      console.log("window.selectedPlanPrice:", window.selectedPlanPrice);
+      window.currentBusinessId = sub.business; // Adjust as needed
+      console.log("window.currentBusinessId set to:", window.currentBusinessId);
     } catch (error) {
       showToast("Failed to fetch subscription details.", error);
     }
@@ -248,29 +251,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Fetch plans from backend and render in modal ---
   async function fetchAndRenderPlans() {
-    try {
-      const res = await fetch("/plans");
-      const data = await res.json();
-      const plans = data.plans || [];
-      const plansContainer = document.getElementById("plans-list");
-      plansContainer.innerHTML = "";
-      plans.forEach((plan) => {
-        const div = document.createElement("div");
-        div.className =
-          "border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200";
-        div.onclick = () => selectPlan(plan.name, plan.price);
-        div.innerHTML = `
+    const res = await fetch("/plans");
+    const data = await res.json();
+    const plans = data.plans || [];
+    const plansContainer = document.getElementById("plans-list");
+    plansContainer.innerHTML = "";
+    plans.forEach((plan) => {
+      const div = document.createElement("div");
+      div.className =
+        "border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200";
+      div.onclick = () => selectPlan(plan.name, plan.price);
+      div.innerHTML = `
         <h3 class="font-semibold">${
           plan.name.charAt(0).toUpperCase() + plan.name.slice(1)
         } Plan</h3>
         <p class="text-gray-600">KES ${plan.price.toLocaleString()}/month</p>
         <p class="text-gray-500 text-sm">${plan.description || ""}</p>
       `;
-        plansContainer.appendChild(div);
-      });
-    } catch (err) {
-      showToast("Failed to load plans.", "error");
-    }
+      plansContainer.appendChild(div);
+    });
   }
 
   // --- Show M-Pesa modal and fetch current plan/price ---
@@ -386,6 +385,11 @@ document.addEventListener("DOMContentLoaded", () => {
         upgradeData.subscription._id
       ) {
         // Now trigger the STK push
+        console.log(
+          "Sending STK push with businessId:",
+          window.currentBusinessId
+        );
+
         const paymentRes = await fetch("/payments/mpesa", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -75,6 +75,7 @@ exports.initiateMpesaPayment = async (req, res) => {
 // M-Pesa STK Push Callback Handler
 exports.mpesaCallback = async (req, res) => {
   try {
+    console.log("M-Pesa Callback Body:", JSON.stringify(req.body, null, 2));
     const stkCallback = req.body.Body?.stkCallback;
     if (!stkCallback)
       return res.status(400).json({ message: "Invalid callback data" });
@@ -84,11 +85,34 @@ exports.mpesaCallback = async (req, res) => {
     const amount = metadata?.Item?.find((i) => i.Name === "Amount")?.Value;
     const businessId = stkCallback.AccountReference;
 
-    // Find the latest pending subscription
-    const subscription = await Subscription.findOne({
-      business: businessId,
-      status: "pending",
-    }).sort({ createdAt: -1 });
+    console.log(
+      "ResultCode:",
+      resultCode,
+      "BusinessId:",
+      businessId,
+      "Amount:",
+      amount
+    );
+
+    console.log("businessId from callback:", businessId);
+    console.log("Looking for pending subscription for business:", businessId);
+    const mongoose = require("mongoose");
+    let subscription;
+    try {
+      subscription = await Subscription.findOne({
+        business: mongoose.Types.ObjectId(businessId),
+        status: "pending",
+      }).sort({ createdAt: -1 });
+      console.log("Found subscription (ObjectId):", subscription);
+    } catch (e) {
+      subscription = await Subscription.findOne({
+        business: businessId,
+        status: "pending",
+      }).sort({ createdAt: -1 });
+      console.log("Found subscription (string):", subscription);
+    }
+
+    console.log("Found subscription:", subscription);
 
     if (resultCode === 0 && subscription) {
       // Verify amount matches expected
@@ -119,6 +143,7 @@ exports.mpesaCallback = async (req, res) => {
       return res.status(200).json({ message: "Payment not successful" });
     }
   } catch (error) {
+    console.error("Callback error:", error);
     res.status(500).json({ message: "Callback processing error" });
   }
 };
