@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
       businessPhone: document.getElementById("businessPhone").value.trim(),
       businessEmail: document.getElementById("businessEmail").value.trim(),
       password: document.getElementById("password").value,
-      businessRegistrationNumber: document
+      identificationNumber: document
         .getElementById("businessRegistrationNumber")
         .value.trim(),
       adminUsername: document.getElementById("adminUsername").value.trim(),

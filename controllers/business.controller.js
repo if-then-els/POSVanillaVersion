@@ -22,7 +22,7 @@ exports.registerBusiness = async (req, res) => {
       !businessPhone ||
       !businessEmail ||
       !password ||
-      !businessRegistrationNumber ||
+      !identificationNumber ||
       !adminUsername ||
       !adminEmail ||
       !adminPhone

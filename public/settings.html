@@ -39,6 +39,17 @@
         },
       };
     </script>
+    <!-- ...existing code... -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#4F46E5" />
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/service-worker.js');
+    });
+  }
+</script>
+<!-- ...existing code... -->
   </head>
   <body class="bg-gray-50">
     <div class="flex h-screen overflow-hidden">

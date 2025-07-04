@@ -13,6 +13,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="./css/styles.css" />
+    <!-- ...existing code... -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#4F46E5" />
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/service-worker.js');
+    });
+  }
+</script>
+<!-- ...existing code... -->
     <script>
       // Tailwind configuration
       tailwind.config = {
@@ -487,6 +498,23 @@
                         <span>Total</span>
                         <span id="checkout-total">$0.00</span>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- Cash payment section (hidden by default) -->
+                  <div id="cash-payment-section" class="mt-4 space-y-3 hidden">
+                    <label class="block text-sm font-medium text-gray-700">Cash Received</label>
+                    <input
+                      type="number"
+                      id="cash-received"
+                      min="0"
+                      step="0.01"
+                      class="w-full border border-gray-300 rounded-md p-2"
+                      placeholder="Enter amount received"
+                    />
+                    <div class="flex justify-between text-green-700 font-semibold">
+                      <span>Change:</span>
+                      <span id="cash-change">KES 0.00</span>
                     </div>
                   </div>
                 </div>

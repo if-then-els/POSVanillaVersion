@@ -9,6 +9,17 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <!-- ...existing code... -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#4F46E5" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/service-worker.js");
+        });
+      }
+    </script>
+    <!-- ...existing code... -->
   </head>
   <body class="bg-gray-100 font-sans">
     <div class="container mx-auto px-4 py-8 max-w-md">
