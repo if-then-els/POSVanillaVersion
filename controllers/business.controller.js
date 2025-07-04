@@ -11,7 +11,7 @@ exports.registerBusiness = async (req, res) => {
       businessPhone,
       businessEmail,
       password,
-      businessRegistrationNumber,
+      identificationNumber,
       adminUsername,
       adminEmail,
       adminPhone,
@@ -40,7 +40,7 @@ exports.registerBusiness = async (req, res) => {
       businessPhone,
       businessEmail,
       password: hashedPassword,
-      businessRegistrationNumber,
+      identificationNumber,
     });
     await newBusiness.save();
 
