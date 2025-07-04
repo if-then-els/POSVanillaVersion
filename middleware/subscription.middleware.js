@@ -34,16 +34,16 @@ module.exports = async (req, res, next) => {
     }
 
     const businessId = req.user.business;
-    console.log("Checking subscription for business ID:", businessId); // For debugging
+    //  console.log("Checking subscription for business ID:", businessId); // For debugging
 
     // Query for an active and unexpired subscription
     const subscription = await Subscription.findOne({
       business: businessId,
-      status: "active",
+
       endDate: { $gte: new Date() },
     });
 
-    console.log("Found subscription:", subscription); // For debugging
+    //console.log("Found subscription:", subscription); // For debugging
 
     if (!subscription) {
       return res.status(403).json({

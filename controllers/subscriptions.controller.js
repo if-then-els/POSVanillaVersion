@@ -1,14 +1,21 @@
 const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
 const SubscriptionLog = require("../models/subscriptionLog.model");
+const Plan = require("../models/plan.model");
 
 exports.upgradeSubscription = async (req, res) => {
   try {
-    const { businessId, newPlan, durationMonths, newPlanPrice, phone } =
-      req.body;
-    if (!businessId || !newPlan || !durationMonths || !newPlanPrice) {
+    const { businessId, newPlan, durationMonths, phone } = req.body;
+    if (!businessId || !newPlan || !durationMonths) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    // Fetch plan price from DB
+    const planDoc = await Plan.findOne({ name: newPlan });
+    if (!planDoc) {
+      return res.status(400).json({ message: "Selected plan does not exist" });
+    }
+    const newPlanPrice = planDoc.price;
 
     // Expire current subscription
     await Subscription.updateMany(
@@ -69,6 +76,7 @@ exports.getSubscriptionDetails = async (req, res) => {
   try {
     // Try to get business from req.user, fallback to req.query or req.body for testing
     const business = req.user.business;
+    console.log("business from req.user:", business);
     if (!business) {
       return res.status(400).json({ message: "Business ID is required" });
     }
@@ -76,6 +84,7 @@ exports.getSubscriptionDetails = async (req, res) => {
       business: business,
       status: "active",
     });
+    console.log("Found subscription:", subscription);
     if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });
     }
@@ -91,6 +100,7 @@ exports.getSubscriptionDetails = async (req, res) => {
         price: subscription.price,
         discount: subscription.discount,
         totalPrice: subscription.totalPrice,
+        business: subscription.business,
       },
     });
   } catch (error) {

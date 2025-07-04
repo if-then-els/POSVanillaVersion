@@ -42,6 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
   }
 
+  // --- Global variables for selected plan and price ---
+  // Moved these to within the DOMContentLoaded to ensure they are properly scoped
+  // and not re-declared globally outside the listener unnecessarily.
+  let selectedPlan = null;
+  let selectedPlanPrice = null;
+
   // --- Fetch Subscription Details Function ---
   async function fetchSubscriptionDetails() {
     try {
@@ -55,8 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok) throw new Error("Failed to fetch subscription details");
       const data = await response.json();
-      console.log("subscription Data : ", data);
       const sub = data.subscription;
+
       // Update UI
       document.getElementById("plan-name").textContent =
         sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1) + " Plan";
@@ -76,27 +82,33 @@ document.addEventListener("DOMContentLoaded", () => {
           "plan-price"
         ).textContent = `KES ${sub.price.toFixed(2)}`;
       }
-      // Store for later use
-      window.currentPlan = sub.plan;
-      window.currentPlanPrice = sub.price;
-      window.currentBusinessId = sub.id || sub.business; // Adjust as needed
+
+      // Store current businessId for later use in other functions
+      window.currentBusinessId = sub.business;
+      console.log("window.currentBusinessId set to:", window.currentBusinessId);
     } catch (error) {
-      showToast("Failed to fetch subscription details.", error);
+      console.error("Error fetching subscription details:", error);
+      showToast("Failed to fetch subscription details.", "error"); // Changed type to error
     }
   }
 
-  // --- Update Subscription Plan Function ---
+  // --- Update Subscription Plan Function (Deprecated/Refactored by new modal flow) ---
+  // This function seems to be part of an older flow or directly called.
+  // The new modal flow with selectPlan and processPayment is intended to replace its direct use.
+  // Keeping it as is but noting it might not be the primary way to update now.
   async function updateSubscriptionPlan(plan) {
     try {
-      // Fetch current businessId and plan price from the UI or session
-      // For demo, you may need to fetch these from your backend or session
-      const businessId = window.currentBusinessId || "YOUR_BUSINESS_ID"; // Replace with actual logic
-      let newPlanPrice = 2999;
+      const businessId = window.currentBusinessId;
+      if (!businessId) {
+        showToast("Business ID not found. Please reload.", "error");
+        return;
+      }
+
+      let newPlanPrice = 2999; // Default for basic, ensure this matches your plans
       if (plan === "premium") newPlanPrice = 5999;
       if (plan === "enterprise") newPlanPrice = 9999;
-      const durationMonths = 1; // Or let user select
+      const durationMonths = 1;
 
-      // Optionally, ask for phone if plan is not free/trial
       let phone = null;
       if (plan !== "basic" && plan !== "trial") {
         phone = prompt("Enter your M-Pesa phone number for payment:");
@@ -113,17 +125,21 @@ document.addEventListener("DOMContentLoaded", () => {
           businessId,
           newPlan: plan,
           durationMonths,
-          newPlanPrice,
+          newPlanPrice, // This price might be overwritten by backend logic
           phone,
         }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        showToast(`Successfully upgraded to ${plan} plan!`, "success");
-        fetchSubscriptionDetails();
-        // If payment is required, show M-Pesa modal or instructions
+        showToast(`Successfully initiated upgrade to ${plan} plan!`, "success"); // Changed message
+        fetchSubscriptionDetails(); // Refresh details
+        // If payment is required, this older flow would show the modal.
+        // The new flow uses processPayment and a different modal display.
         if (data.requirePayment) {
+          // This path might be for direct upgrade without plan selection modal
+          // For consistency, if you always use the payment modal, remove this.
+          // For now, it stays as is per the original script.
           document.getElementById("mpesa-modal").classList.remove("hidden");
         }
       } else {
@@ -138,14 +154,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Confirmation Modal Logic ---
+  // --- Confirmation Modal Logic (for initial plan selection outside M-Pesa modal) ---
   const confirmationModal = document.getElementById("confirmation-modal");
   const confirmPlanName = document.getElementById("confirm-plan-name");
   const confirmPlanChangeButton = document.getElementById(
     "confirm-plan-change"
   );
   const cancelPlanChangeButton = document.getElementById("cancel-plan-change");
-  const closeModalButton = document.getElementById("close-modal-button");
+  const closeModalButtonConfirmation =
+    document.getElementById("close-modal-button"); // Renamed to avoid clash
 
   let selectedPlanForConfirmation = ""; // Store the plan temporarily
 
@@ -156,10 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmPlanChangeButton.setAttribute("data-plan", plan);
     confirmationModal.classList.remove("hidden");
     confirmationModal.classList.add("flex"); // Show the modal
-    console.log(
-      "Modal display style:",
-      window.getComputedStyle(confirmationModal).display
-    );
   }
 
   function closeConfirmationModal() {
@@ -174,6 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Confirm button clicked.");
     const planToUpgrade = confirmPlanChangeButton.getAttribute("data-plan");
     if (planToUpgrade) {
+      // This path goes through updateSubscriptionPlan
+      // If your intention is to use the new modal flow, this should call selectPlan
+      // For now, keeping original logic.
       updateSubscriptionPlan(planToUpgrade);
     }
     closeConfirmationModal();
@@ -184,45 +200,35 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Cancel button clicked.");
     closeConfirmationModal();
   });
-  closeModalButton.addEventListener("click", () => {
-    console.log("Close modal button (X) clicked.");
-    closeConfirmationModal();
-  });
+  // Changed to avoid ID clash with mpesa-modal's close button
+  if (closeModalButtonConfirmation) {
+    closeModalButtonConfirmation.addEventListener("click", () => {
+      console.log("Close modal button (X) clicked on confirmation modal.");
+      closeConfirmationModal();
+    });
+  }
 
   // Close modal when clicking outside of it
   confirmationModal.addEventListener("click", (event) => {
     if (event.target === confirmationModal) {
-      console.log("Clicked outside modal, closing.");
+      console.log("Clicked outside confirmation modal, closing.");
       closeConfirmationModal();
     }
   });
 
-  // --- Initial Call & Plan Button Event Listeners ---
-
-  // Fetch subscription details on page load
-  fetchSubscriptionDetails();
+  // --- Initial Call & Plan Button Event Listeners (for initial upgrade buttons) ---
+  fetchSubscriptionDetails(); // Fetch subscription details on page load
 
   // Add event listeners to all "Select Plan" and "Upgrade Plan" buttons
-  // Targeting buttons with 'data-plan' attribute for more robust selection
-  document.querySelectorAll("button[data-plan]").forEach((button, index) => {
-    const buttonText = button.textContent.trim();
-    console.log(
-      `Attaching listener to button ${index}: "${buttonText}" (data-plan: ${button.dataset.plan})`
-    );
-
-    // The "Current Plan" button (if present) does not have a data-plan attribute
-    // and is already disabled in HTML, so it won't be caught by default.
-    // However, if a future "Current Plan" button was added with data-plan but disabled,
-    // it would be caught. The `disabled` attribute prevents click events.
+  document.querySelectorAll("button[data-plan]").forEach((button) => {
     if (!button.disabled) {
-      // Explicitly check if the button is not disabled
       button.addEventListener("click", () => {
-        console.log(
-          `Click detected on actionable button: "${buttonText}" (data-plan: ${button.dataset.plan}).`
-        );
-        let plan = button.dataset.plan; // Get plan name from data-plan attribute
-
+        const plan = button.dataset.plan;
         if (plan) {
+          // This opens the *initial* confirmation modal for upgrade.
+          // If you want to jump directly to the M-Pesa modal for ALL plan selections,
+          // then this should be `openMpesaPaymentModal(plan);`
+          // For now, keeping the two-step confirmation as per original script.
           openConfirmationModal(plan);
         } else {
           console.error(
@@ -236,64 +242,301 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } else {
       console.log(
-        `Skipping event listener for disabled button: "${buttonText}".`
+        `Skipping event listener for disabled button: "${button.textContent.trim()}".`
       );
     }
   });
 
-  // Show modal on button click
-  document.querySelectorAll("button").forEach((btn) => {
-    if (btn.textContent.includes("Update Payment Method")) {
-      btn.addEventListener("click", () => {
-        document.getElementById("mpesa-modal").classList.remove("hidden");
-      });
-    }
-  });
+  // --- Modal Step Logic for M-Pesa Payment Modal ---
+  const mpesaModal = document.getElementById("mpesa-modal");
+  const closeModalBtnMpesa = document.getElementById(
+    "close-mpesa-modal-button"
+  ); // New ID for clarity
 
-  // Hide modal
-  document.getElementById("mpesa-cancel").onclick = () => {
-    document.getElementById("mpesa-modal").classList.add("hidden");
+  function showStep(step) {
+    // Ensure all steps are hidden first
+    ["step1", "step2", "step3"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    });
+    // Then show the target step
+    const targetEl = document.getElementById(step);
+    if (targetEl) targetEl.classList.remove("hidden");
+  }
+
+  // --- Fetch plans from backend and render in modal (Step 2) ---
+  async function fetchAndRenderPlans() {
+    try {
+      const res = await fetch("/plans");
+      if (!res.ok) throw new Error("Failed to fetch plans");
+      const data = await res.json();
+      const plans = data.plans || [];
+      const plansContainer = document.getElementById("plans-list");
+      if (!plansContainer) {
+        console.error("Plans container not found.");
+        return;
+      }
+      plansContainer.innerHTML = "";
+      plans.forEach((plan) => {
+        const div = document.createElement("div");
+        div.className =
+          "border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200";
+        // Call global selectPlan from here
+        div.onclick = () => window.selectPlan(plan.name, plan.price);
+        div.innerHTML = `
+          <h3 class="font-semibold">${
+            plan.name.charAt(0).toUpperCase() + plan.name.slice(1)
+          } Plan</h3>
+          <p class="text-gray-600">KES ${plan.price.toLocaleString()}/month</p>
+          <p class="text-gray-500 text-sm">${plan.description || ""}</p>
+        `;
+        plansContainer.appendChild(div);
+      });
+      showStep("step2"); // Automatically show step 2 after rendering plans
+    } catch (error) {
+      console.error("Error fetching and rendering plans:", error);
+      showToast("Failed to load available plans.", "error");
+    }
+  }
+
+  // --- Show M-Pesa modal and fetch current plan/price (for 'Update Payment' button) ---
+  const updatePaymentBtn = document.getElementById("update-payment-button");
+  if (updatePaymentBtn) {
+    updatePaymentBtn.addEventListener("click", async () => {
+      try {
+        const response = await fetch("/subscriptions/details", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (!response.ok)
+          throw new Error("Failed to fetch subscription details");
+        const data = await response.json();
+        const sub = data.subscription;
+
+        // Set the global selectedPlan/Price for the current active plan
+        selectedPlan = sub.plan;
+        selectedPlanPrice = sub.price;
+
+        // Populate the payment amount for the current plan if it exists
+        const paymentAmountInput = document.getElementById("paymentAmount");
+        if (paymentAmountInput && sub.price) {
+          paymentAmountInput.value = `KES ${sub.price.toFixed(2)}`;
+        } else if (paymentAmountInput) {
+          paymentAmountInput.value = "N/A";
+        }
+
+        // Show the M-Pesa modal and go to step 3 (payment) directly for "Update Payment"
+        if (mpesaModal) {
+          mpesaModal.classList.remove("hidden");
+          // Ensure display is block if using inline style elsewhere
+          mpesaModal.style.display = "block";
+          showStep("step3"); // Go directly to payment if updating existing plan
+        }
+      } catch (error) {
+        console.error("Error fetching current plan for payment:", error);
+        showToast("Failed to fetch current plan details for payment.", "error");
+      }
+    });
+  }
+
+  // M-Pesa Modal close logic (for clicking outside)
+  if (mpesaModal) {
+    mpesaModal.addEventListener("click", (event) => {
+      if (event.target === mpesaModal) {
+        mpesaModal.classList.add("hidden");
+        mpesaModal.style.display = "none"; // Ensure it's hidden from style
+        // Reset steps when closing
+        showStep("step1");
+      }
+    });
+  }
+
+  // M-Pesa Modal close button (X) logic
+  if (closeModalBtnMpesa) {
+    closeModalBtnMpesa.addEventListener("click", () => {
+      mpesaModal.classList.add("hidden");
+      mpesaModal.style.display = "none";
+      // Reset steps when closing
+      showStep("step1");
+    });
+  }
+
+  // --- Upgrade Plan Step and update db (This is the core logic for selecting a new plan and setting up payment) ---
+  window.selectPlan = function (plan, amount) {
+    selectedPlan = plan; // Use the local `selectedPlan` variable
+    selectedPlanPrice = amount; // Use the local `selectedPlanPrice` variable
+
+    const paymentAmountInput = document.getElementById("paymentAmount");
+    if (paymentAmountInput) {
+      paymentAmountInput.value = `KES ${amount}`;
+    }
+
+    // Always show the M-Pesa modal when a plan is selected from the plans list
+    if (mpesaModal) {
+      mpesaModal.classList.remove("hidden");
+      mpesaModal.style.display = "block"; // Ensure it's visible
+    }
+    showStep("step3"); // Move to the payment step after selecting a plan
   };
 
-  // Handle M-Pesa payment form submit
-  document.getElementById("mpesa-payment-form").onsubmit = async function (e) {
-    e.preventDefault();
-    const phone = document.getElementById("mpesa-phone").value.trim();
-    const amount = document.getElementById("mpesa-amount").value.trim();
-    // You may want to get businessId, plan, durationMonths from your context/session
-    const businessId = "YOUR_BUSINESS_ID"; // Replace with actual value
-    const plan = "Premium"; // Replace as needed
-    const durationMonths = 1; // Replace as needed
+  // --- Step Navigation Functions (ensure these are globally accessible) ---
+  window.showUpgradeOptions = function () {
+    // This will fetch and render plans and then show step2
+    fetchAndRenderPlans();
+  };
+  window.continueToPayment = function () {
+    showStep("step3");
+  };
+  window.backToStep1 = function () {
+    showStep("step1");
+  };
+  window.backToPreviousStep = function () {
+    // Logic to go back to previous step within the M-Pesa modal flow
+    if (!document.getElementById("step3").classList.contains("hidden")) {
+      // If currently on step 3 (payment), go back to step 2 (plan selection)
+      showStep("step2");
+    } else if (!document.getElementById("step2").classList.contains("hidden")) {
+      // If currently on step 2 (plan selection), go back to step 1 (initial options)
+      showStep("step1");
+    }
+    // If already on step 1, nothing to do or close modal based on UI flow
+  };
+
+  // --- Payment Processing ---
+  window.processPayment = async function () {
+    const mobileNumberInput = document.getElementById("mobileNumber");
+    const mobileNumber = mobileNumberInput
+      ? mobileNumberInput.value.trim()
+      : "";
+
+    if (!mobileNumber) {
+      showToast("Please enter your M-Pesa mobile number.", "error");
+      return;
+    }
+
+    // Use the local `selectedPlan` and `selectedPlanPrice` variables
+    if (
+      !window.currentBusinessId ||
+      !selectedPlan ||
+      selectedPlanPrice === null
+    ) {
+      showToast(
+        "Missing plan, price, or business info. Please reload the page or select a plan.",
+        "error"
+      );
+      return;
+    }
+
+    const processingPopup = document.getElementById("processingPopup");
+    if (processingPopup) processingPopup.classList.remove("hidden");
 
     try {
-      const res = await fetch("/payments/mpesa", {
+      // 1. Initiate upgrade (this should create a pending subscription in your backend)
+      const upgradeRes = await fetch("/subscriptions/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone,
-          amount,
-          businessId,
-          plan,
-          durationMonths,
+          businessId: window.currentBusinessId,
+          newPlan: selectedPlan, // Use local `selectedPlan`
+          durationMonths: 1, // Assuming 1 month as before
+          phone: mobileNumber,
+          // Do not send newPlanPrice here, let backend determine it consistently
         }),
       });
-      const data = await res.json();
-      if (res.ok) {
-        alert("STK Push sent! Complete payment on your phone.");
-        document.getElementById("mpesa-modal").classList.add("hidden");
+
+      const upgradeData = await upgradeRes.json();
+
+      if (!upgradeRes.ok) {
+        showToast(
+          upgradeData.message || "Failed to prepare subscription.",
+          "error"
+        );
+        if (processingPopup) processingPopup.classList.add("hidden");
+        return;
+      }
+
+      const subscriptionId =
+        upgradeData.subscription && upgradeData.subscription._id;
+      if (!subscriptionId) {
+        showToast(
+          "Subscription ID not returned from upgrade. Cannot proceed.",
+          "error"
+        );
+        if (processingPopup) processingPopup.classList.add("hidden");
+        return;
+      }
+
+      if (upgradeData.requirePayment) {
+        // 2. If payment is required, trigger STK push
+        console.log(
+          "Sending STK push with businessId:",
+          window.currentBusinessId,
+          "Plan:",
+          selectedPlan,
+          "Amount:",
+          selectedPlanPrice
+        );
+
+        const paymentRes = await fetch("/payments/mpesa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: mobileNumber,
+            amount: selectedPlanPrice, // Use local `selectedPlanPrice`
+            businessId: window.currentBusinessId,
+            plan: selectedPlan, // Use local `selectedPlan`
+            durationMonths: 1, // Assuming 1 month
+            subscriptionId: subscriptionId, // Pass subscription ID for linking
+          }),
+        });
+
+        const paymentData = await paymentRes.json();
+
+        if (paymentRes.ok) {
+          // If STK push initiated successfully, start polling
+          showToast(
+            "M-Pesa STK Push sent! Please enter PIN on your phone.",
+            "success"
+          );
+          await pollPaymentStatus(subscriptionId);
+        } else {
+          showToast(
+            paymentData.message || "Failed to initiate M-Pesa payment.",
+            "error"
+          );
+          if (processingPopup) processingPopup.classList.add("hidden");
+        }
       } else {
-        alert(data.message || "Failed to initiate payment.");
+        // No payment required (e.g., trial plan or already paid/free tier)
+        showToast("Subscription updated! No payment required.", "success");
+        await pollPaymentStatus(subscriptionId); // Still poll to confirm status change
       }
     } catch (err) {
-      alert("Network error. Please try again.");
+      console.error("Error during payment process:", err);
+      if (processingPopup) processingPopup.classList.add("hidden");
+      showToast(
+        "Network or server error during payment. Please try again.",
+        "error"
+      );
     }
   };
 
+  // --- Cancel Subscription ---
   document.querySelectorAll("button").forEach((btn) => {
+    // Check for "Cancel Subscription" button by its text content
     if (btn.textContent.includes("Cancel Subscription")) {
       btn.addEventListener("click", async () => {
-        const businessId = window.currentBusinessId || "YOUR_BUSINESS_ID"; // Replace with actual logic
-        if (!confirm("Are you sure you want to cancel your subscription?"))
+        const businessId = window.currentBusinessId;
+        if (!businessId) {
+          showToast("Business ID not found. Cannot cancel.", "error");
+          return;
+        }
+        if (
+          !confirm(
+            "Are you sure you want to cancel your subscription? This action cannot be undone."
+          )
+        )
           return;
         try {
           const res = await fetch("/subscriptions/cancel", {
@@ -303,99 +546,89 @@ document.addEventListener("DOMContentLoaded", () => {
           });
           const data = await res.json();
           if (res.ok) {
-            showToast("Subscription cancelled.", "success");
-            fetchSubscriptionDetails();
+            showToast("Subscription cancelled successfully.", "success");
+            fetchSubscriptionDetails(); // Refresh UI
           } else {
-            showToast(data.message || "Failed to cancel subscription", "error");
+            showToast(
+              data.message || "Failed to cancel subscription.",
+              "error"
+            );
           }
         } catch (err) {
-          showToast("Network error. Please try again.", "error");
+          console.error("Error cancelling subscription:", err);
+          showToast(
+            "Network error during cancellation. Please try again.",
+            "error"
+          );
         }
       });
     }
   });
+
+  // --- Polling Payment Status ---
+  async function pollPaymentStatus(
+    subscriptionId,
+    maxAttempts = 30, // Increased attempts for longer waiting
+    interval = 2000 // Polling every 2 seconds
+  ) {
+    let attempts = 0;
+    const processingPopup = document.getElementById("processingPopup");
+    const approvedPopup = document.getElementById("approvedPopup");
+    const mpesaModal = document.getElementById("mpesa-modal");
+
+    while (attempts < maxAttempts) {
+      try {
+        const res = await fetch(`/subscriptions/status?id=${subscriptionId}`);
+        if (!res.ok) throw new Error("Failed to fetch subscription status");
+        const data = await res.json();
+
+        if (data.status === "active") {
+          if (processingPopup) processingPopup.classList.add("hidden");
+          if (approvedPopup) approvedPopup.classList.remove("hidden");
+          if (mpesaModal) mpesaModal.classList.add("hidden"); // Hide main modal too
+          showToast(
+            "Payment successful! Your subscription is now active.",
+            "success"
+          );
+          fetchSubscriptionDetails(); // Update UI with new details
+          // Hide approved popup after a delay
+          setTimeout(() => {
+            if (approvedPopup) approvedPopup.classList.add("hidden");
+          }, 3000);
+          return; // Exit polling loop
+        } else if (data.status === "failed" || data.status === "cancelled") {
+          // Add specific handling for failed/cancelled states if your backend provides them
+          if (processingPopup) processingPopup.classList.add("hidden");
+          showToast(`Payment ${data.status}. Please try again.`, "error");
+          return; // Exit polling loop
+        }
+      } catch (error) {
+        console.error("Error polling payment status:", error);
+        // Don't show toast on every polling error unless it's critical
+      }
+
+      await new Promise((r) => setTimeout(r, interval));
+      attempts++;
+    }
+
+    // If polling finishes without success
+    if (processingPopup) processingPopup.classList.add("hidden");
+    showToast("Payment timed out or not confirmed. Please try again.", "error");
+    if (mpesaModal) mpesaModal.classList.add("hidden"); // Hide main modal on timeout
+  }
+
+  // Initial setup: ensure correct step is shown if modal is open (unlikely on load)
+  // Initially, hide all steps and let button clicks control flow
+  showStep("step1");
 });
 
-//handle paymnent processing
-let currentPlan = "Current Plan";
-let currentAmount = "0";
-
-function showUpgradeOptions() {
-  document.getElementById("step1").classList.add("hidden");
-  document.getElementById("step2").classList.remove("hidden");
-}
-
-function continueToPayment() {
-  document.getElementById("step1").classList.add("hidden");
-  document.getElementById("step3").classList.remove("hidden");
-  document.getElementById("paymentAmount").value = "KES 0 (Current Plan)";
-}
-
-function backToStep1() {
-  document.getElementById("step2").classList.add("hidden");
-  document.getElementById("step1").classList.remove("hidden");
-}
-
-function backToPreviousStep() {
-  if (!document.getElementById("step2").classList.contains("hidden")) {
-    backToStep1();
-  } else {
-    document.getElementById("step3").classList.add("hidden");
-    document.getElementById("step1").classList.remove("hidden");
-  }
-}
-
+// The global declarations below are unnecessary if `selectedPlan` and `selectedPlanPrice`
+// are managed within the DOMContentLoaded listener.
+// Removing them ensures they are properly scoped within your script.
+/*
 let selectedPlan = null;
 let selectedPlanPrice = null;
-
-function selectPlan(plan, amount) {
-  selectedPlan = plan;
-  selectedPlanPrice = amount;
-  document.getElementById("step2").classList.add("hidden");
-  document.getElementById("step3").classList.remove("hidden");
-  document.getElementById("paymentAmount").value = `KES ${amount}`;
-}
-
-async function processPayment() {
-  const mobileNumber = document.getElementById("mobileNumber").value.trim();
-  if (!mobileNumber) {
-    alert("Please enter your mobile number");
-    return;
-  }
-  if (!window.currentBusinessId || !selectedPlan || !selectedPlanPrice) {
-    showToast(
-      "Missing plan or business info. Please reload the page.",
-      "error"
-    );
-    return;
-  }
-  document.getElementById("processingPopup").classList.remove("hidden");
-  try {
-    const res = await fetch("/subscriptions/upgrade", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        businessId: window.currentBusinessId,
-        newPlan: selectedPlan,
-        durationMonths: 1,
-        newPlanPrice: selectedPlanPrice,
-        phone: mobileNumber,
-      }),
-    });
-    const data = await res.json();
-    document.getElementById("processingPopup").classList.add("hidden");
-    if (res.ok && data.requirePayment) {
-      showToast("STK Push sent! Complete payment on your phone.", "success");
-      document.getElementById("approvedPopup").classList.remove("hidden");
-      fetchSubscriptionDetails();
-    } else if (res.ok) {
-      showToast("Plan upgraded!", "success");
-      fetchSubscriptionDetails();
-    } else {
-      showToast(data.message || "Failed to initiate payment.", "error");
-    }
-  } catch (err) {
-    document.getElementById("processingPopup").classList.add("hidden");
-    showToast("Network error. Please try again.", "error");
-  }
-}
+console.log("selectedPlan:", selectedPlan);
+console.log("selectedPlanPrice:", selectedPlanPrice);
+console.log("currentBusinessId:", window.currentBusinessId);
+*/
