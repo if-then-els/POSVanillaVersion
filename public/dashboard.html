@@ -13,6 +13,17 @@
     />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css" />
+    <!-- ...existing code... -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#4F46E5" />
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/service-worker.js");
+        });
+      }
+    </script>
+    <!-- ...existing code... -->
     <script>
       tailwind.config = {
         darkMode: "class",
@@ -41,7 +52,9 @@
   </head>
   <body class="bg-gray-50">
     <!-- Mobile top navbar -->
-    <nav class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40">
+    <nav
+      class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-40"
+    >
       <h1 class="text-xl font-bold">POS</h1>
       <button id="toggle-sidebar" class="p-2">
         <i class="fas fa-bars text-xl"></i>
@@ -56,7 +69,10 @@
       ></div>
 
       <!-- Overlay -->
-      <div id="overlay" class="fixed inset-0 bg-black opacity-50 hidden z-40"></div>
+      <div
+        id="overlay"
+        class="fixed inset-0 bg-black opacity-50 hidden z-40"
+      ></div>
 
       <!-- Main Content -->
       <main class="flex-1 overflow-y-auto md:ml-64 p-6" id="main-content">
@@ -68,8 +84,12 @@
         <!-- Dashboard Cards -->
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <!-- Total Sales Card -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center"
+          >
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary"
+            >
               <i class="fas fa-dollar-sign text-lg"></i>
             </div>
             <div class="ml-4">
@@ -78,8 +98,12 @@
             </div>
           </div>
           <!-- Total Orders Card -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center"
+          >
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600"
+            >
               <i class="fas fa-shopping-cart text-lg"></i>
             </div>
             <div class="ml-4">
@@ -88,8 +112,12 @@
             </div>
           </div>
           <!-- Total Products Card -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center"
+          >
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600"
+            >
               <i class="fas fa-box text-lg"></i>
             </div>
             <div class="ml-4">
@@ -98,8 +126,12 @@
             </div>
           </div>
           <!-- Low Stock Items Card -->
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center">
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex items-center"
+          >
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600"
+            >
               <i class="fas fa-exclamation-triangle text-lg"></i>
             </div>
             <div class="ml-4">
@@ -111,35 +143,80 @@
 
         <!-- Dashboard Tabs -->
         <div class="mt-8">
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div
+            class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+          >
             <!-- Tabs Header -->
             <div class="border-b border-gray-200">
               <div class="flex">
-                <button id="tab-transactions" class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary">Recent Transactions</button>
-                <button id="tab-products" class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700">Top Selling Products</button>
+                <button
+                  id="tab-transactions"
+                  class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary"
+                >
+                  Recent Transactions
+                </button>
+                <button
+                  id="tab-products"
+                  class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700"
+                >
+                  Top Selling Products
+                </button>
               </div>
             </div>
             <!-- Tabs Content -->
             <div class="tab-content" id="transactions-content">
               <div class="px-6 py-4">
                 <h3 class="font-semibold text-gray-800">Recent Transactions</h3>
-                <p class="text-sm text-gray-500">Latest sales transactions in the system</p>
+                <p class="text-sm text-gray-500">
+                  Latest sales transactions in the system
+                </p>
               </div>
               <!-- Transactions table -->
               <div class="overflow-x-auto">
-                <table class="w-full table-auto" id="recent-transactions-table-body">
+                <table
+                  class="w-full table-auto"
+                  id="recent-transactions-table-body"
+                >
                   <thead>
                     <tr class="bg-gray-50 text-left">
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Customer</th>
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Amount</th>
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        ID
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Customer
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Amount
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Date
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Status
+                      </th>
                     </tr>
                   </thead>
-                  <tbody id="transactions-table" class="divide-y divide-gray-200">
+                  <tbody
+                    id="transactions-table"
+                    class="divide-y divide-gray-200"
+                  >
                     <tr>
-                      <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading transactions...</td>
+                      <td
+                        colspan="5"
+                        class="px-6 py-4 text-center text-gray-500"
+                      >
+                        Loading transactions...
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -148,22 +225,46 @@
 
             <div class="tab-content hidden" id="products-content">
               <div class="px-6 py-4">
-                <h3 class="font-semibold text-gray-800">Top Selling Products</h3>
-                <p class="text-sm text-gray-500">Products with the highest sales volume</p>
+                <h3 class="font-semibold text-gray-800">
+                  Top Selling Products
+                </h3>
+                <p class="text-sm text-gray-500">
+                  Products with the highest sales volume
+                </p>
               </div>
               <!-- Products table -->
               <div class="overflow-x-auto">
                 <table class="w-full table-auto">
                   <thead>
                     <tr class="bg-gray-50 text-left">
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Product</th>
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Units Sold</th>
-                      <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase">Revenue</th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Product
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Units Sold
+                      </th>
+                      <th
+                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Revenue
+                      </th>
                     </tr>
                   </thead>
-                  <tbody id="top-products-table" class="divide-y divide-gray-200">
+                  <tbody
+                    id="top-products-table"
+                    class="divide-y divide-gray-200"
+                  >
                     <tr>
-                      <td colspan="3" class="px-6 py-4 text-center text-gray-500">Loading products...</td>
+                      <td
+                        colspan="3"
+                        class="px-6 py-4 text-center text-gray-500"
+                      >
+                        Loading products...
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -178,57 +279,54 @@
     <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
 
     <!-- Scripts -->
-      <script src="./js/sidebar.js"></script>
+    <script src="./js/sidebar.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
-   <script src="./js/dashboard.js"></script>
+    <script src="./js/dashboard.js"></script>
 
     <!-- Sidebar Toggle Script -->
     <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // Load the sidebar content
+        loadSidebar();
 
-   
-document.addEventListener('DOMContentLoaded', () => {
-  // Load the sidebar content
-  loadSidebar();
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
+        const toggleButton = document.getElementById("toggle-sidebar");
 
-  const sidebar = document.getElementById('sidebar')
-  const overlay = document.getElementById('overlay')
-  const toggleButton = document.getElementById('toggle-sidebar')
-  
-  if (!sidebar || !toggleButton || !overlay) return;
+        if (!sidebar || !toggleButton || !overlay) return;
 
-  const closeSidebar = () => {
-    sidebar.classList.add('-translate-x-full')
-    overlay.classList.add('hidden')
-  }
+        const closeSidebar = () => {
+          sidebar.classList.add("-translate-x-full");
+          overlay.classList.add("hidden");
+        };
 
-  const openSidebar = () => {
-    sidebar.classList.remove('-translate-x-full')
-    overlay.classList.remove('hidden')
-  }
+        const openSidebar = () => {
+          sidebar.classList.remove("-translate-x-full");
+          overlay.classList.remove("hidden");
+        };
 
-  // Toggle sidebar on hamburger click
-  toggleButton.addEventListener('click', openSidebar)
+        // Toggle sidebar on hamburger click
+        toggleButton.addEventListener("click", openSidebar);
 
-  // Close sidebar when clicking overlay
-  overlay.addEventListener('click', closeSidebar)
+        // Close sidebar when clicking overlay
+        overlay.addEventListener("click", closeSidebar);
 
-  // Close sidebar when clicking any link inside it
-  sidebar.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A') closeSidebar()
-  })
+        // Close sidebar when clicking any link inside it
+        sidebar.addEventListener("click", (e) => {
+          if (e.target.tagName === "A") closeSidebar();
+        });
 
-  // On resize >= 768px, show the sidebar as fixed
-  window.addEventListener('resize', () => {
-    if (window.innerWidth >= 768) {
-      sidebar.classList.remove('-translate-x-full')
-      overlay.classList.add('hidden')
-    } else {
-      closeSidebar()
-    }
-  })
-})
+        // On resize >= 768px, show the sidebar as fixed
+        window.addEventListener("resize", () => {
+          if (window.innerWidth >= 768) {
+            sidebar.classList.remove("-translate-x-full");
+            overlay.classList.add("hidden");
+          } else {
+            closeSidebar();
+          }
+        });
+      });
     </script>
-
   </body>
 </html>
