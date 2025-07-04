@@ -53,12 +53,20 @@ exports.initiateMpesaPayment = async (req, res) => {
       TransactionDesc: `Subscription payment for ${plan}`,
     };
 
+    console.log(
+      "STK Push Payload being sent to M-Pesa:",
+      JSON.stringify(stkPayload, null, 2)
+    ); // Add this line
+
     const response = await axios.post(
       "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
       stkPayload,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-
+    console.log(
+      "M-Pesa STK Push Response:",
+      JSON.stringify(response.data, null, 2)
+    ); // Log the response for debugging
     // Save a pending subscription/payment record if needed
 
     res
