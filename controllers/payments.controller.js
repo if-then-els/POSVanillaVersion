@@ -39,40 +39,103 @@ exports.initiateMpesaPayment = async (req, res) => {
       `${MPESA_SHORTCODE}${MPESA_PASSKEY}${timestamp}`
     ).toString("base64");
 
+    // Calculate endDate for the new subscription
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + Number(durationMonths));
+
+    // You need to fetch the plan price here, similar to your upgradeSubscription logic
+    // Assuming you have a Plan model and the price is stored there.
+    const Plan = require("../models/plan.model"); // Make sure Plan model is imported
+    const planDoc = await Plan.findOne({ name: plan });
+    if (!planDoc) {
+      return res.status(400).json({ message: "Selected plan does not exist" });
+    }
+    const planPrice = planDoc.price;
+    const totalPrice = planPrice * durationMonths; // Calculate total price
+
+    // Create a new pending subscription *before* initiating STK Push
+    // This ensures you have a record to link the callback to, even if STK push fails (less ideal, but safer)
+    // Or, create it after successful STK push initiation, using the CheckoutRequestID
+    const newSubscription = await Subscription.create({
+      business: businessId,
+      plan: plan,
+      startDate: startDate,
+      endDate: endDate,
+      status: "pending", // Set status to pending
+      autoRenew: false,
+      price: planPrice, // Price per month or unit
+      totalPrice: totalPrice, // Total calculated price
+      durationMonths: durationMonths,
+      // You can add other relevant fields here as needed
+    });
+
     const stkPayload = {
       BusinessShortCode: MPESA_SHORTCODE,
       Password: password,
       Timestamp: timestamp,
       TransactionType: "CustomerPayBillOnline",
-      Amount: amount,
+      Amount: amount, // Use the amount passed in req.body
       PartyA: phone,
       PartyB: MPESA_SHORTCODE,
       PhoneNumber: phone,
       CallBackURL: MPESA_CALLBACK_URL,
-      AccountReference: businessId,
+      AccountReference: businessId, // This is your internal reference
       TransactionDesc: `Subscription payment for ${plan}`,
     };
 
     console.log(
       "STK Push Payload being sent to M-Pesa:",
       JSON.stringify(stkPayload, null, 2)
-    ); // Add this line
+    );
 
     const response = await axios.post(
       "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
       stkPayload,
       { headers: { Authorization: `Bearer ${token}` } }
     );
+
     console.log(
       "M-Pesa STK Push Response:",
       JSON.stringify(response.data, null, 2)
-    ); // Log the response for debugging
-    // Save a pending subscription/payment record if needed
+    );
+
+    // ************* IMPORTANT FIX *************
+    // Update the pending subscription with the CheckoutRequestID
+    // This is the key to linking the M-Pesa callback to your subscription
+    if (response.data && response.data.CheckoutRequestID) {
+      newSubscription.checkoutRequestID = response.data.CheckoutRequestID;
+      await newSubscription.save();
+      console.log(
+        `Saved CheckoutRequestID ${response.data.CheckoutRequestID} to subscription ${newSubscription._id}`
+      );
+    } else {
+      console.warn(
+        "M-Pesa STK Push response did not contain CheckoutRequestID."
+      );
+      // Handle cases where CheckoutRequestID is missing (e.g., failed initiation)
+      newSubscription.status = "failed"; // Mark the subscription as failed if STK push initiation response is bad
+      await newSubscription.save();
+      return res
+        .status(500)
+        .json({
+          message:
+            "STK Push initiation failed: Missing CheckoutRequestID in response.",
+        });
+    }
 
     res
       .status(200)
-      .json({ message: "STK Push initiated", data: response.data });
+      .json({
+        message: "STK Push initiated",
+        data: response.data,
+        subscriptionId: newSubscription._id,
+      });
   } catch (error) {
+    console.error(
+      "M-Pesa STK Push failed:",
+      error.response?.data || error.message
+    );
     res.status(500).json({
       message: "M-Pesa STK Push failed",
       error: error.response?.data || error.message,
