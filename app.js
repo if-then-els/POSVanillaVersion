@@ -25,6 +25,7 @@ mongoose
     console.log("Error connecting to DB", err);
   });
 
+app.use(express.json());
 app.use((req, res, next) => {
   // Middleware to handle CORS preflight requests
   if (req.method === "OPTIONS") {

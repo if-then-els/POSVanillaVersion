@@ -120,6 +120,7 @@ exports.mpesaConfirmationCallback = async (req, res) => {
   try {
     const body = req.body;
     const stkCallback = body.Body?.stkCallback;
+    console.log("Parsed STK Callback:", stkCallback);
     if (!stkCallback)
       return res.status(400).json({ message: "Invalid callback format" });
     const resultCode = stkCallback.ResultCode;
@@ -183,9 +184,9 @@ exports.mpesaConfirmationCallback = async (req, res) => {
       ResultCode: 0,
       ResultDesc: "C2B Confirmation Received Successfully",
     });
+    console.log("Full STK Callback:", JSON.stringify(stkCallback));
   } catch (error) {
     console.error("M-Pesa confirmation callback error:", error);
     res.status(500).json({ message: "Callback processing error" });
   }
-  console.log("Full STK Callback:", JSON.stringify(stkCallback));
 };

@@ -441,7 +441,17 @@ document.addEventListener("DOMContentLoaded", () => {
           "STK Push sent to your phone. Please complete the payment on your device.",
           "success"
         );
-        // Show processingPopup, do not prompt for reference
+        // FIX: Extract subscriptionId from backend response
+        const subscriptionId = data.subscriptionId;
+        if (subscriptionId) {
+          pollPaymentStatus(subscriptionId);
+        } else {
+          if (processingPopup) processingPopup.classList.add("hidden");
+          showToast(
+            "Could not get subscription ID for payment tracking.",
+            "error"
+          );
+        }
       } else {
         if (processingPopup) processingPopup.classList.add("hidden");
         showToast(
