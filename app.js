@@ -49,6 +49,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 //import routes
+const paymentsRoutes = require("./routes/payments.routes");
 const userRoutes = require("./routes/user.routes");
 const inventoryRoutes = require("./routes/inventory.routes");
 const ownerRoutes = require("./routes/owner.route");
@@ -58,8 +59,8 @@ const settingsRoutes = require("./routes/settings.routes");
 const businessRoutes = require("./routes/business.routes");
 const subscriptionMiddleware = require("./middleware/subscription.middleware");
 const subscriptionsRoutes = require("./routes/subscriptions.routes");
-const paymentsRoutes = require("./routes/payments.routes");
 
+app.use("/", paymentsRoutes);
 app.use("/", settingsRoutes);
 app.use("/", userRoutes);
 app.use("/", inventoryRoutes);
@@ -68,7 +69,7 @@ app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
 app.use("/", userRoutes);
 app.use("/api/business", businessRoutes);
-app.use("/", paymentsRoutes); // public, must be before subscriptionMiddleware
+// public, must be before subscriptionMiddleware
 app.use(subscriptionMiddleware); // protected
 app.use("/", subscriptionsRoutes); // protected
 

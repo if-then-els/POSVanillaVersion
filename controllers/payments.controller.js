@@ -136,8 +136,17 @@ exports.mpesaConfirmationCallback = async (req, res) => {
       if (item.Name === "BillRefNumber") billRef = item.Value;
     });
     // BillRefNumber is our subscriptionId
-    const subscriptionId = billRef || stkCallback.AccountReference;
-    const subscription = await Subscription.findById(subscriptionId);
+    let subscriptionId = billRef || stkCallback.AccountReference;
+    let subscription = null;
+    if (subscriptionId) {
+      subscription = await Subscription.findById(subscriptionId);
+    }
+    // Fallback: try to find by CheckoutRequestID
+    if (!subscription && checkoutRequestID) {
+      subscription = await Subscription.findOne({
+        mpesaCheckoutRequestID: checkoutRequestID,
+      });
+    }
     if (!subscription)
       return res.status(404).json({ message: "Subscription not found" });
     if (resultCode === 0) {
@@ -178,4 +187,5 @@ exports.mpesaConfirmationCallback = async (req, res) => {
     console.error("M-Pesa confirmation callback error:", error);
     res.status(500).json({ message: "Callback processing error" });
   }
+  console.log("Full STK Callback:", JSON.stringify(stkCallback));
 };
