@@ -405,17 +405,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Payment Processing ---
   window.processPayment = async function () {
-    const mobileNumberInput = document.getElementById("mobileNumber");
-    const mobileNumber = mobileNumberInput
-      ? mobileNumberInput.value.trim()
-      : "";
-
-    if (!mobileNumber) {
-      showToast("Please enter your M-Pesa mobile number.", "error");
+    const phoneInput = document.getElementById("phone-input");
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+    if (!phone) {
+      showToast("Please enter your M-Pesa phone number.", "error");
       return;
     }
-
-    // Use the local `selectedPlan` and `selectedPlanPrice` variables
     if (
       !window.currentBusinessId ||
       !selectedPlan ||
@@ -427,93 +422,34 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       return;
     }
-
     const processingPopup = document.getElementById("processingPopup");
     if (processingPopup) processingPopup.classList.remove("hidden");
-
     try {
-      // 1. Initiate upgrade (this should create a pending subscription in your backend)
-      const upgradeRes = await fetch("/subscriptions/upgrade", {
+      const res = await fetch("/payments/mpesa/stkpush", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          phone,
           businessId: window.currentBusinessId,
-          newPlan: selectedPlan, // Use local `selectedPlan`
-          durationMonths: 1, // Assuming 1 month as before
-          phone: mobileNumber,
-          // Do not send newPlanPrice here, let backend determine it consistently
+          plan: selectedPlan,
+          durationMonths: 1,
         }),
       });
-
-      const upgradeData = await upgradeRes.json();
-
-      if (!upgradeRes.ok) {
+      const data = await res.json();
+      if (res.ok) {
         showToast(
-          upgradeData.message || "Failed to prepare subscription.",
-          "error"
+          "STK Push sent to your phone. Please complete the payment on your device.",
+          "success"
         );
-        if (processingPopup) processingPopup.classList.add("hidden");
-        return;
-      }
-
-      const subscriptionId =
-        upgradeData.subscription && upgradeData.subscription._id;
-      if (!subscriptionId) {
-        showToast(
-          "Subscription ID not returned from upgrade. Cannot proceed.",
-          "error"
-        );
-        if (processingPopup) processingPopup.classList.add("hidden");
-        return;
-      }
-
-      if (upgradeData.requirePayment) {
-        // 2. If payment is required, trigger STK push
-        console.log(
-          "Sending STK push with businessId:",
-          window.currentBusinessId,
-          "Plan:",
-          selectedPlan,
-          "Amount:",
-          selectedPlanPrice
-        );
-
-        const paymentRes = await fetch("/payments/mpesa", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone: mobileNumber,
-            amount: selectedPlanPrice, // Use local `selectedPlanPrice`
-            businessId: window.currentBusinessId,
-            plan: selectedPlan, // Use local `selectedPlan`
-            durationMonths: 1, // Assuming 1 month
-            subscriptionId: subscriptionId, // Pass subscription ID for linking
-          }),
-        });
-
-        const paymentData = await paymentRes.json();
-
-        if (paymentRes.ok) {
-          // If STK push initiated successfully, start polling
-          showToast(
-            "M-Pesa STK Push sent! Please enter PIN on your phone.",
-            "success"
-          );
-          await pollPaymentStatus(subscriptionId);
-        } else {
-          showToast(
-            paymentData.message || "Failed to initiate M-Pesa payment.",
-            "error"
-          );
-          if (processingPopup) processingPopup.classList.add("hidden");
-        }
+        // Show processingPopup, do not prompt for reference
       } else {
-        // No payment required (e.g., trial plan or already paid/free tier)
-        showToast("Subscription updated! No payment required.", "success");
-        await pollPaymentStatus(subscriptionId); // Still poll to confirm status change
+        if (processingPopup) processingPopup.classList.add("hidden");
+        showToast(
+          data.message || "Failed to initiate M-Pesa payment.",
+          "error"
+        );
       }
     } catch (err) {
-      console.error("Error during payment process:", err);
       if (processingPopup) processingPopup.classList.add("hidden");
       showToast(
         "Network or server error during payment. Please try again.",
@@ -632,3 +568,92 @@ console.log("selectedPlan:", selectedPlan);
 console.log("selectedPlanPrice:", selectedPlanPrice);
 console.log("currentBusinessId:", window.currentBusinessId);
 */
+
+// Use Paystack inline JS SDK
+function payWithPaystack(email, amount, callback) {
+  var handler = PaystackPop.setup({
+    key: "pk_test_772bd799e859a2ce88f5693bfeb5ef4a75da4e13",
+    email: email,
+    amount: amount * 100,
+    callback: function (response) {
+      // Send response.reference to backend for verification
+      callback(response.reference);
+    },
+    onClose: function () {
+      alert("Payment window closed");
+    },
+  });
+  handler.openIframe();
+}
+
+// --- Paystack Payment Processing ---
+window.processPaystackPayment = async function () {
+  const emailInput = document.getElementById("paystackEmail");
+  const email = emailInput ? emailInput.value.trim() : "";
+  if (!email) {
+    showToast("Please enter your email address.", "error");
+    return;
+  }
+  if (
+    !window.currentBusinessId ||
+    !selectedPlan ||
+    selectedPlanPrice === null
+  ) {
+    showToast("Missing plan, price, or business info.", "error");
+    return;
+  }
+
+  // 1. Initiate Paystack payment (creates pending subscription)
+  try {
+    const res = await fetch("/payments/paystack", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        amount: selectedPlanPrice,
+        businessId: window.currentBusinessId,
+        plan: selectedPlan,
+        durationMonths: 1,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.data || !data.data.authorization_url) {
+      showToast(
+        data.message || "Failed to initiate Paystack payment.",
+        "error"
+      );
+      return;
+    }
+    const subscriptionId = data.subscriptionId;
+    // Open Paystack payment page
+    window.open(data.data.authorization_url, "_blank");
+
+    // Poll for payment verification (or use webhook for production)
+    // For demo, show a prompt to enter reference
+    const reference = prompt(
+      "Enter Paystack payment reference after completing payment:"
+    );
+    if (!reference) {
+      showToast("Payment reference required for verification.", "error");
+      return;
+    }
+    // 2. Verify payment
+    const verifyRes = await fetch("/payments/paystack/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference, subscriptionId }),
+    });
+    const verifyData = await verifyRes.json();
+    if (verifyRes.ok) {
+      showToast("Payment successful! Subscription activated.", "success");
+      // Optionally refresh subscription details/UI
+    } else {
+      showToast(verifyData.message || "Payment verification failed.", "error");
+    }
+  } catch (err) {
+    showToast(
+      "Network or server error during payment. Please try again.",
+      "error"
+    );
+  }
+};

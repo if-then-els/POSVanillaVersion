@@ -68,15 +68,11 @@ app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
 app.use("/", userRoutes);
 app.use("/api/business", businessRoutes);
-app.use("/", paymentsRoutes); // public
+app.use("/", paymentsRoutes); // public, must be before subscriptionMiddleware
 app.use(subscriptionMiddleware); // protected
 app.use("/", subscriptionsRoutes); // protected
 
 // Apply subscription middleware
-app.use(subscriptionMiddleware);
-app.route("/ping").get((req, res) => {
-  res.status(200).json({ message: "pong" });
-});
 
 async function seedPlans() {
   const plans = [

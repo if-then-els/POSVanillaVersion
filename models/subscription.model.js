@@ -19,6 +19,8 @@ const SubscriptionSchema = new mongoose.Schema(
     paymentMethod: { type: String },
     lastPaymentDate: { type: Date },
     nextBillingDate: { type: Date },
+    mpesaCheckoutRequestID: { type: String, default: null }, // M-Pesa STK Push ID
+    mpesaTransactionId: { type: String, default: null }, // M-Pesa Receipt Number
   },
   { timestamps: true }
 );
