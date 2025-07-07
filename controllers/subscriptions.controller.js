@@ -84,7 +84,7 @@ exports.getSubscriptionDetails = async (req, res) => {
       business: business,
       status: "active",
     });
-    console.log("Found subscription:", subscription);
+    //console.log("Found subscription:", subscription);
     if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });
     }

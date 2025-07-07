@@ -16,7 +16,9 @@ function loadSidebar() {
       <ul class="space-y-2">
         <li>
           <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("dashboard.html") ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("dashboard.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-home w-5"></i><span>Dashboard</span>
           </a>
@@ -30,14 +32,18 @@ function loadSidebar() {
         </li>
         <li>
           <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("inventory.html") ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("inventory.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-box w-5"></i><span>Inventory</span>
           </a>
         </li>
         <li>
           <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("reports.html") ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("reports.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
           </a>
@@ -54,7 +60,9 @@ function loadSidebar() {
         </li>
         <li>
           <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("settings.html") ? "bg-gray-100" : ""
+            window.location.pathname.endsWith("settings.html")
+              ? "bg-gray-100"
+              : ""
           }">
             <i class="fas fa-cog w-5"></i><span>Settings</span>
           </a>
@@ -112,49 +120,62 @@ function loadSidebar() {
   const logoutBtn = document.getElementById("logout-btn");
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      console.log("Logging out...");
-      // Add your logout logic
+      fetch("/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${document.cookie.split("=")[1]}`,
+        },
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Logout failed");
+          window.location.href = "/login.html"; // Redirect to login
+        })
+        .catch((error) => {
+          console.error("Logout error:", error);
+          alert("Failed to logout. Please try again.");
+        });
     });
   }
 }
 
 // Sidebar toggle functionality
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   loadSidebar();
 
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('overlay'); // make sure you have this div
-  const mainContent = document.getElementById('main-content');
-  const toggleButton = document.getElementById('toggle-sidebar');
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay"); // make sure you have this div
+  const mainContent = document.getElementById("main-content");
+  const toggleButton = document.getElementById("toggle-sidebar");
 
   if (!sidebar || !overlay || !toggleButton || !mainContent) return;
 
   const openSidebar = () => {
-    sidebar.classList.remove('-translate-x-full'); // show sidebar
-    overlay.classList.remove('hidden');           // show overlay
+    sidebar.classList.remove("-translate-x-full"); // show sidebar
+    overlay.classList.remove("hidden"); // show overlay
   };
-  
+
   const closeSidebar = () => {
-    sidebar.classList.add('-translate-x-full'); // hide sidebar
-    overlay.classList.add('hidden');             // hide overlay
+    sidebar.classList.add("-translate-x-full"); // hide sidebar
+    overlay.classList.add("hidden"); // hide overlay
   };
-  
-  toggleButton.addEventListener('click', openSidebar);
-  overlay.addEventListener('click', closeSidebar);
+
+  toggleButton.addEventListener("click", openSidebar);
+  overlay.addEventListener("click", closeSidebar);
 
   // Also close on resize so it's visible at md+
-  window.addEventListener('resize', () => {
+  window.addEventListener("resize", () => {
     if (window.innerWidth >= 768) {
-      sidebar.classList.remove('-translate-x-full');
-      overlay.classList.add('hidden');
+      sidebar.classList.remove("-translate-x-full");
+      overlay.classList.add("hidden");
     } else {
       closeSidebar();
     }
   });
 
   // Close sidebar when clicking a link inside
-  sidebar.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A') closeSidebar();
+  sidebar.addEventListener("click", (e) => {
+    if (e.target.tagName === "A") closeSidebar();
   });
 });
 

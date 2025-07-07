@@ -1,7 +1,16 @@
 const Subscription = require("../models/subscription.model");
 const jwt = require("jsonwebtoken");
 
-module.exports = async (req, res, next) => {
+module.exports = async function (req, res, next) {
+  // Allow M-Pesa callbacks to be public
+  if (
+    req.path === "/payments/mpesa/c2b/confirmation" ||
+    req.path === "/payments/mpesa/callback" || // <-- Add this line
+    req.path === "/mpesa/callback" // <-- If your callback is registered at this path
+  ) {
+    return next();
+  }
+
   try {
     const token = req.cookies.token;
 

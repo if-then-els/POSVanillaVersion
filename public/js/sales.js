@@ -148,14 +148,12 @@ async function loadProductsForSale() {
       .map(
         (product) => `
       <div class="border rounded-lg p-4 flex flex-col items-center shadow hover:shadow-md transition">
-        <img src="../assets/images/placeholder.png" alt="${
-          product.productName
-        }" class="h-16 w-16 object-cover mb-2 rounded">
+      
         <div class="font-semibold">${product.productName}</div>
         <div class="text-gray-500 text-sm mb-1">${
           product.productBatchNumber
         }</div>
-        <div class="text-primary-600 font-bold mb-2">$${product.productPrice.toFixed(
+        <div class="text-primary-600 font-bold mb-2">KSH ${product.productPrice.toFixed(
           2
         )}</div>
         <div class="text-xs text-gray-400 mb-2">Stock: ${
@@ -298,7 +296,7 @@ function renderCart() {
               <div class="font-medium">${item.productName}</div>
               <div class="text-xs text-gray-500">Qty: ${
                 item.quantity
-              } x $${item.productPrice.toFixed(2)}</div>
+              } x KSH ${item.productPrice.toFixed(2)}</div>
             </div>
             <div class="flex items-center gap-2">
               <button class="decrease-qty-btn px-2 py-1 text-sm bg-gray-200 rounded" data-id="${
