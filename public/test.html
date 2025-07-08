@@ -3,272 +3,1326 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mobile Payment Process</title>
+    <meta name="description" content="Modern POS System for efficient sales and checkout management">
+    <title>Sales - POS System</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <!-- ...existing code... -->
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#4F46E5" />
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts for better typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/service-worker.js");
-        });
-      }
+      // Tailwind configuration from manageSubscriptions.html
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              accent: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+              success: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+                800: "#166534",
+                900: "#14532d",
+              },
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "bounce-slow": "bounce 3s infinite",
+              "spin-slow": "spin 8s linear infinite",
+              gradient: "gradient 15s ease infinite",
+              "slide-up": "slideUp 0.5s ease-out",
+              "slide-in": "slideIn 0.6s ease-out",
+              "scale-in": "scaleIn 0.4s ease-out",
+              glow: "glow 2s ease-in-out infinite alternate",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-20px)" },
+              },
+              gradient: {
+                "0%, 100%": {
+                  "background-size": "200% 200%",
+                  "background-position": "left center",
+                },
+                "50%": {
+                  "background-size": "200% 200%",
+                  "background-position": "right center",
+                },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(100px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+              slideIn: {
+                "0%": { transform: "translateX(-100px)", opacity: "0" },
+                "100%": { transform: "translateX(0)", opacity: "1" },
+              },
+              scaleIn: {
+                "0%": { transform: "scale(0.8)", opacity: "0" },
+                "100%": { transform: "scale(1)", opacity: "1" },
+              },
+              glow: {
+                "0%": { boxShadow: "0 0 20px rgba(14, 165, 233, 0.5)" },
+                "100%": { boxShadow: "0 0 40px rgba(14, 165, 233, 0.8)" },
+              },
+            },
+            backdropBlur: {
+              xs: "2px",
+            },
+          },
+        },
+      };
     </script>
-    <!-- ...existing code... -->
+    <style>
+      /* Custom styles from manageSubscriptions.html */
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .glass-dark {
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .gradient-bg {
+        background: linear-gradient(-45deg, #0ea5e9, #d946ef, #22c55e, #f59e0b);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.6;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .particle:nth-child(1) { animation-delay: 0s; }
+      .particle:nth-child(2) { animation-delay: 1s; }
+      .particle:nth-child(3) { animation-delay: 2s; }
+      .particle:nth-child(4) { animation-delay: 3s; }
+      .particle:nth-child(5) { animation-delay: 4s; }
+
+      .hover-lift {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .neon-border {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .neon-border::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(14, 165, 233, 0.4),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .neon-border:hover::before {
+        left: 100%;
+      }
+
+      .typing-animation {
+        overflow: hidden;
+        border-right: 2px solid #0ea5e9;
+        white-space: nowrap;
+        animation: typing 3.5s steps(40, end),
+          blink-caret 0.75s step-end infinite;
+      }
+
+      @keyframes typing {
+        from { width: 0; }
+        to { width: 100%; }
+      }
+
+      @keyframes blink-caret {
+        from, to { border-color: transparent; }
+        50% { border-color: #0ea5e9; }
+      }
+
+      .progress-ring { transform: rotate(-90deg); }
+      .progress-ring-circle {
+        transition: stroke-dashoffset 0.35s;
+        transform-origin: 50% 50%;
+      }
+
+      .morphing-blob {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        animation: morph 8s ease-in-out infinite;
+      }
+
+      @keyframes morph {
+        0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+        50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+        100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+      }
+
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.6s ease-out;
+      }
+
+      .scroll-reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Custom smooth transitions for sales.html elements */
+      .smooth-transition {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      /* Better focus states */
+      [type="text"]:focus, [type="email"]:focus, textarea:focus, select:focus {
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); /* Using primary-500 */
+        border-color: #0ea5e9; /* Using primary-500 */
+      }
+      
+      /* Custom scrollbar for dark theme */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #333; /* Darker track */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #555; /* Darker thumb */
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #777; /* Lighter thumb on hover */
+      }
+      
+      /* Collapsible cart styles - adapted for dark theme */
+      #cart-collapsed {
+        display: flex;
+      }
+      #cart-expanded {
+        display: none;
+      }
+      .cart-has-items #cart-collapsed {
+        display: none;
+      }
+      .cart-has-items #cart-expanded {
+        display: block;
+      }
+    </style>
   </head>
-  <body class="bg-gray-100 font-sans">
-    <div class="container mx-auto px-4 py-8 max-w-md">
-      <!-- Step 1: Plan Selection -->
-      <div id="step1" class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex items-center mb-6">
-          <div
-            class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3"
-          >
-            1
-          </div>
-          <h2 class="text-xl font-semibold">Select Your Plan</h2>
-        </div>
-
-        <p class="text-gray-600 mb-6">
-          Choose whether to upgrade your plan or continue with your current
-          subscription.
-        </p>
-
-        <div class="space-y-4">
-          <button
-            onclick="showUpgradeOptions()"
-            class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
-          >
-            Upgrade Plan
-          </button>
-          <button
-            onclick="continueToPayment()"
-            class="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition duration-200"
-          >
-            Continue with Current Plan
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 2: Upgrade Options (Hidden Initially) -->
-      <div id="step2" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
-        <div class="flex items-center mb-6">
-          <div
-            class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3"
-          >
-            2
-          </div>
-          <h2 class="text-xl font-semibold">Select New Plan</h2>
-        </div>
-
-        <p class="text-gray-600 mb-6">
-          Choose your preferred plan to upgrade to:
-        </p>
-
-        <div class="space-y-4">
-          <div
-            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
-            onclick="selectPlan('Basic', '500')"
-          >
-            <h3 class="font-semibold">Basic Plan</h3>
-            <p class="text-gray-600">KES 500/month</p>
-          </div>
-          <div
-            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
-            onclick="selectPlan('Standard', '1000')"
-          >
-            <h3 class="font-semibold">Standard Plan</h3>
-            <p class="text-gray-600">KES 1,000/month</p>
-          </div>
-          <div
-            class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition duration-200"
-            onclick="selectPlan('Premium', '1500')"
-          >
-            <h3 class="font-semibold">Premium Plan</h3>
-            <p class="text-gray-600">KES 1,500/month</p>
-          </div>
-        </div>
-
-        <button
-          onclick="backToStep1()"
-          class="mt-6 text-blue-600 hover:text-blue-800"
-        >
-          Back
-        </button>
-      </div>
-
-      <!-- Step 3: Payment Method (Hidden Initially) -->
-      <div id="step3" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
-        <div class="flex items-center mb-6">
-          <div
-            class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold mr-3"
-          >
-            3
-          </div>
-          <h2 class="text-xl font-semibold">Payment Method</h2>
-        </div>
-
-        <p class="text-gray-600 mb-6">Complete your payment using M-Pesa:</p>
-
-        <div class="mb-6 p-4 bg-blue-50 rounded-lg flex items-center">
-          <img
-            src="https://via.placeholder.com/40"
-            alt="M-Pesa"
-            class="w-10 h-10 mr-3"
-          />
-          <span class="font-medium">M-Pesa Mobile Payment</span>
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 mb-2">Mobile Number</label>
-          <input
-            type="tel"
-            id="mobileNumber"
-            placeholder="e.g. 254712345678"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="block text-gray-700 mb-2">Amount</label>
-          <input
-            type="text"
-            id="paymentAmount"
-            readonly
-            class="w-full px-4 py-2 border rounded-lg bg-gray-100 font-semibold"
-          />
-        </div>
-
-        <button
-          onclick="processPayment()"
-          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
-        >
-          Pay Now
-        </button>
-
-        <button
-          onclick="backToPreviousStep()"
-          class="mt-4 text-blue-600 hover:text-blue-800"
-        >
-          Back
-        </button>
-      </div>
-
-      <!-- Processing Popup (Hidden Initially) -->
-      <div
-        id="processingPopup"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
-      >
-        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 text-center">
-          <div class="mb-4">
-            <div
-              class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3"
-            >
-              <i class="fas fa-spinner fa-spin text-blue-600 text-2xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-blue-600">
-              Processing Payment
-            </h3>
-            <p class="text-gray-600 mt-2">
-              Please wait while we process your transaction...
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Approved Popup (Hidden Initially) -->
-      <div
-        id="approvedPopup"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
-      >
-        <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4 text-center">
-          <div class="mb-4">
-            <div
-              class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3"
-            >
-              <i class="fas fa-check-circle text-green-600 text-2xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-green-600">
-              Payment Approved
-            </h3>
-            <p class="text-gray-600 mt-2">
-              Your payment has been successfully processed!
-            </p>
-          </div>
-          <button
-            onclick="closePopup()"
-            class="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-200"
-          >
-            Done
-          </button>
-        </div>
+  <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 z-0">
+      <div class="gradient-bg absolute inset-0 opacity-20"></div>
+      <div class="absolute inset-0">
+        <div class="particle w-2 h-2 bg-primary-400 top-1/4 left-1/4"></div>
+        <div class="particle w-3 h-3 bg-accent-400 top-3/4 left-3/4"></div>
+        <div class="particle w-1 h-1 bg-success-400 top-1/2 left-1/2"></div>
+        <div class="particle w-2 h-2 bg-yellow-400 top-1/3 left-2/3"></div>
+        <div class="particle w-1 h-1 bg-pink-400 top-2/3 left-1/3"></div>
       </div>
     </div>
 
+    <!-- Dark Mode Toggle -->
+    <button
+      id="theme-toggle"
+      class="fixed top-6 right-6 z-50 glass rounded-full p-3 hover:scale-110 transition-all duration-300 group"
+    >
+      <i
+        class="fas fa-moon text-yellow-400 group-hover:rotate-12 transition-transform duration-300"
+      ></i>
+    </button>
+
+    <!-- Mobile Navigation -->
+    <nav
+      class="md:hidden flex justify-between items-center p-4 glass fixed top-0 w-full z-40 backdrop-blur-md"
+    >
+      <div class="flex items-center space-x-2">
+        <div
+          class="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg flex items-center justify-center"
+        >
+          <i class="fas fa-bolt text-white text-sm"></i>
+        </div>
+        <h1
+          class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
+        >
+          POS Hub
+        </h1>
+      </div>
+      <button
+        id="toggle-sidebar"
+        class="p-2 hover:bg-white/10 rounded-lg transition-colors"
+      >
+        <i class="fas fa-bars text-xl text-white"></i>
+      </button>
+    </nav>
+
+    <div class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10">
+      <!-- Sidebar -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
+      >
+        <div class="p-6">
+          <div class="flex items-center space-x-3 mb-8">
+            <div
+              class="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-slow"
+            >
+              <i class="fas fa-bolt text-white"></i>
+            </div>
+            <div>
+              <h1
+                class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
+              >
+                POS Hub
+              </h1>
+              <p class="text-xs text-gray-400">Next-Gen Management</p>
+            </div>
+          </div>
+
+          <nav class="space-y-2">
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-primary-500/20 to-accent-500/20 border border-primary-500/30"
+            >
+              <i class="fas fa-home text-primary-400"></i>
+              <span class="text-white">Dashboard</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-credit-card text-accent-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Subscriptions</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-chart-line text-success-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Analytics</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-users text-yellow-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Team</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-cog text-gray-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Settings</span>
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Overlay -->
+      <div id="overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"></div>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative">
+        <div class="max-w-5xl mx-auto">
+          <!-- Page header with breadcrumbs -->
+          <div class="mb-6 scroll-reveal">
+            <nav class="flex mb-2" aria-label="Breadcrumb">
+              <ol class="inline-flex items-center space-x-1 md:space-x-2">
+                <li class="inline-flex items-center">
+                  <a href="#" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-primary-400">
+                    <i class="fas fa-home mr-2"></i>
+                    Dashboard
+                  </a>
+                </li>
+                <li aria-current="page">
+                  <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-600 mx-2 text-xs"></i>
+                    <span class="ml-1 text-sm font-medium text-white md:ml-2">Sales</span>
+                  </div>
+                </li>
+              </ol>
+            </nav>
+            
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-white">Sales & Checkout</h1>
+                <p class="text-gray-400 mt-1">Process sales and manage transactions</p>
+              </div>
+              <div class="mt-3 sm:mt-0">
+                <!-- <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                  <i class="fas fa-plus mr-2"></i> New Sale
+                </button> -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Main grid -->
+          <div class="grid gap-6 lg:grid-cols-3">
+            <!-- Product Selection -->
+            <div class="lg:col-span-2">
+              <div class="glass rounded-3xl shadow-lg border border-white/20 overflow-hidden hover-lift scroll-reveal">
+                <div class="p-4 sm:p-6 border-b border-white/20 bg-black/10">
+                  <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-white flex items-center">
+                      <i class="fas fa-box mr-2 text-primary-400"></i> Products
+                    </h2>
+                    <div class="relative">
+                      <input
+                        type="text"
+                        placeholder="Search products..."
+                        class="pl-8 pr-4 py-2 border border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full bg-gray-800 text-white placeholder-gray-400"
+                      />
+                      <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="p-2 sm:p-4">
+                  <div
+                    id="products-grid"
+                    class="grid gap-3 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                  >
+                    <!-- Products will be loaded here by JavaScript -->
+                    <div class="animate-pulse glass-dark rounded-xl p-4">
+                      <div class="bg-gray-700 h-32 rounded-md"></div>
+                      <div class="mt-2">
+                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                      </div>
+                    </div>
+                    <!-- Repeat skeleton loader as needed -->
+                     <div class="animate-pulse glass-dark rounded-xl p-4">
+                      <div class="bg-gray-700 h-32 rounded-md"></div>
+                      <div class="mt-2">
+                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                      </div>
+                    </div>
+                     <div class="animate-pulse glass-dark rounded-xl p-4">
+                      <div class="bg-gray-700 h-32 rounded-md"></div>
+                      <div class="mt-2">
+                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                      </div>
+                    </div>
+                     <div class="animate-pulse glass-dark rounded-xl p-4">
+                      <div class="bg-gray-700 h-32 rounded-md"></div>
+                      <div class="mt-2">
+                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shopping Cart -->
+            <div class="lg:col-span-1">
+              <!-- Mobile floating cart container -->
+              <div class="lg:hidden fixed bottom-4 right-4 z-30">
+                <!-- Floating cart button (always visible) -->
+                <div
+                  id="mobile-cart-button"
+                  class="bg-gradient-to-r from-primary-500 to-accent-500 rounded-full shadow-lg border border-white/20 cursor-pointer hover:shadow-xl transition-all duration-300 w-16 h-16 flex items-center justify-center relative animate-bounce-slow"
+                  onclick="toggleMobileCart()"
+                >
+                  <i class="fas fa-shopping-cart text-2xl text-white"></i>
+                  <span
+                    id="mobile-cart-badge"
+                    class="absolute -top-2 -right-2 bg-success-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+                    >0</span
+                  >
+                </div>
+
+                <!-- Expanded Cart Panel -->
+                <div
+                  id="mobile-cart-panel"
+                  class="hidden glass-dark rounded-3xl shadow-lg border border-white/20 w-[calc(100vw-2rem)] max-w-md transition-all duration-300 transform translate-y-2 animate-scale-in"
+                  style="max-height: 70vh;"
+                >
+                  <div class="p-4 border-b border-white/20 bg-black/10 flex justify-between items-center">
+                    <div>
+                      <h2 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fas fa-shopping-cart mr-2 text-primary-400"></i>
+                        Cart
+                      </h2>
+                      <p id="mobile-cart-count" class="text-sm text-gray-400 mt-1">
+                        0 items in cart
+                      </p>
+                    </div>
+                    <button
+                      onclick="toggleMobileCart()"
+                      class="p-2 rounded-md hover:bg-white/10 text-gray-400"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <div
+                    id="mobile-cart-items"
+                    class="p-4 space-y-4 overflow-y-auto"
+                    style="max-height: calc(70vh - 180px);"
+                  >
+                    <div class="text-center py-8 text-gray-600 flex flex-col items-center">
+                      <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+                      <p>Your cart is empty</p>
+                      <p class="text-sm mt-1">Add products to get started</p>
+                    </div>
+                  </div>
+
+                  <div class="p-4 border-t border-white/20 space-y-4 bg-black/10">
+                    <div class="space-y-2">
+                      <div class="flex justify-between">
+                        <span class="text-gray-400">Subtotal</span>
+                        <span id="mobile-cart-subtotal" class="font-medium text-white">$0.00</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-gray-400">Tax (10%)</span>
+                        <span id="mobile-cart-tax" class="font-medium text-white">$0.00</span>
+                      </div>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
+                      <span>Total:</span>
+                      <span id="mobile-cart-total" class="text-xl text-primary-400">$0.00</span>
+                    </div>
+                    <button
+                      id="mobile-checkout-btn"
+                      class="w-full bg-gradient-to-r from-success-500 to-success-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      disabled
+                    >
+                      <i class="fas fa-credit-card mr-2"></i> Checkout
+                    </button>
+                    <button
+                      id="mobile-clear-cart-btn"
+                      class="w-full glass-dark text-gray-300 py-2 px-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled
+                    >
+                      Clear Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Desktop cart (unchanged) -->
+              <div class="hidden lg:block">
+                <!-- Collapsed Cart (shown when empty) -->
+                <div
+                  id="cart-collapsed"
+                  class="glass rounded-3xl shadow-lg border border-white/20 sticky top-6 overflow-hidden cursor-pointer hover-lift"
+                >
+                  <div class="p-4 flex items-center justify-center" id="toggle-cart">
+                    <div class="relative">
+                      <i class="fas fa-shopping-cart text-2xl text-primary-400"></i>
+                      <span
+                        id="cart-count-badge"
+                        class="absolute -top-2 -right-2 bg-success-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+                        >0</span
+                      >
+                    </div>
+                    <span class="ml-3 font-medium text-white">Cart</span>
+                  </div>
+                </div>
+
+                <!-- Expanded Cart (shown when has items or clicked) -->
+                <div
+                  id="cart-expanded"
+                  class="glass rounded-3xl shadow-lg border border-white/20 sticky top-6 overflow-hidden"
+                >
+                  <div class="p-4 sm:p-6 border-b border-white/20 bg-black/10 flex justify-between items-center">
+                    <div>
+                      <h2 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fas fa-shopping-cart mr-2 text-primary-400"></i> Cart
+                      </h2>
+                      <p id="cart-count" class="text-sm text-gray-400 mt-1">0 items in cart</p>
+                    </div>
+                    <button id="minimize-cart" class="p-2 rounded-md hover:bg-white/10 text-gray-400">
+                      <i class="fas fa-minus"></i>
+                    </button>
+                  </div>
+
+                  <div id="cart-items" class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+                    <!-- Cart items will be loaded here by JavaScript -->
+                    <div class="text-center py-8 text-gray-600 flex flex-col items-center">
+                      <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+                      <p>Your cart is empty</p>
+                      <p class="text-sm mt-1">Add products to get started</p>
+                    </div>
+                  </div>
+
+                  <div class="p-4 sm:p-6 border-t border-white/20 space-y-4 bg-black/10">
+                    <div class="space-y-2">
+                      <div class="flex justify-between">
+                        <span class="text-gray-400">Subtotal</span>
+                        <span id="cart-subtotal" class="font-medium text-white">$0.00</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-gray-400">Tax (10%)</span>
+                        <span id="cart-tax" class="font-medium text-white">$0.00</span>
+                      </div>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
+                      <span>Total:</span>
+                      <span id="cart-total" class="text-xl text-primary-400">$0.00</span>
+                    </div>
+                    <button
+                      id="checkout-btn"
+                      class="w-full bg-gradient-to-r from-success-500 to-success-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      disabled
+                    >
+                      <i class="fas fa-credit-card mr-2"></i> Checkout
+                    </button>
+                    <button
+                      id="clear-cart-btn"
+                      class="w-full glass-dark text-gray-300 py-2 px-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled
+                    >
+                      Clear Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checkout Modal -->
+            <div id="checkout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+              <div class="flex items-center justify-center min-h-screen px-4">
+                <div
+                  class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity smooth-transition"
+                  id="checkout-modal-backdrop"
+                ></div>
+
+                <div
+                  class="glass-dark rounded-3xl overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative z-10 animate-scale-in"
+                >
+                  <div class="px-6 py-4 border-b border-white/20 bg-black/10">
+                    <h3 class="text-lg font-medium text-white flex items-center">
+                      <i class="fas fa-cash-register mr-2 text-primary-400"></i> Complete Checkout
+                    </h3>
+                  </div>
+
+                  <form id="checkout-form">
+                    <div class="px-6 py-4 space-y-4">
+                      <div class="space-y-3">
+                        <label
+                          for="customer-name"
+                          class="block text-sm font-medium text-gray-300"
+                        >
+                          Customer Name <span class="text-red-400">*</span>
+                        </label>
+                        <div class="relative">
+                          <i class="fas fa-user absolute left-3 top-3 text-gray-400 text-sm"></i>
+                          <input
+                            id="customer-name"
+                            name="customerName"
+                            class="w-full pl-10 border border-gray-600 rounded-xl shadow-sm p-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-800 text-white placeholder-gray-400"
+                            placeholder="Enter customer name"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div class="space-y-3">
+                        <label
+                          for="customer-email"
+                          class="block text-sm font-medium text-gray-300"
+                        >Customer Email</label>
+                        <div class="relative">
+                          <i class="fas fa-envelope absolute left-3 top-3 text-gray-400 text-sm"></i>
+                          <input
+                            id="customer-email"
+                            name="customerEmail"
+                            type="email"
+                            class="w-full pl-10 border border-gray-600 rounded-xl shadow-sm p-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-800 text-white placeholder-gray-400"
+                            placeholder="Enter customer email (optional)"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-300"
+                          >Payment Method</label
+                        >
+                        <div class="grid grid-cols-3 gap-2">
+                          <div>
+                            <input
+                              type="radio"
+                              id="payment-cash"
+                              name="paymentMethod"
+                              value="cash"
+                              checked
+                              class="hidden peer"
+                            />
+                            <label
+                              for="payment-cash"
+                              class="flex flex-col items-center p-3 border border-gray-600 rounded-xl cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-500/20 hover:bg-white/10 text-gray-300"
+                            >
+                              <i class="fas fa-money-bill-wave text-xl text-primary-400 mb-1"></i>
+                              <span class="text-sm">Cash</span>
+                            </label>
+                          </div>
+                          <div>
+                            <input
+                              type="radio"
+                              id="payment-credit"
+                              name="paymentMethod"
+                              value="credit"
+                              class="hidden peer"
+                            />
+                            <label
+                              for="payment-credit"
+                              class="flex flex-col items-center p-3 border border-gray-600 rounded-xl cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-500/20 hover:bg-white/10 text-gray-300"
+                            >
+                              <i class="fas fa-credit-card text-xl text-primary-400 mb-1"></i>
+                              <span class="text-sm">Credit Card</span>
+                            </label>
+                          </div>
+                          <div>
+                            <input
+                              type="radio"
+                              id="payment-online"
+                              name="paymentMethod"
+                              value="online"
+                              class="hidden peer"
+                            />
+                            <label
+                              for="payment-online"
+                              class="flex flex-col items-center p-3 border border-gray-600 rounded-xl cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-500/20 hover:bg-white/10 text-gray-300"
+                            >
+                              <i class="fas fa-globe text-xl text-primary-400 mb-1"></i>
+                              <span class="text-sm">Online</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 space-y-3 rounded-xl bg-black/10 p-4 border border-white/20">
+                        <h4 class="font-semibold text-white flex items-center">
+                          <i class="fas fa-receipt mr-2 text-primary-400"></i> Order Summary
+                        </h4>
+                        <div id="checkout-items" class="space-y-3 text-sm divide-y divide-gray-700">
+                          <!-- Order items will be loaded here by JavaScript -->
+                        </div>
+                        <div class="pt-3 space-y-2">
+                          <div class="flex justify-between text-gray-400">
+                            <span>Subtotal</span>
+                            <span id="checkout-subtotal" class="text-white">$0.00</span>
+                          </div>
+                          <div class="flex justify-between text-gray-400">
+                            <span>Tax (10%)</span>
+                            <span id="checkout-tax" class="text-white">$0.00</span>
+                          </div>
+                          <div class="flex justify-between font-bold text-white border-t border-gray-700 pt-2">
+                            <span>Total</span>
+                            <span id="checkout-total" class="text-primary-400">$0.00</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Cash payment section (hidden by default) -->
+                      <div id="cash-payment-section" class="mt-4 space-y-3 hidden">
+                        <label class="block text-sm font-medium text-gray-300">Cash Received</label>
+                        <input
+                          type="number"
+                          id="cash-received"
+                          min="0"
+                          step="0.01"
+                          class="w-full border border-gray-600 rounded-xl p-2 bg-gray-800 text-white placeholder-gray-400"
+                          placeholder="Enter amount received"
+                        />
+                        <div class="flex justify-between text-success-400 font-semibold">
+                          <span>Change:</span>
+                          <span id="cash-change">KES 0.00</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="px-6 py-4 bg-black/10 text-right space-x-3 border-t border-white/20">
+                      <button
+                        type="button"
+                        id="checkout-cancel"
+                        class="px-4 py-2 text-sm font-medium text-gray-300 glass-dark rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 smooth-transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        id="process-sale-btn"
+                        class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-success-500 to-success-600 rounded-xl hover:from-success-600 hover:to-success-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success-500 smooth-transition inline-flex items-center"
+                      >
+                        <i class="fas fa-check-circle mr-2"></i> Process Sale
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toast notification container -->
+            <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"></div>
+
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button
+      id="fab"
+      class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
+    >
+      <i
+        class="fas fa-plus text-white text-xl group-hover:rotate-45 transition-transform duration-300"
+      ></i>
+    </button>
+
+    <!-- Scripts -->
     <script>
-      let currentPlan = "Current Plan";
-      let currentAmount = "0";
+      // Theme Toggle
+      const themeToggle = document.getElementById("theme-toggle");
+      themeToggle.addEventListener("click", () => {
+        document.documentElement.classList.toggle("dark");
+        const icon = themeToggle.querySelector("i");
+        icon.classList.toggle("fa-moon");
+        icon.classList.toggle("fa-sun");
+      });
 
-      function showUpgradeOptions() {
-        document.getElementById("step1").classList.add("hidden");
-        document.getElementById("step2").classList.remove("hidden");
-      }
+      // Sidebar Toggle
+      const toggleSidebar = document.getElementById("toggle-sidebar");
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("overlay");
 
-      function continueToPayment() {
-        document.getElementById("step1").classList.add("hidden");
-        document.getElementById("step3").classList.remove("hidden");
-        document.getElementById("paymentAmount").value = "KES 0 (Current Plan)";
-      }
+      toggleSidebar.addEventListener("click", () => {
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      });
 
-      function backToStep1() {
-        document.getElementById("step2").classList.add("hidden");
-        document.getElementById("step1").classList.remove("hidden");
-      }
+      overlay.addEventListener("click", () => {
+        sidebar.classList.add("-translate-x-full");
+        overlay.classList.add("hidden");
+      });
 
-      function backToPreviousStep() {
-        if (!document.getElementById("step2").classList.contains("hidden")) {
-          backToStep1();
-        } else {
-          document.getElementById("step3").classList.add("hidden");
-          document.getElementById("step1").classList.remove("hidden");
-        }
-      }
+      // Scroll Reveal Animation
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
 
-      function selectPlan(plan, amount) {
-        currentPlan = plan;
-        currentAmount = amount;
-        document.getElementById("step2").classList.add("hidden");
-        document.getElementById("step3").classList.remove("hidden");
-        document.getElementById("paymentAmount").value = `KES ${amount}`;
-      }
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+          }
+        });
+      }, observerOptions);
 
-      function processPayment() {
-        const mobileNumber = document.getElementById("mobileNumber").value;
-        if (!mobileNumber) {
-          alert("Please enter your mobile number");
-          return;
-        }
+      document.querySelectorAll(".scroll-reveal").forEach((el) => {
+        observer.observe(el);
+      });
 
-        // Show processing popup
-        document.getElementById("processingPopup").classList.remove("hidden");
+      // Floating Action Button
+      const fab = document.getElementById("fab");
+      fab.addEventListener("click", () => {
+        showToast("Quick action menu coming soon!", "info");
+      });
 
-        // Simulate payment processing
+      // Toast Notification System
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success: "from-success-500 to-success-600",
+          error: "from-red-500 to-red-600",
+          warning: "from-yellow-500 to-yellow-600",
+          info: "from-primary-500 to-primary-600",
+        };
+
+        toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${
+          type === "success"
+            ? "success"
+            : type === "error"
+            ? "red"
+            : type === "warning"
+            ? "yellow"
+            : "primary"
+        }-500`;
+        toast.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-${
+                      type === "success"
+                        ? "check-circle"
+                        : type === "error"
+                        ? "exclamation-circle"
+                        : type === "warning"
+                        ? "exclamation-triangle"
+                        : "info-circle"
+                    } text-${
+          type === "success"
+            ? "success"
+            : type === "error"
+            ? "red"
+            : type === "warning"
+            ? "yellow"
+            : "primary"
+        }-400"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+        document.getElementById("toast-container").appendChild(toast);
+
         setTimeout(() => {
-          document.getElementById("processingPopup").classList.add("hidden");
-          document.getElementById("approvedPopup").classList.remove("hidden");
+          toast.style.transform = "translateX(100%)";
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 300);
         }, 3000);
       }
 
-      function closePopup() {
-        document.getElementById("approvedPopup").classList.add("hidden");
-        // Here you would typically redirect to a success page or dashboard
-        alert("Payment completed successfully!");
+      // Particle animation
+      function createParticle() {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.style.left = Math.random() * 100 + "%";
+        particle.style.top = Math.random() * 100 + "%";
+        particle.style.width = Math.random() * 4 + 1 + "px";
+        particle.style.height = particle.style.width;
+        particle.style.backgroundColor = `hsl(${
+          Math.random() * 360
+        }, 70%, 60%)`;
+        document.querySelector(".gradient-bg").appendChild(particle);
+
+        setTimeout(() => {
+          particle.remove();
+        }, 6000);
       }
+
+      setInterval(createParticle, 2000);
+
+      // Mobile cart toggle function
+      function toggleMobileCart() {
+        const cartPanel = document.getElementById('mobile-cart-panel');
+        const cartButton = document.getElementById('mobile-cart-button');
+        
+        // Toggle panel visibility
+        cartPanel.classList.toggle('hidden');
+        
+        // Toggle button visibility (inverse of panel visibility)
+        cartButton.classList.toggle('hidden', !cartPanel.classList.contains('hidden'));
+        
+        // Toggle aria-expanded for accessibility
+        const isExpanded = cartPanel.classList.contains('hidden') ? 'false' : 'true';
+        cartButton.setAttribute('aria-expanded', isExpanded);
+      }
+
+      // Update cart function should also handle the button visibility
+      function updateMobileCart(items) {
+        const itemCount = items.length;
+        const badge = document.getElementById('mobile-cart-badge');
+        const countDisplay = document.getElementById('mobile-cart-count');
+        const emptyState = document.querySelector('#mobile-cart-items > div');
+        const checkoutBtn = document.getElementById('mobile-checkout-btn');
+        const clearBtn = document.getElementById('mobile-clear-cart-btn');
+        const cartButton = document.getElementById('mobile-cart-button');
+        
+        // Update badge
+        if (itemCount > 0) {
+          badge.classList.remove('hidden');
+          badge.textContent = itemCount;
+          emptyState.classList.add('hidden');
+          
+          // Auto-expand cart when items are added
+          const cartPanel = document.getElementById('mobile-cart-panel');
+          if (cartPanel.classList.contains('hidden')) {
+            cartPanel.classList.remove('hidden');
+            cartButton.classList.add('hidden');
+            cartButton.setAttribute('aria-expanded', 'true');
+          }
+        } else {
+          badge.classList.add('hidden');
+          emptyState.classList.remove('hidden');
+        }
+        
+        // Update count display
+        countDisplay.textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`;
+        
+        // Enable/disable buttons
+        checkoutBtn.disabled = itemCount === 0;
+        clearBtn.disabled = itemCount === 0;
+      }
+
+      // Initialize mobile cart
+      document.addEventListener('DOMContentLoaded', function() {
+        // Make cart button accessible
+        const cartButton = document.getElementById('mobile-cart-button');
+        cartButton.setAttribute('aria-expanded', 'false');
+        cartButton.setAttribute('aria-label', 'Toggle cart');
+
+        // Initial update for cart state
+        updateMobileCart([]); // Assuming cart is empty initially
+
+        // Handle desktop cart toggle
+        const desktopCartCollapsed = document.getElementById('cart-collapsed');
+        const desktopCartExpanded = document.getElementById('cart-expanded');
+        const minimizeCartBtn = document.getElementById('minimize-cart');
+
+        if (desktopCartCollapsed && desktopCartExpanded && minimizeCartBtn) {
+          desktopCartCollapsed.addEventListener('click', () => {
+            desktopCartCollapsed.classList.add('hidden');
+            desktopCartExpanded.classList.remove('hidden');
+          });
+
+          minimizeCartBtn.addEventListener('click', () => {
+            desktopCartExpanded.classList.add('hidden');
+            desktopCartCollapsed.classList.remove('hidden');
+          });
+        }
+      });
+
+      // Mock Product Data (for demonstration)
+      const products = [
+        { id: 1, name: 'Premium Coffee', price: 150.00, image: 'https://placehold.co/150x150/0ea5e9/ffffff?text=Coffee', category: 'Beverages' },
+        { id: 2, name: 'Organic Green Tea', price: 120.00, image: 'https://placehold.co/150x150/d946ef/ffffff?text=Tea', category: 'Beverages' },
+        { id: 3, name: 'Chocolate Croissant', price: 200.00, image: 'https://placehold.co/150x150/22c55e/ffffff?text=Croissant', category: 'Pastries' },
+        { id: 4, name: 'Almond Muffin', price: 180.00, image: 'https://placehold.co/150x150/f59e0b/ffffff?text=Muffin', category: 'Pastries' },
+        { id: 5, name: 'Espresso Machine', price: 25000.00, image: 'https://placehold.co/150x150/0ea5e9/ffffff?text=Machine', category: 'Equipment' },
+        { id: 6, name: 'Ceramic Mug', price: 500.00, image: 'https://placehold.co/150x150/d946ef/ffffff?text=Mug', category: 'Merchandise' },
+        { id: 7, name: 'Blueberry Scone', price: 170.00, image: 'https://placehold.co/150x150/22c55e/ffffff?text=Scone', category: 'Pastries' },
+        { id: 8, name: 'Iced Latte', price: 180.00, image: 'https://placehold.co/150x150/f59e0b/ffffff?text=Latte', category: 'Beverages' },
+      ];
+
+      let cartItems = [];
+
+      // Function to render products
+      function renderProducts() {
+        const productsGrid = document.getElementById('products-grid');
+        productsGrid.innerHTML = ''; // Clear existing products
+        products.forEach(product => {
+          const productCard = document.createElement('div');
+          productCard.className = 'glass-dark rounded-xl p-4 cursor-pointer hover-lift flex flex-col items-center text-center';
+          productCard.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="w-24 h-24 object-cover rounded-lg mb-3">
+            <h3 class="font-semibold text-white text-md mb-1">${product.name}</h3>
+            <p class="text-primary-400 font-bold">KES ${product.price.toFixed(2)}</p>
+            <button class="mt-3 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-300 w-full" onclick="addToCart(${product.id})">
+              <i class="fas fa-plus mr-1"></i> Add
+            </button>
+          `;
+          productsGrid.appendChild(productCard);
+        });
+      }
+
+      // Function to add item to cart
+      function addToCart(productId) {
+        const product = products.find(p => p.id === productId);
+        if (product) {
+          const existingItem = cartItems.find(item => item.id === productId);
+          if (existingItem) {
+            existingItem.quantity++;
+          } else {
+            cartItems.push({ ...product, quantity: 1 });
+          }
+          renderCart();
+          showToast(`${product.name} added to cart!`, 'success');
+        }
+      }
+
+      // Function to remove item from cart
+      function removeFromCart(productId) {
+        cartItems = cartItems.filter(item => item.id !== productId);
+        renderCart();
+        showToast('Item removed from cart.', 'info');
+      }
+
+      // Function to update item quantity in cart
+      function updateQuantity(productId, change) {
+        const item = cartItems.find(item => item.id === productId);
+        if (item) {
+          item.quantity += change;
+          if (item.quantity <= 0) {
+            removeFromCart(productId);
+          } else {
+            renderCart();
+          }
+        }
+      }
+
+      // Function to render cart items
+      function renderCart() {
+        const cartItemsContainer = document.getElementById('cart-items');
+        const mobileCartItemsContainer = document.getElementById('mobile-cart-items');
+        const cartSubtotalSpan = document.getElementById('cart-subtotal');
+        const cartTaxSpan = document.getElementById('cart-tax');
+        const cartTotalSpan = document.getElementById('cart-total');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const clearCartBtn = document.getElementById('clear-cart-btn');
+
+        const mobileCartSubtotalSpan = document.getElementById('mobile-cart-subtotal');
+        const mobileCartTaxSpan = document.getElementById('mobile-cart-tax');
+        const mobileCartTotalSpan = document.getElementById('mobile-cart-total');
+        const mobileCheckoutBtn = document.getElementById('mobile-checkout-btn');
+        const mobileClearCartBtn = document.getElementById('mobile-clear-cart-btn');
+
+        cartItemsContainer.innerHTML = '';
+        mobileCartItemsContainer.innerHTML = '';
+
+        let subtotal = 0;
+
+        if (cartItems.length === 0) {
+          const emptyStateHtml = `
+            <div class="text-center py-8 text-gray-600 flex flex-col items-center">
+              <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+              <p>Your cart is empty</p>
+              <p class="text-sm mt-1">Add products to get started</p>
+            </div>
+          `;
+          cartItemsContainer.innerHTML = emptyStateHtml;
+          mobileCartItemsContainer.innerHTML = emptyStateHtml;
+        } else {
+          cartItems.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+
+            const itemHtml = `
+              <div class="flex items-center justify-between py-2 border-b border-gray-700 last:border-b-0">
+                <div class="flex items-center space-x-3">
+                  <img src="${item.image}" alt="${item.name}" class="w-12 h-12 object-cover rounded-md">
+                  <div>
+                    <p class="font-medium text-white">${item.name}</p>
+                    <p class="text-sm text-gray-400">KES ${item.price.toFixed(2)} x ${item.quantity}</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <div class="flex items-center glass-dark rounded-md">
+                    <button onclick="updateQuantity(${item.id}, -1)" class="px-2 py-1 text-gray-300 hover:bg-white/10 rounded-l-md">
+                      <i class="fas fa-minus text-xs"></i>
+                    </button>
+                    <span class="text-white text-sm font-medium">${item.quantity}</span>
+                    <button onclick="updateQuantity(${item.id}, 1)" class="px-2 py-1 text-gray-300 hover:bg-white/10 rounded-r-md">
+                      <i class="fas fa-plus text-xs"></i>
+                    </button>
+                  </div>
+                  <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-300 p-1">
+                    <i class="fas fa-trash-alt text-sm"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+            cartItemsContainer.innerHTML += itemHtml;
+            mobileCartItemsContainer.innerHTML += itemHtml;
+          });
+        }
+
+        const tax = subtotal * 0.10; // 10% tax
+        const total = subtotal + tax;
+
+        cartSubtotalSpan.textContent = `KES ${subtotal.toFixed(2)}`;
+        cartTaxSpan.textContent = `KES ${tax.toFixed(2)}`;
+        cartTotalSpan.textContent = `KES ${total.toFixed(2)}`;
+
+        mobileCartSubtotalSpan.textContent = `KES ${subtotal.toFixed(2)}`;
+        mobileCartTaxSpan.textContent = `KES ${tax.toFixed(2)}`;
+        mobileCartTotalSpan.textContent = `KES ${total.toFixed(2)}`;
+
+        // Update cart counts and button states
+        const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`;
+        document.getElementById('cart-count-badge').textContent = itemCount;
+        document.getElementById('cart-count-badge').classList.toggle('hidden', itemCount === 0);
+
+        // Update mobile cart
+        updateMobileCart(cartItems);
+
+        checkoutBtn.disabled = cartItems.length === 0;
+        clearCartBtn.disabled = cartItems.length === 0;
+      }
+
+      // Checkout Modal Logic
+      const checkoutModal = document.getElementById('checkout-modal');
+      const checkoutCancelBtn = document.getElementById('checkout-cancel');
+      const checkoutForm = document.getElementById('checkout-form');
+      const processSaleBtn = document.getElementById('process-sale-btn');
+      const cashPaymentSection = document.getElementById('cash-payment-section');
+      const cashReceivedInput = document.getElementById('cash-received');
+      const cashChangeSpan = document.getElementById('cash-change');
+
+      document.getElementById('checkout-btn').addEventListener('click', openCheckoutModal);
+      document.getElementById('mobile-checkout-btn').addEventListener('click', openCheckoutModal);
+
+      function openCheckoutModal() {
+        if (cartItems.length === 0) {
+          showToast("Your cart is empty. Add items to checkout.", "warning");
+          return;
+        }
+        checkoutModal.classList.remove('hidden');
+        renderCheckoutSummary();
+        cashPaymentSection.classList.add('hidden'); // Hide cash section by default
+        cashReceivedInput.value = '';
+        cashChangeSpan.textContent = 'KES 0.00';
+      }
+
+      checkoutCancelBtn.addEventListener('click', () => {
+        checkoutModal.classList.add('hidden');
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('checkout-modal-backdrop').addEventListener('click', () => {
+        checkoutModal.classList.add('hidden');
+      });
+
+      // Handle payment method change
+      document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+        radio.addEventListener('change', (event) => {
+          if (event.target.value === 'cash') {
+            cashPaymentSection.classList.remove('hidden');
+          } else {
+            cashPaymentSection.classList.add('hidden');
+          }
+        });
+      });
+
+      // Calculate change for cash payment
+      cashReceivedInput.addEventListener('input', () => {
+        const total = parseFloat(document.getElementById('checkout-total').textContent.replace('KES ', ''));
+        const received = parseFloat(cashReceivedInput.value) || 0;
+        const change = received - total;
+        cashChangeSpan.textContent = `KES ${Math.max(0, change).toFixed(2)}`;
+        processSaleBtn.disabled = received < total; // Disable if not enough cash
+      });
+
+      function renderCheckoutSummary() {
+        const checkoutItemsContainer = document.getElementById('checkout-items');
+        checkoutItemsContainer.innerHTML = '';
+        let subtotal = 0;
+
+        cartItems.forEach(item => {
+          const itemTotal = item.price * item.quantity;
+          subtotal += itemTotal;
+          const itemHtml = `
+            <div class="flex justify-between items-center py-2">
+              <span class="text-gray-300">${item.name} (x${item.quantity})</span>
+              <span class="text-white">KES ${itemTotal.toFixed(2)}</span>
+            </div>
+          `;
+          checkoutItemsContainer.innerHTML += itemHtml;
+        });
+
+        const tax = subtotal * 0.10;
+        const total = subtotal + tax;
+
+        document.getElementById('checkout-subtotal').textContent = `KES ${subtotal.toFixed(2)}`;
+        document.getElementById('checkout-tax').textContent = `KES ${tax.toFixed(2)}`;
+        document.getElementById('checkout-total').textContent = `KES ${total.toFixed(2)}`;
+
+        // Reset cash received and change
+        cashReceivedInput.value = '';
+        cashChangeSpan.textContent = 'KES 0.00';
+        // Disable process sale button initially if cash is selected and not enough received
+        const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        if (selectedPaymentMethod === 'cash') {
+          processSaleBtn.disabled = true;
+        } else {
+          processSaleBtn.disabled = false;
+        }
+      }
+
+      checkoutForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const customerName = document.getElementById('customer-name').value;
+        const customerEmail = document.getElementById('customer-email').value;
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        
+        if (!customerName) {
+            showToast("Customer Name is required.", "error");
+            return;
+        }
+
+        // Simulate sale processing
+        setTimeout(() => {
+          showToast(`Sale processed for ${customerName} via ${paymentMethod}!`, 'success');
+          cartItems = []; // Clear cart after successful sale
+          renderCart();
+          checkoutModal.classList.add('hidden');
+          checkoutForm.reset(); // Reset form fields
+        }, 1000);
+      });
+
+      // Clear Cart Button
+      document.getElementById('clear-cart-btn').addEventListener('click', () => {
+        cartItems = [];
+        renderCart();
+        showToast("Cart cleared!", "info");
+      });
+      document.getElementById('mobile-clear-cart-btn').addEventListener('click', () => {
+        cartItems = [];
+        renderCart();
+        showToast("Cart cleared!", "info");
+      });
+
+      // Initial render on page load
+      document.addEventListener('DOMContentLoaded', () => {
+        renderProducts();
+        renderCart();
+      });
     </script>
   </body>
 </html>

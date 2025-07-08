@@ -3,1178 +3,1948 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SwiftPOS - Modern SaaS Point of Sale Solution</title>
+    <title>SwiftPOS - Revolutionary Cloud POS System</title>
     <meta
       name="description"
-      content="Streamline your business with our cloud-based POS system. Easy setup, affordable pricing, and powerful features."
+      content="Transform your business with our AI-powered cloud POS system. Real-time analytics, seamless integrations, and next-gen features."
     />
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#4F46E5" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <script>
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
             colors: {
-              primary: "#4F46E5",
-              secondary: "#10B981",
-              dark: "#1F2937",
-              light: "#F9FAFB",
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              accent: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+              success: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+                800: "#166534",
+                900: "#14532d",
+              },
+              warning: {
+                50: "#fffbeb",
+                100: "#fef3c7",
+                200: "#fde68a",
+                300: "#fcd34d",
+                400: "#fbbf24",
+                500: "#f59e0b",
+                600: "#d97706",
+                700: "#b45309",
+                800: "#92400e",
+                900: "#78350f",
+              },
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "bounce-slow": "bounce 3s infinite",
+              "spin-slow": "spin 8s linear infinite",
+              gradient: "gradient 15s ease infinite",
+              "slide-up": "slideUp 0.8s ease-out",
+              "slide-in-left": "slideInLeft 0.8s ease-out",
+              "slide-in-right": "slideInRight 0.8s ease-out",
+              "scale-in": "scaleIn 0.6s ease-out",
+              glow: "glow 2s ease-in-out infinite alternate",
+              typing:
+                "typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite",
+              "fade-in": "fadeIn 1s ease-out",
+              "zoom-in": "zoomIn 0.5s ease-out",
+              wiggle: "wiggle 1s ease-in-out infinite",
+              heartbeat: "heartbeat 1.5s ease-in-out infinite",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-20px)" },
+              },
+              gradient: {
+                "0%, 100%": {
+                  "background-size": "200% 200%",
+                  "background-position": "left center",
+                },
+                "50%": {
+                  "background-size": "200% 200%",
+                  "background-position": "right center",
+                },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(100px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+              slideInLeft: {
+                "0%": { transform: "translateX(-100px)", opacity: "0" },
+                "100%": { transform: "translateX(0)", opacity: "1" },
+              },
+              slideInRight: {
+                "0%": { transform: "translateX(100px)", opacity: "0" },
+                "100%": { transform: "translateX(0)", opacity: "1" },
+              },
+              scaleIn: {
+                "0%": { transform: "scale(0.8)", opacity: "0" },
+                "100%": { transform: "scale(1)", opacity: "1" },
+              },
+              glow: {
+                "0%": { boxShadow: "0 0 20px rgba(14, 165, 233, 0.5)" },
+                "100%": { boxShadow: "0 0 40px rgba(14, 165, 233, 0.8)" },
+              },
+              typing: {
+                from: { width: "0" },
+                to: { width: "100%" },
+              },
+              "blink-caret": {
+                "from, to": { borderColor: "transparent" },
+                "50%": { borderColor: "#0ea5e9" },
+              },
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
+              },
+              zoomIn: {
+                "0%": { transform: "scale(0)", opacity: "0" },
+                "100%": { transform: "scale(1)", opacity: "1" },
+              },
+              wiggle: {
+                "0%, 100%": { transform: "rotate(-3deg)" },
+                "50%": { transform: "rotate(3deg)" },
+              },
+              heartbeat: {
+                "0%": { transform: "scale(1)" },
+                "14%": { transform: "scale(1.1)" },
+                "28%": { transform: "scale(1)" },
+                "42%": { transform: "scale(1.1)" },
+                "70%": { transform: "scale(1)" },
+              },
+            },
+            backdropBlur: {
+              xs: "2px",
             },
           },
         },
       };
-
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/service-worker.js');
-        });
-      }
     </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .glass-dark {
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .gradient-bg {
+        background: linear-gradient(-45deg, #0ea5e9, #d946ef, #22c55e, #f59e0b);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+        opacity: 0.6;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .particle:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .particle:nth-child(2) {
+        animation-delay: 1s;
+      }
+      .particle:nth-child(3) {
+        animation-delay: 2s;
+      }
+      .particle:nth-child(4) {
+        animation-delay: 3s;
+      }
+      .particle:nth-child(5) {
+        animation-delay: 4s;
+      }
+      .particle:nth-child(6) {
+        animation-delay: 5s;
+      }
+
+      .hover-lift {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .hover-lift:hover {
+        transform: translateY(-12px) scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .neon-border {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .neon-border::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(14, 165, 233, 0.4),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .neon-border:hover::before {
+        left: 100%;
+      }
+
+      .typing-animation {
+        overflow: hidden;
+        border-right: 2px solid #0ea5e9;
+        white-space: nowrap;
+        animation: typing 3.5s steps(40, end),
+          blink-caret 0.75s step-end infinite;
+      }
+
+      .morphing-blob {
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        animation: morph 8s ease-in-out infinite;
+      }
+
+      @keyframes morph {
+        0% {
+          border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+        50% {
+          border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+        }
+        100% {
+          border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+      }
+
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.8s ease-out;
+      }
+
+      .scroll-reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .text-gradient {
+        background: linear-gradient(135deg, #0ea5e9, #d946ef, #22c55e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .hero-pattern {
+        background-image: radial-gradient(
+          circle at 1px 1px,
+          rgba(255, 255, 255, 0.15) 1px,
+          transparent 0
+        );
+        background-size: 20px 20px;
+      }
+
+      .feature-card {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05)
+        );
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .feature-card:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.1)
+        );
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .pricing-card {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05)
+        );
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .pricing-card:hover {
+        transform: translateY(-12px) scale(1.05);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      }
+
+      .pricing-card.featured {
+        background: linear-gradient(
+          135deg,
+          rgba(14, 165, 233, 0.2),
+          rgba(217, 70, 239, 0.2)
+        );
+        border: 2px solid rgba(14, 165, 233, 0.5);
+        transform: scale(1.05);
+      }
+
+      .testimonial-card {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05)
+        );
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .testimonial-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-link {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 50%;
+        background: linear-gradient(90deg, #0ea5e9, #d946ef);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .counter {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .loading-dots {
+        display: inline-block;
+      }
+
+      .loading-dots::after {
+        content: "";
+        animation: dots 1.5s steps(4, end) infinite;
+      }
+
+      @keyframes dots {
+        0%,
+        20% {
+          content: "";
+        }
+        40% {
+          content: ".";
+        }
+        60% {
+          content: "..";
+        }
+        80%,
+        100% {
+          content: "...";
+        }
+      }
+    </style>
   </head>
-  <body class="bg-gray-50 font-sans">
+
+  <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 z-0">
+      <div class="gradient-bg absolute inset-0 opacity-20"></div>
+      <div class="hero-pattern absolute inset-0 opacity-30"></div>
+      <div class="absolute inset-0">
+        <div class="particle w-2 h-2 bg-primary-400 top-1/4 left-1/4"></div>
+        <div class="particle w-3 h-3 bg-accent-400 top-3/4 left-3/4"></div>
+        <div class="particle w-1 h-1 bg-success-400 top-1/2 left-1/2"></div>
+        <div class="particle w-2 h-2 bg-warning-400 top-1/3 left-2/3"></div>
+        <div class="particle w-1 h-1 bg-pink-400 top-2/3 left-1/3"></div>
+        <div class="particle w-2 h-2 bg-purple-400 top-1/5 left-4/5"></div>
+      </div>
+    </div>
+
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
+    <nav
+      class="fixed top-0 w-full z-50 glass backdrop-blur-md transition-all duration-300"
+      id="navbar"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
-            <div class="flex-shrink-0 flex items-center">
-              <i class="fas fa-cash-register text-primary text-2xl mr-2"></i>
-              <span class="text-xl font-bold text-dark">SwiftPOS</span>
+            <div class="flex-shrink-0 flex items-center group">
+              <div
+                class="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-300"
+              >
+                <i class="fas fa-bolt text-white"></i>
+              </div>
+              <span class="text-2xl font-black text-gradient">SwiftPOS</span>
             </div>
-            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
               <a
                 href="#features"
-                class="border-primary text-dark inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
                 >Features</a
               >
               <a
                 href="#pricing"
-                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
                 >Pricing</a
               >
               <a
                 href="#testimonials"
-                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >Testimonials</a
+                class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
+                >Reviews</a
               >
               <a
                 href="#faq"
-                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium"
                 >FAQ</a
               >
             </div>
           </div>
-          <div class="hidden sm:ml-6 sm:flex sm:items-center">
+          <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
+            <a
+              href="login.html"
+              class="text-gray-300 hover:text-white px-4 py-2 text-sm font-medium transition-colors"
+            >
+              Sign In
+            </a>
             <a
               href="#register"
-              class="bg-primary hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >Get Started</a
+              class="bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
+              Get Started
+            </a>
           </div>
-          <div class="-mr-2 flex items-center sm:hidden">
+          <div class="sm:hidden flex items-center">
             <button
               type="button"
-              class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
-              aria-controls="mobile-menu"
-              aria-expanded="false"
+              class="glass rounded-lg p-2 hover:bg-white/20 transition-colors"
+              id="mobile-menu-button"
             >
-              <span class="sr-only">Open main menu</span>
-              <i class="fas fa-bars"></i>
+              <i class="fas fa-bars text-xl"></i>
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div class="sm:hidden hidden" id="mobile-menu">
+        <div class="glass-dark px-2 pt-2 pb-3 space-y-1">
+          <a
+            href="#features"
+            class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >Features</a
+          >
+          <a
+            href="#pricing"
+            class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >Pricing</a
+          >
+          <a
+            href="#testimonials"
+            class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >Reviews</a
+          >
+          <a
+            href="#faq"
+            class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >FAQ</a
+          >
+          <div class="pt-4 border-t border-gray-700">
+            <a
+              href="login.html"
+              class="block px-3 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              >Sign In</a
+            >
+            <a
+              href="#register"
+              class="block mt-2 px-3 py-2 text-base font-medium bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-lg text-center"
+              >Get Started</a
+            >
           </div>
         </div>
       </div>
     </nav>
 
     <!-- Hero Section -->
-    <div class="relative bg-white overflow-hidden">
-      <div class="max-w-7xl mx-auto">
-        <div
-          class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32"
-        >
-          <main
-            class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28"
-          >
-            <div class="sm:text-center lg:text-left">
-              <h1
-                class="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl"
-              >
-                <span class="block">Modern POS System</span>
-                <span class="block text-primary">For Your Business</span>
-              </h1>
-              <p
-                class="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0"
-              >
-                Streamline your sales, inventory, and customer management with
-                our cloud-based point of sale solution. No hardware required,
-                works on any device.
-              </p>
+    <section
+      class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center">
+          <div class="mb-8 animate-fade-in">
+            <div
+              class="inline-flex items-center glass px-6 py-3 rounded-full mb-6"
+            >
               <div
-                class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start"
+                class="w-2 h-2 bg-success-400 rounded-full animate-pulse mr-3"
+              ></div>
+              <span class="text-sm font-medium"
+                >🚀 Now with AI-Powered Analytics</span
               >
-                <div class="rounded-md shadow">
-                  <a
-                    href="#register"
-                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
-                  >
-                    Start Free Trial
-                  </a>
-                </div>
-                <div class="mt-3 sm:mt-0 sm:ml-3">
-                  <a
-                    href="#features"
-                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-indigo-100 hover:bg-indigo-200 md:py-4 md:text-lg md:px-10"
-                  >
-                    Learn More
-                  </a>
-                </div>
-
-                <div class="mt-3 sm:mt-0 sm:ml-3">
-                  <a
-                    href="login.html"
-                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-dark hover:text-white md:py-4 md:text-lg md:px-10"
-                  >
-                    Log In
-                  </a>
-                </div>
-              </div>
             </div>
-          </main>
+          </div>
+
+          <h1 class="text-5xl md:text-7xl font-black mb-6 animate-slide-up">
+            <span class="block text-white">Revolutionary</span>
+            <span class="block text-gradient typing-animation">POS System</span>
+          </h1>
+
+          <p
+            class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto animate-slide-up"
+            style="animation-delay: 0.2s"
+          >
+            Transform your business with our AI-powered cloud POS system.
+            <span class="text-primary-400 font-semibold"
+              >Real-time analytics</span
+            >,
+            <span class="text-accent-400 font-semibold"
+              >seamless integrations</span
+            >, and
+            <span class="text-success-400 font-semibold">next-gen features</span
+            >.
+          </p>
+
+          <div
+            class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-slide-up"
+            style="animation-delay: 0.4s"
+          >
+            <a
+              href="#register"
+              class="group bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary-500/25 flex items-center"
+            >
+              <span>Start Free Trial</span>
+              <i
+                class="fas fa-rocket ml-2 group-hover:translate-x-1 transition-transform"
+              ></i>
+            </a>
+            <a
+              href="#features"
+              class="group glass hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 flex items-center"
+            >
+              <span>Watch Demo</span>
+              <i
+                class="fas fa-play ml-2 group-hover:scale-110 transition-transform"
+              ></i>
+            </a>
+          </div>
+
+          <div
+            class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto animate-slide-up"
+            style="animation-delay: 0.6s"
+          >
+            <div class="text-center">
+              <div
+                class="text-3xl font-black text-primary-400 counter"
+                data-target="50000"
+              >
+                0
+              </div>
+              <div class="text-gray-400">Active Users</div>
+            </div>
+            <div class="text-center">
+              <div
+                class="text-3xl font-black text-accent-400 counter"
+                data-target="99.9"
+              >
+                0
+              </div>
+              <div class="text-gray-400">% Uptime</div>
+            </div>
+            <div class="text-center">
+              <div
+                class="text-3xl font-black text-success-400 counter"
+                data-target="24"
+              >
+                0
+              </div>
+              <div class="text-gray-400">Hour Support</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <img
-          class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full"
-          src="https://media.istockphoto.com/id/1479999063/photo/medicine-shopping-or-pharmacist-with-customer-writing-personal-or-medical-information-in.jpg?s=612x612&w=0&k=20&c=DrYqzLblTGOJKVLFfygQs7BZBuCbUSHpRvEcIBn8eCQ="
-          alt="POS system dashboard"
-        />
-      </div>
-    </div>
+
+      <!-- Floating Elements -->
+      <div
+        class="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-primary-500/20 to-accent-500/20 rounded-full morphing-blob animate-float"
+      ></div>
+      <div
+        class="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-r from-success-500/20 to-warning-500/20 rounded-full morphing-blob animate-float"
+        style="animation-delay: 2s"
+      ></div>
+    </section>
 
     <!-- Features Section -->
-    <div id="features" class="py-12 bg-light">
+    <section id="features" class="py-20 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center">
-          <h2
-            class="text-base text-primary font-semibold tracking-wide uppercase"
-          >
-            Features
+        <div class="text-center mb-16 scroll-reveal">
+          <h2 class="text-4xl md:text-5xl font-black mb-6">
+            <span class="text-gradient">Powerful Features</span>
           </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl"
-          >
-            Everything you need to run your business
-          </p>
-          <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-            Our POS system comes packed with powerful features to help you
-            manage your business efficiently.
+          <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+            Everything you need to run your business efficiently, powered by
+            cutting-edge technology
           </p>
         </div>
 
-        <div class="mt-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="feature-card rounded-3xl p-8 scroll-reveal hover-lift">
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+            >
+              <i class="fas fa-shopping-cart text-white text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-white">
+              Lightning Checkout
+            </h3>
+            <p class="text-gray-300 mb-6">
+              Process sales in seconds with our intuitive interface. Accept
+              payments via cash, card, mobile money, and crypto.
+            </p>
+            <div class="flex items-center text-primary-400 font-semibold">
+              <span>Learn more</span>
+              <i
+                class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"
+              ></i>
+            </div>
+          </div>
+
           <div
-            class="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10"
+            class="feature-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.1s"
           >
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <div
-                  class="flex items-center justify-center h-12 w-12 rounded-md bg-primary text-white"
-                >
-                  <i class="fas fa-shopping-cart"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Easy Checkout
-                </h3>
-                <p class="mt-2 text-base text-gray-500">
-                  Process sales quickly with our intuitive interface. Accept
-                  multiple payment methods including cash, card, and mobile
-                  payments.
-                </p>
-              </div
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+            >
+              <i class="fas fa-brain text-white text-2xl"></i>
             </div>
-
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <div
-                  class="flex items-center justify-center h-12 w-12 rounded-md bg-primary text-white"
-                >
-                  <i class="fas fa-boxes"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Inventory Management
-                </h3>
-                <p class="mt-2 text-base text-gray-500">
-                  Track stock levels in real-time, set low stock alerts, and
-                  manage suppliers all from one dashboard.
-                </p>
-              </div>
+            <h3 class="text-2xl font-bold mb-4 text-white">AI Analytics</h3>
+            <p class="text-gray-300 mb-6">
+              Get intelligent insights with machine learning. Predict trends,
+              optimize inventory, and boost profits.
+            </p>
+            <div class="flex items-center text-accent-400 font-semibold">
+              <span>Learn more</span>
+              <i
+                class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"
+              ></i>
             </div>
+          </div>
 
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <div
-                  class="flex items-center justify-center h-12 w-12 rounded-md bg-primary text-white"
-                >
-                  <i class="fas fa-chart-line"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Sales Reporting
-                </h3>
-                <p class="mt-2 text-base text-gray-500">
-                  Get detailed insights into your business performance with
-                  customizable reports and analytics.
-                </p>
-              </div>
+          <div
+            class="feature-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.2s"
+          >
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-success-500 to-success-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+            >
+              <i class="fas fa-boxes text-white text-2xl"></i>
             </div>
-
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <div
-                  class="flex items-center justify-center h-12 w-12 rounded-md bg-primary text-white"
-                >
-                  <i class="fas fa-users"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Customer Management
-                </h3>
-                <p class="mt-2 text-base text-gray-500">
-                  Build customer profiles, track purchase history, and implement
-                  loyalty programs to boost repeat business.
-                </p>
-              </div>
+            <h3 class="text-2xl font-bold mb-4 text-white">Smart Inventory</h3>
+            <p class="text-gray-300 mb-6">
+              Real-time stock tracking with automated reorder alerts. Never run
+              out of your best-selling items again.
+            </p>
+            <div class="flex items-center text-success-400 font-semibold">
+              <span>Learn more</span>
+              <i
+                class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"
+              ></i>
             </div>
+          </div>
 
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <div
-                  class="flex items-center justify-center h-12 w-12 rounded-md bg-primary text-white"
-                >
-                  <i class="fas fa-mobile-alt"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Mobile Ready
-                </h3>
-                <p class="mt-2 text-base text-gray-500">
-                  Access your POS system from any device - desktop, tablet, or
-                  smartphone. Works offline and syncs when back online.
-                </p>
-              </div>
+          <div
+            class="feature-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.3s"
+          >
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-warning-500 to-warning-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+            >
+              <i class="fas fa-mobile-alt text-white text-2xl"></i>
             </div>
+            <h3 class="text-2xl font-bold mb-4 text-white">Mobile First</h3>
+            <p class="text-gray-300 mb-6">
+              Works seamlessly on any device. Take your POS anywhere with
+              offline mode and cloud sync.
+            </p>
+            <div class="flex items-center text-warning-400 font-semibold">
+              <span>Learn more</span>
+              <i
+                class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"
+              ></i>
+            </div>
+          </div>
 
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <div
-                  class="flex items-center justify-center h-12 w-12 rounded-md bg-primary text-white"
-                >
-                  <i class="fas fa-plug"></i>
-                </div>
-              </div>
-              <div class="ml-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Integrations
-                </h3>
-                <p class="mt-2 text-base text-gray-500">
-                  Connect with accounting software, eCommerce platforms, and
-                  other business tools you already use.
-                </p>
-              </div>
+          <div
+            class="feature-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.4s"
+          >
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+            >
+              <i class="fas fa-users text-white text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-white">Customer 360</h3>
+            <p class="text-gray-300 mb-6">
+              Complete customer profiles with purchase history, preferences, and
+              automated loyalty rewards.
+            </p>
+            <div class="flex items-center text-purple-400 font-semibold">
+              <span>Learn more</span>
+              <i
+                class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"
+              ></i>
+            </div>
+          </div>
+
+          <div
+            class="feature-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.5s"
+          >
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+            >
+              <i class="fas fa-plug text-white text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-white">Integrations</h3>
+            <p class="text-gray-300 mb-6">
+              Connect with 500+ apps including accounting software, e-commerce
+              platforms, and marketing tools.
+            </p>
+            <div class="flex items-center text-pink-400 font-semibold">
+              <span>Learn more</span>
+              <i
+                class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"
+              ></i>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Pricing Section -->
-    <div id="pricing" class="bg-white py-16">
+    <section id="pricing" class="py-20 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="sm:flex sm:flex-col sm:align-center">
-          <h2 class="text-3xl font-extrabold text-gray-900 text-center">
-            Simple, transparent pricing
+        <div class="text-center mb-16 scroll-reveal">
+          <h2 class="text-4xl md:text-5xl font-black mb-6">
+            <span class="text-gradient">Simple Pricing</span>
           </h2>
-          <p class="mt-5 text-xl text-gray-500 text-center">
-            Start for free. No credit card required. Cancel anytime.
+          <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+            Choose the perfect plan for your business. Start free, scale as you
+            grow.
           </p>
-          <div
-            class="relative mt-6 bg-gray-100 rounded-lg p-0.5 flex self-center"
-          >
+
+          <!-- Billing Toggle -->
+          <div class="inline-flex glass rounded-2xl p-1 mb-12">
             <button
-              type="button"
-              class="relative bg-white border-gray-200 rounded-md shadow-sm py-2 px-4 inline-flex items-center justify-center text-sm font-medium text-gray-900 whitespace-nowrap hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 sm:w-auto sm:px-8"
+              class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-primary-500 to-accent-500 text-white"
+              id="monthly-btn"
             >
-              Monthly billing
+              Monthly
             </button>
             <button
-              type="button"
-              class="ml-0.5 relative border border-transparent rounded-md py-2 px-4 inline-flex items-center justify-center text-sm font-medium text-gray-700 whitespace-nowrap hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:z-10 sm:w-auto sm:px-8"
+              class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-300 hover:text-white"
+              id="yearly-btn"
             >
-              Yearly billing
+              Yearly <span class="text-success-400 text-sm ml-1">Save 20%</span>
             </button>
           </div>
         </div>
 
-        <div
-          class="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0"
-        >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <!-- Starter Plan -->
-          <div
-            class="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200"
-          >
-            <div class="p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Starter
-              </h3>
-              <p class="mt-4 text-sm text-gray-500">
-                Perfect for small businesses and startups
-              </p>
-              <p class="mt-8">
-                <span class="text-4xl font-extrabold text-gray-900">KSH 3500</span>
-                <span class="text-base font-medium text-gray-500">/mo</span>
-              </p>
+          <div class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift">
+            <div class="text-center mb-8">
+              <h3 class="text-2xl font-bold text-white mb-2">Starter</h3>
+              <p class="text-gray-400 mb-6">Perfect for small businesses</p>
+              <div class="mb-6">
+                <span class="text-5xl font-black text-white">KSH 3,500</span>
+                <span class="text-gray-400">/month</span>
+              </div>
               <a
                 href="#register"
-                class="mt-8 block w-full bg-gray-800 border border-gray-800 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-gray-900"
+                class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
               >
                 Start Free Trial
               </a>
             </div>
-            <div class="pt-6 pb-8 px-6">
-              <h4 class="sr-only">Features</h4>
-              <ul class="space-y-4">
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">1 Register</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Up to 500 products</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Basic reporting</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Email support</p>
-                </li>
-              </ul>
-            </div>
+            <ul class="space-y-4">
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">1 Register</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Up to 500 products</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Basic reporting</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Email support</span>
+              </li>
+            </ul>
           </div>
 
           <!-- Business Plan (Featured) -->
           <div
-            class="border-2 border-primary rounded-lg shadow-sm divide-y divide-gray-200"
+            class="pricing-card featured rounded-3xl p-8 scroll-reveal hover-lift relative"
+            style="animation-delay: 0.1s"
           >
-            <div class="p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Business
-              </h3>
-              <p class="mt-4 text-sm text-gray-500">
-                Best for growing businesses with multiple locations
-              </p>
-              <p class="mt-8">
-                <span class="text-4xl font-extrabold text-gray-900">KSH 5,500</span>
-                <span class="text-base font-medium text-gray-500">/mo</span>
-              </p>
+            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span
+                class="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-6 py-2 rounded-full text-sm font-bold"
+              >
+                Most Popular
+              </span>
+            </div>
+            <div class="text-center mb-8">
+              <h3 class="text-2xl font-bold text-white mb-2">Business</h3>
+              <p class="text-gray-400 mb-6">Best for growing businesses</p>
+              <div class="mb-6">
+                <span class="text-5xl font-black text-white">KSH 5,500</span>
+                <span class="text-gray-400">/month</span>
+              </div>
               <a
                 href="#register"
-                class="mt-8 block w-full bg-primary border border-primary rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-indigo-700"
+                class="block w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
               >
                 Start Free Trial
               </a>
             </div>
-            <div class="pt-6 pb-8 px-6">
-              <h4 class="sr-only">Features</h4>
-              <ul class="space-y-4">
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">3 Registers</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Unlimited products</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Advanced reporting</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Inventory management</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Priority support</p>
-                </li>
-              </ul>
-            </div>
+            <ul class="space-y-4">
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">3 Registers</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Unlimited products</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Advanced reporting</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">AI Analytics</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Priority support</span>
+              </li>
+            </ul>
           </div>
 
           <!-- Enterprise Plan -->
           <div
-            class="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200"
+            class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.2s"
           >
-            <div class="p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Enterprise
-              </h3>
-              <p class="mt-4 text-sm text-gray-500">
-                For large businesses with complex needs
-              </p>
-              <p class="mt-8">
-                <span class="text-4xl font-extrabold text-gray-900">KSH 9,500</span>
-                <span class="text-base font-medium text-gray-500">/mo</span>
-              </p>
+            <div class="text-center mb-8">
+              <h3 class="text-2xl font-bold text-white mb-2">Enterprise</h3>
+              <p class="text-gray-400 mb-6">For large businesses</p>
+              <div class="mb-6">
+                <span class="text-5xl font-black text-white">KSH 9,500</span>
+                <span class="text-gray-400">/month</span>
+              </div>
               <a
                 href="#register"
-                class="mt-8 block w-full bg-gray-800 border border-gray-800 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-gray-900"
+                class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
               >
-                Start Free Trial
+                Contact Sales
               </a>
             </div>
-            <div class="pt-6 pb-8 px-6">
-              <h4 class="sr-only">Features</h4>
-              <ul class="space-y-4">
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Unlimited registers</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Unlimited products</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">Custom reporting</p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">
-                    Multi-location support
-                  </p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">
-                    Dedicated account manager
-                  </p>
-                </li>
-                <li class="flex items-start">
-                  <div class="flex-shrink-0">
-                    <i class="fas fa-check text-green-500"></i>
-                  </div>
-                  <p class="ml-3 text-sm text-gray-700">24/7 support</p>
-                </li>
-              </ul>
-            </div>
+            <ul class="space-y-4">
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Unlimited registers</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Unlimited products</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Custom reporting</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">Multi-location support</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-check text-success-400 mr-3"></i>
+                <span class="text-gray-300">24/7 dedicated support</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Testimonials -->
-    <div id="testimonials" class="bg-primary py-16">
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="py-20 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:text-center">
-          <h2
-            class="text-base text-indigo-200 font-semibold tracking-wide uppercase"
-          >
-            Testimonials
+        <div class="text-center mb-16 scroll-reveal">
+          <h2 class="text-4xl md:text-5xl font-black mb-6">
+            <span class="text-gradient">Customer Stories</span>
           </h2>
-          <p
-            class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl"
-          >
-            Trusted by businesses worldwide
+          <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+            Join thousands of businesses that trust SwiftPOS to power their
+            operations
           </p>
         </div>
 
-        <div class="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <div class="pt-10">
-            <div class="flow-root bg-white rounded-lg px-6 pb-8">
-              <div class="-mt-6">
-                <div>
-                  <span
-                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
-                  >
-                    <i class="fas fa-store text-white text-2xl"></i>
-                  </span>
-                </div>
-                <h3
-                  class="mt-8 text-lg font-medium text-gray-900 tracking-tight"
-                >
-                  Game changer for our retail store
-                </h3>
-                <p class="mt-5 text-base text-gray-500">
-                  "Since switching to SwiftPOS, our checkout process is 50%
-                  faster and we can track inventory in real-time. The reporting
-                  features helped us identify our best-selling items and
-                  optimize stock levels."
-                </p>
-                <div class="mt-6 flex items-center">
-                  <div class="flex-shrink-0">
-                    <img
-                      class="h-10 w-10 rounded-full"
-                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                      alt=""
-                    />
-                  </div>
-                  <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">Sarah Njeri</p>
-                    <p class="text-sm text-gray-500">
-                      Owner, Urban Trends Boutique
-                    </p>
-                  </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div
+            class="testimonial-card rounded-3xl p-8 scroll-reveal hover-lift"
+          >
+            <div class="flex items-center mb-6">
+              <div class="flex text-warning-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <span class="ml-2 text-gray-400 text-sm">5.0</span>
+            </div>
+            <p class="text-gray-300 mb-6 text-lg">
+              "SwiftPOS transformed our retail operations. Sales processing is
+              60% faster and our inventory management is now automated. The AI
+              insights helped us increase profits by 35%."
+            </p>
+            <div class="flex items-center">
+              <img
+                class="w-12 h-12 rounded-full object-cover"
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=60"
+                alt="Sarah Njeri"
+              />
+              <div class="ml-4">
+                <div class="font-semibold text-white">Sarah Njeri</div>
+                <div class="text-gray-400 text-sm">
+                  Owner, Urban Trends Boutique
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="pt-10">
-            <div class="flow-root bg-white rounded-lg px-6 pb-8">
-              <div class="-mt-6">
-                <div>
-                  <span
-                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
-                  >
-                    <i class="fas fa-utensils text-white text-2xl"></i>
-                  </span>
-                </div>
-                <h3
-                  class="mt-8 text-lg font-medium text-gray-900 tracking-tight"
-                >
-                  Perfect for restaurants
-                </h3>
-                <p class="mt-5 text-base text-gray-500">
-                  "The table management and kitchen display system integration
-                  has streamlined our operations. Our servers love the intuitive
-                  interface, and our kitchen staff makes fewer mistakes with
-                  orders."
-                </p>
-                <div class="mt-6 flex items-center">
-                  <div class="flex-shrink-0">
-                    <img
-                      class="h-10 w-10 rounded-full"
-                      src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                      alt=""
-                    />
-                  </div>
-                  <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">
-                      Michael Mugendi
-                    </p>
-                    <p class="text-sm text-gray-500">Manager, Bistro Chemist</p>
-                  </div>
-                </div>
+          <div
+            class="testimonial-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.1s"
+          >
+            <div class="flex items-center mb-6">
+              <div class="flex text-warning-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <span class="ml-2 text-gray-400 text-sm">5.0</span>
+            </div>
+            <p class="text-gray-300 mb-6 text-lg">
+              "The restaurant features are incredible. Table management, kitchen
+              integration, and mobile ordering have streamlined our entire
+              operation. Customer satisfaction is at an all-time high."
+            </p>
+            <div class="flex items-center">
+              <img
+                class="w-12 h-12 rounded-full object-cover"
+                src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=60"
+                alt="Michael Mugendi"
+              />
+              <div class="ml-4">
+                <div class="font-semibold text-white">Michael Mugendi</div>
+                <div class="text-gray-400 text-sm">Manager, Bistro Chemist</div>
               </div>
             </div>
           </div>
 
-          <div class="pt-10">
-            <div class="flow-root bg-white rounded-lg px-6 pb-8">
-              <div class="-mt-6">
-                <div>
-                  <span
-                    class="inline-flex items-center justify-center p-3 bg-primary rounded-md shadow-lg"
-                  >
-                    <i class="fas fa-coffee text-white text-2xl"></i>
-                  </span>
-                </div>
-                <h3
-                  class="mt-8 text-lg font-medium text-gray-900 tracking-tight"
-                >
-                  Fast setup, great support
-                </h3>
-                <p class="mt-5 text-base text-gray-500">
-                  "We were up and running in less than a day. The mobile app
-                  allows us to take orders at outdoor events, and the customer
-                  loyalty features have helped us increase repeat business by
-                  30%."
-                </p>
-                <div class="mt-6 flex items-center">
-                  <div class="flex-shrink-0">
-                    <img
-                      class="h-10 w-10 rounded-full"
-                      src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                      alt=""
-                    />
-                  </div>
-                  <div class="ml-3">
-                    <p class="text-sm font-medium text-gray-900">
-                      David Mwangi
-                    </p>
-                    <p class="text-sm text-gray-500">Owner, Delicacy Cafe</p>
-                  </div>
-                </div>
+          <div
+            class="testimonial-card rounded-3xl p-8 scroll-reveal hover-lift"
+            style="animation-delay: 0.2s"
+          >
+            <div class="flex items-center mb-6">
+              <div class="flex text-warning-400">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <span class="ml-2 text-gray-400 text-sm">5.0</span>
+            </div>
+            <p class="text-gray-300 mb-6 text-lg">
+              "Setup was incredibly easy - we were running in under an hour! The
+              mobile app lets us take orders at events, and the loyalty program
+              increased repeat customers by 40%."
+            </p>
+            <div class="flex items-center">
+              <img
+                class="w-12 h-12 rounded-full object-cover"
+                src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=60"
+                alt="David Mwangi"
+              />
+              <div class="ml-4">
+                <div class="font-semibold text-white">David Mwangi</div>
+                <div class="text-gray-400 text-sm">Owner, Delicacy Cafe</div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Registration Form -->
-    <div id="register" class="bg-white py-16 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-md mx-auto">
-        <div class="text-center">
-          <h2 class="text-3xl font-extrabold text-gray-900">
-            Start your free trial
-          </h2>
-          <p class="mt-2 text-sm text-gray-600">
-            No credit card required. 30-day free trial.
-          </p>
-        </div>
-        <form
-          id="business-register-form"
-          class="mt-8 space-y-6"
-          action="#"
-          method="POST"
-        >
-          <input type="hidden" name="remember" value="true" />
-          <div class="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label for="businessName" class="sr-only">Business Name</label>
-              <input
-                id="businessName"
-                name="businessName"
-                type="text"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Business Name"
-              />
+    <!-- Registration Section -->
+    <section id="register" class="py-20 relative">
+      <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="glass rounded-3xl p-8 md:p-12 scroll-reveal">
+          <div class="text-center mb-8">
+            <h2 class="text-4xl font-black mb-4">
+              <span class="text-gradient">Start Your Journey</span>
+            </h2>
+            <p class="text-xl text-gray-300">
+              Join thousands of businesses already using SwiftPOS
+            </p>
+            <div class="flex items-center justify-center mt-4 space-x-4">
+              <div class="flex items-center text-success-400">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span class="text-sm">30-day free trial</span>
+              </div>
+              <div class="flex items-center text-success-400">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span class="text-sm">No credit card required</span>
+              </div>
             </div>
-            <div>
-              <label for="businessLocation" class="sr-only"
-                >Business Location</label
-              >
-              <input
-                id="businessLocation"
-                name="businessLocation"
-                type="text"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Business Location"
-              />
+          </div>
+
+          <form id="registration-form" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-300 text-sm font-semibold mb-2"
+                  >Business Name</label
+                >
+                <input
+                  type="text"
+                  id="businessName"
+                  name="businessName"
+                  required
+                  class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  placeholder="Your Business Name"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-300 text-sm font-semibold mb-2"
+                  >Business Location</label
+                >
+                <input
+                  type="text"
+                  id="businessLocation"
+                  name="businessLocation"
+                  required
+                  class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  placeholder="City, Country"
+                />
+              </div>
             </div>
-            <div>
-              <label for="businessPhone" class="sr-only">Business Phone</label>
-              <input
-                id="businessPhone"
-                name="businessPhone"
-                type="tel"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Business Phone"
-              />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-300 text-sm font-semibold mb-2"
+                  >Business Email</label
+                >
+                <input
+                  type="email"
+                  id="businessEmail"
+                  name="businessEmail"
+                  required
+                  class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  placeholder="business@example.com"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-300 text-sm font-semibold mb-2"
+                  >Phone Number</label
+                >
+                <input
+                  type="tel"
+                  id="businessPhone"
+                  name="businessPhone"
+                  required
+                  class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  placeholder="+254 700 000 000"
+                />
+              </div>
             </div>
+
             <div>
-              <label for="businessEmail" class="sr-only">Business Email</label>
-              <input
-                id="businessEmail"
-                name="businessEmail"
-                type="email"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Business Email"
-              />
-            </div>
-            <div>
-              <label for="password" class="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
-            </div>
-            <div>
-              <label for="businessRegistrationNumber" class="sr-only"
+              <label class="block text-gray-300 text-sm font-semibold mb-2"
                 >Business Registration Number</label
               >
               <input
-                id="businessRegistrationNumber"
-                name="businessRegistrationNumber"
                 type="text"
+                id="identificationNumber"
+                name="identificationNumber"
                 required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Business Registration Number"
+                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                placeholder="e.g. C123456 or BRN-789456"
               />
             </div>
-            <div>
-              <label for="adminUsername" class="sr-only">Admin Username</label>
-              <input
-                id="adminUsername"
-                name="adminUsername"
-                type="text"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Admin Username"
-              />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-gray-300 text-sm font-semibold mb-2"
+                  >Admin Username</label
+                >
+                <input
+                  type="text"
+                  id="adminUsername"
+                  name="adminUsername"
+                  required
+                  class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  placeholder="Admin Username"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-300 text-sm font-semibold mb-2"
+                  >Admin Email</label
+                >
+                <input
+                  type="email"
+                  id="adminEmail"
+                  name="adminEmail"
+                  required
+                  class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  placeholder="admin@example.com"
+                />
+              </div>
             </div>
+
             <div>
-              <label for="adminEmail" class="sr-only">Admin Email</label>
+              <label class="block text-gray-300 text-sm font-semibold mb-2"
+                >Admin Phone</label
+              >
               <input
-                id="adminEmail"
-                name="adminEmail"
-                type="email"
-                required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Admin Email"
-              />
-            </div>
-            <div>
-              <label for="adminPhone" class="sr-only">Admin Phone</label>
-              <input
+                type="tel"
                 id="adminPhone"
                 name="adminPhone"
-                type="tel"
                 required
-                class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                placeholder="Admin Phone"
+                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                placeholder="+254 700 000 001"
               />
             </div>
-          </div>
-          <button
-            type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Register Business
-          </button>
-          <!-- already have an account -->
 
-          <p class="text-sm text-gray-600">
-            Already have an account?
-            <a
-              href="login.html"
-              class="font-medium text-primary hover:text-indigo-700"
-              >Login here</a
+            <div>
+              <label class="block text-gray-300 text-sm font-semibold mb-2"
+                >Password</label
+              >
+              <input
+                type="password"
+                id="password"
+                name="password"
+                required
+                class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                placeholder="Create a secure password"
+              />
+            </div>
+
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                required
+                class="w-4 h-4 text-primary-500 bg-gray-800 border-gray-600 rounded focus:ring-primary-500 focus:ring-2"
+              />
+              <label class="ml-2 text-sm text-gray-300">
+                I agree to the
+                <a href="#" class="text-primary-400 hover:text-primary-300"
+                  >Terms of Service</a
+                >
+                and
+                <a href="#" class="text-primary-400 hover:text-primary-300"
+                  >Privacy Policy</a
+                >
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
             >
-          </p>
-        </form>
+              <span class="loading-text">Start Free Trial</span>
+              <span class="loading-spinner hidden">
+                <i class="fas fa-spinner fa-spin mr-2"></i>
+                Creating account<span class="loading-dots"></span>
+              </span>
+            </button>
+
+            <p class="text-center text-gray-400 text-sm">
+              Already have an account?
+              <a
+                href="login.html"
+                class="text-primary-400 hover:text-primary-300 font-semibold"
+                >Sign in here</a
+              >
+            </p>
+          </form>
+        </div>
       </div>
-    </div>
+    </section>
 
     <!-- FAQ Section -->
-    <div id="faq" class="bg-gray-50 py-16 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mx-auto">
-        <h2
-          class="text-center text-3xl font-extrabold text-gray-900 sm:text-4xl"
-        >
-          Frequently asked questions
-        </h2>
-        <div class="mt-12 space-y-8">
-          <div class="bg-white shadow overflow-hidden rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Is there a long-term contract?
-              </h3>
-              <div class="mt-2 max-w-xl text-sm text-gray-500">
-                <p>
-                  No, SwiftPOS is month-to-month. You can cancel anytime with no
-                  penalties.
-                </p>
-              </div>
+    <section id="faq" class="py-20 relative">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 scroll-reveal">
+          <h2 class="text-4xl md:text-5xl font-black mb-6">
+            <span class="text-gradient">Frequently Asked</span>
+          </h2>
+          <p class="text-xl text-gray-300">
+            Everything you need to know about SwiftPOS
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="glass rounded-2xl overflow-hidden scroll-reveal faq-item">
+            <button
+              class="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-colors faq-button"
+            >
+              <span class="text-lg font-semibold text-white"
+                >Is there a long-term contract?</span
+              >
+              <i
+                class="fas fa-chevron-down text-gray-400 transition-transform faq-icon"
+              ></i>
+            </button>
+            <div class="faq-content hidden px-8 pb-6">
+              <p class="text-gray-300">
+                No, SwiftPOS is completely flexible with month-to-month billing.
+                You can cancel anytime with no penalties or hidden fees. We
+                believe in earning your business every month.
+              </p>
             </div>
           </div>
 
-          <div class="bg-white shadow overflow-hidden rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                What hardware do I need?
-              </h3>
-              <div class="mt-2 max-w-xl text-sm text-gray-500">
-                <p>
-                  SwiftPOS works with any device that has a web browser -
-                  computers, tablets, or smartphones. We recommend tablets for
-                  the best experience. You can use existing receipt printers and
-                  cash drawers with our system.
-                </p>
-              </div>
+          <div
+            class="glass rounded-2xl overflow-hidden scroll-reveal faq-item"
+            style="animation-delay: 0.1s"
+          >
+            <button
+              class="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-colors faq-button"
+            >
+              <span class="text-lg font-semibold text-white"
+                >What hardware do I need?</span
+              >
+              <i
+                class="fas fa-chevron-down text-gray-400 transition-transform faq-icon"
+              ></i>
+            </button>
+            <div class="faq-content hidden px-8 pb-6">
+              <p class="text-gray-300">
+                SwiftPOS works on any device with a web browser - computers,
+                tablets, or smartphones. We recommend tablets for the best
+                experience. You can use existing receipt printers, cash drawers,
+                and barcode scanners with our system.
+              </p>
             </div>
           </div>
 
-          <div class="bg-white shadow overflow-hidden rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                How does the free trial work?
-              </h3>
-              <div class="mt-2 max-w-xl text-sm text-gray-500">
-                <p>
-                  The 14-day free trial gives you full access to all features of
-                  the Business plan. No credit card is required to start. At the
-                  end of the trial, you can choose any plan to continue.
-                </p>
-              </div>
+          <div
+            class="glass rounded-2xl overflow-hidden scroll-reveal faq-item"
+            style="animation-delay: 0.2s"
+          >
+            <button
+              class="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-colors faq-button"
+            >
+              <span class="text-lg font-semibold text-white"
+                >How does the free trial work?</span
+              >
+              <i
+                class="fas fa-chevron-down text-gray-400 transition-transform faq-icon"
+              ></i>
+            </button>
+            <div class="faq-content hidden px-8 pb-6">
+              <p class="text-gray-300">
+                The 30-day free trial gives you full access to all Business plan
+                features. No credit card required to start. At the end of the
+                trial, you can choose any plan to continue or cancel with no
+                obligations.
+              </p>
             </div>
           </div>
 
-          <div class="bg-white shadow overflow-hidden rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Is my data secure?
-              </h3>
-              <div class="mt-2 max-w-xl text-sm text-gray-500">
-                <p>
-                  Yes, we use bank-level encryption and daily backups. Your data
-                  is stored securely in the cloud with redundant systems. We're
-                  PCI compliant and take security very seriously.
-                </p>
-              </div>
+          <div
+            class="glass rounded-2xl overflow-hidden scroll-reveal faq-item"
+            style="animation-delay: 0.3s"
+          >
+            <button
+              class="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-colors faq-button"
+            >
+              <span class="text-lg font-semibold text-white"
+                >Is my data secure?</span
+              >
+              <i
+                class="fas fa-chevron-down text-gray-400 transition-transform faq-icon"
+              ></i>
+            </button>
+            <div class="faq-content hidden px-8 pb-6">
+              <p class="text-gray-300">
+                Absolutely. We use bank-level encryption, daily backups, and
+                redundant systems. Your data is stored securely in the cloud
+                with 99.9% uptime guarantee. We're PCI compliant and SOC 2
+                certified.
+              </p>
             </div>
           </div>
 
-          <div class="bg-white shadow overflow-hidden rounded-lg">
-            <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Can I switch plans later?
-              </h3>
-              <div class="mt-2 max-w-xl text-sm text-gray-500">
-                <p>
-                  Absolutely! You can upgrade or downgrade your plan at any time
-                  from your account dashboard. Changes take effect immediately
-                  with prorated billing.
-                </p>
-              </div>
+          <div
+            class="glass rounded-2xl overflow-hidden scroll-reveal faq-item"
+            style="animation-delay: 0.4s"
+          >
+            <button
+              class="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-colors faq-button"
+            >
+              <span class="text-lg font-semibold text-white"
+                >Can I switch plans later?</span
+              >
+              <i
+                class="fas fa-chevron-down text-gray-400 transition-transform faq-icon"
+              ></i>
+            </button>
+            <div class="faq-content hidden px-8 pb-6">
+              <p class="text-gray-300">
+                Yes! You can upgrade or downgrade your plan at any time from
+                your account dashboard. Changes take effect immediately with
+                prorated billing. No hassle, no waiting.
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- CTA Section -->
-    <div class="bg-primary">
-      <div
-        class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between"
-      >
-        <h2
-          class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
-        >
-          <span class="block">Ready to transform your business?</span>
-          <span class="block text-indigo-200"
-            >Start your free trial today.</span
+    <section class="py-20 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="glass rounded-3xl p-12 md:p-16 scroll-reveal">
+          <h2 class="text-4xl md:text-6xl font-black mb-6">
+            <span class="text-gradient">Ready to Transform</span>
+            <br />
+            <span class="text-white">Your Business?</span>
+          </h2>
+          <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            Join thousands of businesses that have revolutionized their
+            operations with SwiftPOS. Start your free trial today.
+          </p>
+          <div
+            class="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-        </h2>
-        <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-          <div class="inline-flex rounded-md shadow">
             <a
               href="#register"
-              class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-indigo-50"
+              class="group bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-primary-500/25 flex items-center"
             >
-              Get started
+              <span>Start Free Trial</span>
+              <i
+                class="fas fa-rocket ml-2 group-hover:translate-x-1 transition-transform"
+              ></i>
             </a>
-          </div>
-          <div class="ml-3 inline-flex rounded-md shadow">
             <a
               href="#"
-              class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+              class="group glass hover:bg-white/20 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 flex items-center"
             >
-              Live demo
+              <span>Schedule Demo</span>
+              <i
+                class="fas fa-calendar ml-2 group-hover:scale-110 transition-transform"
+              ></i>
             </a>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="bg-dark">
-      <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div class="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div class="space-y-8 xl:col-span-1">
-            <div class="flex items-center">
-              <i class="fas fa-cash-register text-primary text-2xl mr-2"></i>
-              <span class="text-xl font-bold text-white">SwiftPOS</span>
+    <footer class="py-16 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <div class="col-span-1 md:col-span-2">
+            <div class="flex items-center mb-6">
+              <div
+                class="w-12 h-12 bg-gradient-to-r from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center mr-4"
+              >
+                <i class="fas fa-bolt text-white text-xl"></i>
+              </div>
+              <span class="text-3xl font-black text-gradient">SwiftPOS</span>
             </div>
-            <p class="text-gray-300 text-base">
-              The modern point of sale system for businesses of all sizes.
+            <p class="text-gray-300 mb-6 max-w-md">
+              The revolutionary cloud POS system that transforms how businesses
+              operate. Powered by AI, built for the future.
             </p>
-            <div class="flex space-x-6">
-              <a href="#" class="text-gray-400 hover:text-white">
-                <i class="fab fa-facebook-f"></i>
+            <div class="flex space-x-4">
+              <a
+                href="#"
+                class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+              >
+                <i class="fab fa-facebook-f text-gray-400 hover:text-white"></i>
               </a>
-              <a href="#" class="text-gray-400 hover:text-white">
-                <i class="fab fa-twitter"></i>
+              <a
+                href="#"
+                class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+              >
+                <i class="fab fa-twitter text-gray-400 hover:text-white"></i>
               </a>
-              <a href="#" class="text-gray-400 hover:text-white">
-                <i class="fab fa-instagram"></i>
+              <a
+                href="#"
+                class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+              >
+                <i class="fab fa-instagram text-gray-400 hover:text-white"></i>
               </a>
-              <a href="#" class="text-gray-400 hover:text-white">
-                <i class="fab fa-linkedin-in"></i>
+              <a
+                href="#"
+                class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+              >
+                <i
+                  class="fab fa-linkedin-in text-gray-400 hover:text-white"
+                ></i>
               </a>
             </div>
           </div>
-          <div class="mt-12 grid grid-cols-2 gap-8 xl:mt-0 xl:col-span-2">
-            <div class="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3
-                  class="text-sm font-semibold text-gray-300 tracking-wider uppercase"
+
+          <div>
+            <h3 class="text-lg font-bold text-white mb-4">Product</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="#features"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Features</a
                 >
-                  Product
-                </h3>
-                <ul class="mt-4 space-y-4">
-                  <li>
-                    <a
-                      href="#features"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Features
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#pricing"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Pricing
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Integrations
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Updates
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div class="mt-12 md:mt-0">
-                <h3
-                  class="text-sm font-semibold text-gray-300 tracking-wider uppercase"
+              </li>
+              <li>
+                <a
+                  href="#pricing"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Pricing</a
                 >
-                  Support
-                </h3>
-                <ul class="mt-4 space-y-4">
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Documentation
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Guides
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      API Status
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Contact Support
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3
-                  class="text-sm font-semibold text-gray-300 tracking-wider uppercase"
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Integrations</a
                 >
-                  Company
-                </h3>
-                <ul class="mt-4 space-y-4">
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      About
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Blog
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Careers
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Press
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div class="mt-12 md:mt-0">
-                <h3
-                  class="text-sm font-semibold text-gray-300 tracking-wider uppercase"
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >API</a
                 >
-                  Legal
-                </h3>
-                <ul class="mt-4 space-y-4">
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Privacy
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Terms
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      Cookie Policy
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="text-base text-gray-400 hover:text-white"
-                    >
-                      GDPR
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Updates</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-bold text-white mb-4">Support</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Help Center</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Documentation</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Contact Us</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >System Status</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Community</a
+                >
+              </li>
+            </ul>
           </div>
         </div>
-        <div class="mt-12 border-t border-gray-700 pt-8">
-          <p class="text-base text-gray-400 text-center">
-            &copy; 2023 SwiftPOS. All rights reserved.
-          </p>
+
+        <div class="border-t border-gray-700 pt-8">
+          <div class="flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-400 text-sm">
+              © 2024 SwiftPOS. All rights reserved.
+            </p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white text-sm transition-colors"
+                >Privacy Policy</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white text-sm transition-colors"
+                >Terms of Service</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white text-sm transition-colors"
+                >Cookie Policy</a
+              >
+            </div>
+          </div>
         </div>
       </div>
     </footer>
 
-    <!-- Mobile menu (hidden by default) -->
-    <div class="hidden sm:hidden" id="mobile-menu">
-      <div class="pt-2 pb-3 space-y-1">
-        <a
-          href="#features"
-          class="bg-indigo-50 border-primary text-primary block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >Features</a
-        >
-        <a
-          href="#pricing"
-          class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >Pricing</a
-        >
-        <a
-          href="#testimonials"
-          class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >Testimonials</a
-        >
-        <a
-          href="#faq"
-          class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-          >FAQ</a
-        >
-      </div>
-      <div class="pt-4 pb-3 border-t border-gray-200">
-        <div class="mt-3 space-y-1">
-          <a
-            href="#register"
-            class="block w-full px-4 py-2 text-base font-medium text-center text-white bg-primary hover:bg-indigo-700"
-            >Get Started</a
-          >
-        </div>
+    <!-- Floating Action Button -->
+    <button
+      id="fab"
+      class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
+    >
+      <i
+        class="fas fa-comments text-white text-xl group-hover:scale-110 transition-transform duration-300"
+      ></i>
+    </button>
+
+    <!-- Toast Container -->
+    <div
+      id="toast-container"
+      class="fixed top-20 right-4 z-[999] space-y-2"
+    ></div>
+
+    <!-- Loading Overlay -->
+    <div
+      id="loading-overlay"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[1000] hidden"
+    >
+      <div class="text-center">
+        <div
+          class="w-16 h-16 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin mb-4"
+        ></div>
+        <p class="text-white text-lg">
+          Setting up your account<span class="loading-dots"></span>
+        </p>
       </div>
     </div>
-    <script src="js/registration.js"></script>
-    <script>
-      // Simple mobile menu toggle
-      document.addEventListener("DOMContentLoaded", function () {
-        const mobileMenuButton = document.querySelector(
-          'button[aria-controls="mobile-menu"]'
-        );
-        const mobileMenu = document.getElementById("mobile-menu");
 
-        mobileMenuButton.addEventListener("click", function () {
-          const expanded = this.getAttribute("aria-expanded") === "true";
-          this.setAttribute("aria-expanded", !expanded);
-          mobileMenu.classList.toggle("hidden");
+    <script>
+      // Smooth scrolling for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
         });
       });
+
+      // Mobile menu toggle
+      const mobileMenuButton = document.getElementById("mobile-menu-button");
+      const mobileMenu = document.getElementById("mobile-menu");
+
+      mobileMenuButton.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+
+      // Navbar background on scroll
+      const navbar = document.getElementById("navbar");
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 100) {
+          navbar.classList.add("bg-gray-900/90");
+        } else {
+          navbar.classList.remove("bg-gray-900/90");
+        }
+      });
+
+      // Scroll reveal animation
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll(".scroll-reveal").forEach((el) => {
+        observer.observe(el);
+      });
+
+      // Counter animation
+      function animateCounter(element, target, duration = 2000) {
+        let start = 0;
+        const increment = target / (duration / 16);
+
+        const timer = setInterval(() => {
+          start += increment;
+          if (start >= target) {
+            element.textContent = target;
+            clearInterval(timer);
+          } else {
+            element.textContent = Math.floor(start);
+          }
+        }, 16);
+      }
+
+      // Animate counters when they come into view
+      const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const counter = entry.target;
+            const target = parseInt(counter.getAttribute("data-target"));
+            animateCounter(counter, target);
+            counterObserver.unobserve(counter);
+          }
+        });
+      });
+
+      document.querySelectorAll(".counter").forEach((counter) => {
+        counterObserver.observe(counter);
+      });
+
+      // FAQ accordion
+      document.querySelectorAll(".faq-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          const faqItem = button.closest(".faq-item");
+          const content = faqItem.querySelector(".faq-content");
+          const icon = button.querySelector(".faq-icon");
+
+          // Close all other FAQ items
+          document.querySelectorAll(".faq-item").forEach((item) => {
+            if (item !== faqItem) {
+              item.querySelector(".faq-content").classList.add("hidden");
+              item.querySelector(".faq-icon").style.transform = "rotate(0deg)";
+            }
+          });
+
+          // Toggle current FAQ item
+          content.classList.toggle("hidden");
+          icon.style.transform = content.classList.contains("hidden")
+            ? "rotate(0deg)"
+            : "rotate(180deg)";
+        });
+      });
+
+      // Pricing toggle
+      const monthlyBtn = document.getElementById("monthly-btn");
+      const yearlyBtn = document.getElementById("yearly-btn");
+
+      monthlyBtn.addEventListener("click", () => {
+        monthlyBtn.classList.add(
+          "bg-gradient-to-r",
+          "from-primary-500",
+          "to-accent-500",
+          "text-white"
+        );
+        monthlyBtn.classList.remove("text-gray-300");
+        yearlyBtn.classList.remove(
+          "bg-gradient-to-r",
+          "from-primary-500",
+          "to-accent-500",
+          "text-white"
+        );
+        yearlyBtn.classList.add("text-gray-300");
+      });
+
+      yearlyBtn.addEventListener("click", () => {
+        yearlyBtn.classList.add(
+          "bg-gradient-to-r",
+          "from-primary-500",
+          "to-accent-500",
+          "text-white"
+        );
+        yearlyBtn.classList.remove("text-gray-300");
+        monthlyBtn.classList.remove(
+          "bg-gradient-to-r",
+          "from-primary-500",
+          "to-accent-500",
+          "text-white"
+        );
+        monthlyBtn.classList.add("text-gray-300");
+      });
+
+      // Registration form
+      const registrationForm = document.getElementById("registration-form");
+      const loadingOverlay = document.getElementById("loading-overlay");
+
+      registrationForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Show loading state
+        const submitButton = registrationForm.querySelector(
+          'button[type="submit"]'
+        );
+        const loadingText = submitButton.querySelector(".loading-text");
+        const loadingSpinner = submitButton.querySelector(".loading-spinner");
+
+        loadingText.classList.add("hidden");
+        loadingSpinner.classList.remove("hidden");
+        submitButton.disabled = true;
+        loadingOverlay.classList.remove("hidden");
+
+        // Gather form data
+        const payload = {
+          businessName: document.getElementById("businessName").value.trim(),
+          businessLocation: document
+            .getElementById("businessLocation")
+            .value.trim(),
+          businessEmail: document.getElementById("businessEmail").value.trim(),
+          businessPhone: document.getElementById("businessPhone").value.trim(),
+          identificationNumber: document
+            .getElementById("identificationNumber")
+            .value.trim(),
+          adminUsername: document.getElementById("adminUsername").value.trim(),
+          adminEmail: document.getElementById("adminEmail").value.trim(),
+          adminPhone: document.getElementById("adminPhone").value.trim(),
+          password: document.getElementById("password").value,
+        };
+
+        try {
+          const res = await fetch("/api/business/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+          loadingOverlay.classList.add("hidden");
+          if (res.ok) {
+            showToast(
+              "Account created successfully! Welcome to SwiftPOS!",
+              "success"
+            );
+            registrationForm.reset();
+          } else {
+            showToast(data.message || "Registration failed", "error");
+          }
+        } catch (err) {
+          loadingOverlay.classList.add("hidden");
+          showToast("Registration failed. Please try again.", "error");
+        } finally {
+          loadingText.classList.remove("hidden");
+          loadingSpinner.classList.add("hidden");
+          submitButton.disabled = false;
+        }
+      });
+
+      // Toast notification system
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success: "from-success-500 to-success-600",
+          error: "from-red-500 to-red-600",
+          warning: "from-warning-500 to-warning-600",
+          info: "from-primary-500 to-primary-600",
+        };
+
+        const icons = {
+          success: "fa-check-circle",
+          error: "fa-exclamation-circle",
+          warning: "fa-exclamation-triangle",
+          info: "fa-info-circle",
+        };
+
+        toast.className = `glass rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in-right max-w-sm`;
+        toast.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r ${colors[type]} rounded-lg flex items-center justify-center flex-shrink-0">
+                        <i class="fas ${icons[type]} text-white text-sm"></i>
+                    </div>
+                    <span class="flex-1">${message}</span>
+                    <button class="text-gray-300 hover:text-white ml-2" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+        document.getElementById("toast-container").appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.transform = "translateX(100%)";
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 300);
+        }, 5000);
+      }
+
+      // Floating Action Button
+      const fab = document.getElementById("fab");
+      fab.addEventListener("click", () => {
+        showToast(
+          "Chat support coming soon! For now, email us at support@swiftpos.com",
+          "info"
+        );
+      });
+
+      // Particle animation
+      function createParticle() {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.style.left = Math.random() * 100 + "%";
+        particle.style.top = Math.random() * 100 + "%";
+        particle.style.width = Math.random() * 4 + 1 + "px";
+        particle.style.height = particle.style.width;
+        particle.style.backgroundColor = `hsl(${
+          Math.random() * 360
+        }, 70%, 60%)`;
+        particle.style.opacity = Math.random() * 0.6 + 0.2;
+
+        const container = document.querySelector(".gradient-bg");
+        if (container) {
+          container.appendChild(particle);
+
+          setTimeout(() => {
+            particle.remove();
+          }, 6000);
+        }
+      }
+
+      // Create particles periodically
+      setInterval(createParticle, 3000);
+
+      // Initialize animations on page load
+      document.addEventListener("DOMContentLoaded", () => {
+        // Show welcome message
+        setTimeout(() => {
+          showToast(
+            "Welcome to SwiftPOS! 🚀 Ready to transform your business?",
+            "success"
+          );
+        }, 2000);
+
+        // Add hover effects to cards
+        document.querySelectorAll(".hover-lift").forEach((card) => {
+          card.addEventListener("mouseenter", () => {
+            card.style.transform = "translateY(-12px) scale(1.02)";
+          });
+
+          card.addEventListener("mouseleave", () => {
+            card.style.transform = "translateY(0) scale(1)";
+          });
+        });
+      });
+
+      // Add typing effect to hero text
+      function typeWriter(element, text, speed = 100) {
+        let i = 0;
+        element.innerHTML = "";
+
+        function type() {
+          if (i < text.length) {
+            element.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+          }
+        }
+
+        type();
+      }
+
+      // Initialize typing animation
+      setTimeout(() => {
+        const typingElement = document.querySelector(".typing-animation");
+        if (typingElement) {
+          typeWriter(typingElement, "POS System", 150);
+        }
+      }, 1000);
     </script>
   </body>
 </html>
