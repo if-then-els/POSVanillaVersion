@@ -2,136 +2,257 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>Reports - SwiftPOS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reports - POS System</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for Icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <!-- Chart.js CDN for charts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="./css/styles.css" />
+
     <script>
-      // Tailwind configuration
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
             colors: {
               primary: {
-                DEFAULT: "#4f46e5",
-                50: "#eef2ff",
-                100: "#e0e7ff",
-                200: "#c7d2fe",
-                300: "#a5b4fc",
-                400: "#818cf8",
-                500: "#6366f1",
-                600: "#4f46e5",
-                700: "#4338ca",
-                800: "#3730a3",
-                900: "#312e81",
-                950: "#1e1b4b",
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              accent: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+              success: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+                800: "#166534",
+                900: "#14532d",
+              },
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "bounce-slow": "bounce 3s infinite",
+              "spin-slow": "spin 8s linear infinite",
+              gradient: "gradient 15s ease infinite",
+              "slide-up": "slideUp 0.5s ease-out",
+              "slide-in": "slideIn 0.6s ease-out",
+              "scale-in": "scaleIn 0.4s ease-out",
+              glow: "glow 2s ease-in-out infinite alternate",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-20px)" },
+              },
+              gradient: {
+                "0%, 100%": {
+                  "background-size": "200% 200%",
+                  "background-position": "left center",
+                },
+                "50%": {
+                  "background-size": "200% 200%",
+                  "background-position": "right center",
+                },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(100px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+              slideIn: {
+                "0%": { transform: "translateX(-100px)", opacity: "0" },
+                "100%": { transform: "translateX(0)", opacity: "1" },
+              },
+              scaleIn: {
+                "0%": { transform: "scale(0.8)", opacity: "0" },
+                "100%": { transform: "scale(1)", opacity: "1" },
+              },
+              glow: {
+                "0%": { boxShadow: "0 0 20px rgba(14, 165, 233, 0.5)" },
+                "100%": { boxShadow: "0 0 40px rgba(14, 165, 233, 0.8)" },
               },
             },
           },
         },
       };
     </script>
+
     <style>
-      /* Ensure full height layout */
-      html,
-      body,
-      #root {
-        height: 100%;
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .glass-dark {
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .gradient-bg {
+        background: linear-gradient(-45deg, #0ea5e9, #d946ef, #22c55e, #f59e0b);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+
+      .hover-lift {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.6s ease-out;
+      }
+
+      .scroll-reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .chartjs-tooltip {
+        background-color: rgba(0, 0, 0, 0.8) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+      }
+      .chartjs-tooltip-key {
+        color: #fff !important;
       }
     </style>
-    <!-- ...existing code... -->
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#4F46E5" />
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/service-worker.js");
-        });
-      }
-    </script>
-    <!-- ...existing code... -->
   </head>
-  <body class="bg-gray-50">
-    <div class="flex h-screen overflow-hidden">
-      <!-- Mobile Navigation -->
-      <nav
-        class="md:hidden flex justify-between items-center p-4 border-b bg-white fixed top-0 w-full z-60"
+
+  <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 z-0">
+      <div class="gradient-bg absolute inset-0 opacity-20"></div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav
+      class="md:hidden flex justify-between items-center p-4 glass fixed top-0 w-full z-40 backdrop-blur-md"
+    >
+      <div class="flex items-center space-x-2">
+        <div
+          class="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg flex items-center justify-center"
+        >
+          <i class="fas fa-bolt text-white text-sm"></i>
+        </div>
+        <h1
+          class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
+        >
+          SwiftPOS
+        </h1>
+      </div>
+      <button
+        id="toggle-sidebar"
+        class="p-2 hover:bg-white/10 rounded-lg transition-colors"
       >
-        <h1 class="text-xl font-bold">POS</h1>
-        <button id="toggle-sidebar" class="p-2 z-50">
-          <i class="fas fa-bars text-xl"></i>
-        </button>
-      </nav>
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </nav>
 
-      <div class="flex h-screen overflow-hidden pt-19 md:pt-1 w-full">
-        <!-- Sidebar -->
-        <div
-          id="sidebar"
-          class="fixed inset-y-0 left-0 z-40 w-64 bg-white border-r shadow-sm transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out"
-        ></div>
+    <div
+      class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10"
+    >
+      <!-- Sidebar -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
+      >
+        <!-- Sidebar content loaded via JS -->
+      </div>
 
-        <!-- Overlay - Only visible when sidebar is open on mobile -->
-        <div
-          id="overlay"
-          class="fixed inset-0 bg-black opacity-50 hidden z-30"
-        ></div>
-        <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto md:ml-64 p-6 w-full max-w-[100vw]">
+      <!-- Overlay -->
+      <div
+        id="overlay"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"
+      ></div>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative">
+        <div class="max-w-6xl mx-auto">
           <!-- Header Section -->
-          <div
-            class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-          >
-            <div>
-              <h1 class="text-2xl md:text-3xl font-bold">
-                Reports & Analytics
+          <div class="mb-12 scroll-reveal">
+            <div class="relative">
+              <h1
+                class="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-success-400 bg-clip-text text-transparent animate-slide-in"
+              >
+                Reports
               </h1>
-              <p class="text-gray-600">
+              <p class="text-xl text-gray-400 mb-6">
                 View sales data and performance metrics
               </p>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-              <button
-                id="export-csv"
-                class="flex items-center px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary whitespace-nowrap"
-              >
-                <i class="fas fa-download mr-2"></i> Export CSV
-              </button>
-              <button
-                id="export-pdf"
-                class="flex items-center px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary whitespace-nowrap"
-              >
-                <i class="fas fa-file-pdf mr-2"></i> Export PDF
-              </button>
+
+              <div class="flex items-center space-x-4">
+                <div
+                  class="flex items-center space-x-2 glass px-4 py-2 rounded-full"
+                >
+                  <div
+                    class="w-2 h-2 bg-success-400 rounded-full animate-pulse"
+                  ></div>
+                  <span class="text-sm">Live Data</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Sales Overview Card -->
-          <div
-            class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 w-full"
-          >
-            <div
-              class="p-6 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between"
-            >
+          <!-- Reports Content -->
+          <div class="glass rounded-3xl p-8 mt-8 scroll-reveal">
+            <div class="flex justify-between items-center mb-8">
               <div>
-                <h2 class="text-lg font-semibold">Sales Overview</h2>
-                <p class="text-sm text-gray-500">
-                  View sales performance over time
-                </p>
+                <h2
+                  class="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                >
+                  Sales Overview
+                </h2>
+                <p class="text-gray-400">View sales performance over time</p>
               </div>
-              <div class="mt-4 md:mt-0">
+              <div class="flex gap-4">
                 <select
                   id="time-range"
-                  class="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                  class="glass-dark border border-gray-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -140,234 +261,410 @@
               </div>
             </div>
 
-            <div class="p-6 w-full">
-              <!-- Chart Container -->
-              <div class="h-[300px] w-full rounded-md border p-4 mb-6">
-                <canvas id="sales-chart"></canvas>
-              </div>
-
-              <!-- Sales Data Table -->
-              <div class="overflow-x-auto w-full">
-                <table class="w-full table-auto min-w-max">
-                  <thead>
-                    <tr class="bg-gray-50 text-left">
-                      <th
-                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                      >
-                        Date
-                      </th>
-                      <th
-                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                      >
-                        Sales
-                      </th>
-                      <th
-                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                      >
-                        Orders
-                      </th>
-                      <th
-                        class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                      >
-                        Average Order Value
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody id="sales-table" class="divide-y divide-gray-200">
-                    <tr>
-                      <td
-                        colspan="4"
-                        class="px-6 py-4 text-center text-gray-500"
-                      >
-                        Loading sales data...
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Additional Actions -->
-          <div class="flex gap-2 mb-6">
-            <button
-              id="export-sales-csv"
-              class="bg-primary-600 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
-            >
-              <i class="fas fa-file-csv mr-1"></i> Export CSV
-            </button>
-            <button
-              id="download-sales-chart"
-              class="bg-primary-600 text-white px-3 py-1 rounded text-sm whitespace-nowrap"
-            >
-              <i class="fas fa-image mr-1"></i> Download Chart
-            </button>
-          </div>
-
-          <!-- Tabs Section -->
-          <div
-            class="bg-white rounded-lg shadow-sm border border-gray-200 w-full"
-          >
-            <div class="border-b border-gray-200">
-              <div class="flex overflow-x-auto">
-                <button
-                  id="tab-product-sales"
-                  class="tab-button active px-4 py-3 text-sm font-medium border-b-2 border-primary whitespace-nowrap"
-                >
-                  Product Sales
-                </button>
-                <button
-                  id="tab-category-sales"
-                  class="tab-button px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap"
-                >
-                  Sales by Category
-                </button>
-              </div>
+            <!-- Chart Container -->
+            <div class="h-[300px] w-full rounded-xl glass-dark p-4 mb-8">
+              <canvas id="sales-chart"></canvas>
             </div>
 
-            <!-- Product Sales Content -->
-            <div class="tab-content" id="product-sales-content">
-              <div class="p-6">
-                <h3 class="font-semibold text-gray-800">Product Sales</h3>
-                <p class="text-sm text-gray-500">
-                  Sales performance by product
-                </p>
+            <!-- Sales Data Table -->
+            <div class="overflow-x-auto w-full mb-8">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-gray-700">
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Date
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Sales
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Orders
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Average Order Value
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="sales-table" class="divide-y divide-gray-700">
+                  <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                      Loading sales data...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                <div class="h-[300px] w-full rounded-md border p-4 my-6">
-                  <canvas id="product-sales-chart"></canvas>
+            <!-- Export Buttons -->
+            <div class="flex gap-4 mb-8">
+              <button
+                id="export-sales-csv"
+                class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-file-csv mr-2"></i>
+                Export Sales CSV
+              </button>
+              <button
+                id="download-sales-chart"
+                class="px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 rounded-xl font-semibold hover:from-accent-600 hover:to-accent-700 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-image mr-2"></i>
+                Download Chart
+              </button>
+            </div>
+
+            <!-- Tabs Section -->
+            <div class="glass rounded-3xl p-8 mt-8">
+              <div class="border-b border-gray-700 pb-4">
+                <div class="flex overflow-x-auto">
+                  <button
+                    id="tab-product-sales"
+                    class="tab-button active px-6 py-3 font-medium border-b-2 border-primary-500 text-white whitespace-nowrap hover:bg-white/10 transition-colors"
+                  >
+                    Product Sales
+                  </button>
+                  <button
+                    id="tab-category-sales"
+                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-white whitespace-nowrap hover:bg-white/10 transition-colors"
+                  >
+                    Sales by Category
+                  </button>
+                  <button
+                    id="tab-recent-transactions"
+                    class="tab-button px-6 py-3 font-medium text-gray-400 hover:text-white whitespace-nowrap hover:bg-white/10 transition-colors"
+                  >
+                    Recent Transactions
+                  </button>
                 </div>
+              </div>
 
-                <div class="overflow-x-auto">
-                  <table class="w-full table-auto min-w-max">
-                    <thead>
-                      <tr class="bg-gray-50 text-left">
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Product
-                        </th>
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Sales
-                        </th>
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Quantity
-                        </th>
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Average Price
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody
-                      id="product-sales-table"
-                      class="divide-y divide-gray-200"
+              <!-- Product Sales Content -->
+              <div class="tab-content" id="product-sales-content">
+                <div class="p-6">
+                  <h3 class="font-semibold text-white mb-2">Product Sales</h3>
+                  <p class="text-gray-400 mb-6">Sales performance by product</p>
+
+                  <div class="h-[300px] w-full rounded-xl glass-dark p-4 mb-8">
+                    <canvas id="product-sales-chart"></canvas>
+                  </div>
+
+                  <div class="overflow-x-auto mb-8">
+                    <table class="w-full">
+                      <thead>
+                        <tr class="border-b border-gray-700">
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Product
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Sales
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Quantity
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Average Price
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody
+                        id="product-sales-table"
+                        class="divide-y divide-gray-700"
+                      >
+                        <tr>
+                          <td
+                            colspan="4"
+                            class="px-6 py-4 text-center text-gray-500"
+                          >
+                            Loading product sales data...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="flex gap-4">
+                    <button
+                      id="export-product-sales-csv"
+                      class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
                     >
-                      <tr>
-                        <td
-                          colspan="4"
-                          class="px-6 py-4 text-center text-gray-500"
-                        >
-                          Loading product sales data...
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                      <i class="fas fa-file-csv mr-2"></i>
+                      Export Product Sales CSV
+                    </button>
+                    <button
+                      id="download-product-sales-chart"
+                      class="px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 rounded-xl font-semibold hover:from-accent-600 hover:to-accent-700 transition-all duration-300 hover:scale-105"
+                    >
+                      <i class="fas fa-image mr-2"></i>
+                      Download Chart
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Category Sales Content -->
-            <div class="tab-content hidden" id="category-sales-content">
-              <div class="p-6">
-                <h3 class="font-semibold text-gray-800">Sales by Category</h3>
-                <p class="text-sm text-gray-500">
-                  Sales performance by product category
-                </p>
+              <!-- Category Sales Content -->
+              <div class="tab-content hidden" id="category-sales-content">
+                <div class="p-6">
+                  <h3 class="font-semibold text-white mb-2">
+                    Sales by Category
+                  </h3>
+                  <p class="text-gray-400 mb-6">
+                    Sales performance by product category
+                  </p>
 
-                <div class="h-[300px] w-full rounded-md border p-4 my-6">
-                  <canvas id="category-sales-chart"></canvas>
-                </div>
+                  <div class="h-[300px] w-full rounded-xl glass-dark p-4 mb-8">
+                    <canvas id="category-sales-chart"></canvas>
+                  </div>
 
-                <div class="overflow-x-auto">
-                  <table class="w-full table-auto min-w-max">
-                    <thead>
-                      <tr class="bg-gray-50 text-left">
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Category
-                        </th>
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Sales
-                        </th>
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          Products
-                        </th>
-                        <th
-                          class="px-6 py-3 text-xs font-medium text-gray-500 uppercase"
-                        >
-                          % of Total
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody
-                      id="category-sales-table"
-                      class="divide-y divide-gray-200"
+                  <div class="overflow-x-auto mb-8">
+                    <table class="w-full">
+                      <thead>
+                        <tr class="border-b border-gray-700">
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Category
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Sales
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Products
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            % of Total
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody
+                        id="category-sales-table"
+                        class="divide-y divide-gray-700"
+                      >
+                        <tr>
+                          <td
+                            colspan="4"
+                            class="px-6 py-4 text-center text-gray-500"
+                          >
+                            Loading category data...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="flex gap-4">
+                    <button
+                      id="export-category-sales-csv"
+                      class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
                     >
-                      <tr>
-                        <td
-                          colspan="4"
-                          class="px-6 py-4 text-center text-gray-500"
-                        >
-                          Loading category data...
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                      <i class="fas fa-file-csv mr-2"></i>
+                      Export Category Sales CSV
+                    </button>
+                    <button
+                      id="download-category-sales-chart"
+                      class="px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 rounded-xl font-semibold hover:from-accent-600 hover:to-accent-700 transition-all duration-300 hover:scale-105"
+                    >
+                      <i class="fas fa-image mr-2"></i>
+                      Download Chart
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Transactions Content -->
+              <div class="tab-content hidden" id="recent-transactions-content">
+                <div class="p-6">
+                  <h3 class="font-semibold text-white mb-2">
+                    Recent Transactions
+                  </h3>
+                  <p class="text-gray-400 mb-6">
+                    Latest transactions in your system
+                  </p>
+
+                  <div class="overflow-x-auto mb-8">
+                    <table class="w-full">
+                      <thead>
+                        <tr class="border-b border-gray-700">
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Transaction ID
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Customer Name
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Total (KES)
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Date
+                          </th>
+                          <th
+                            class="text-left py-4 px-6 text-gray-400 font-semibold"
+                          >
+                            Payment Method
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody
+                        id="transactions-table"
+                        class="divide-y divide-gray-700"
+                      >
+                        <tr>
+                          <td
+                            colspan="5"
+                            class="px-6 py-4 text-center text-gray-500"
+                          >
+                            Loading transactions...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="flex gap-4">
+                    <button
+                      id="export-transactions-csv"
+                      class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+                    >
+                      <i class="fas fa-file-csv mr-2"></i>
+                      Export Transactions CSV
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
 
     <!-- Toast notification container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+    <div
+      id="toast-container"
+      class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"
+    ></div>
 
     <!-- Scripts -->
-
     <script src="./js/sidebar.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
-
     <script src="./js/reports.js"></script>
+
     <script>
-      // Add this script to handle sidebar toggle
-      document.addEventListener("DOMContentLoaded", function () {
-        const toggleButton = document.getElementById("toggle-sidebar");
-        const sidebar = document.getElementById("sidebar");
-        const overlay = document.getElementById("overlay");
+      // Initialize scroll reveal animations
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("revealed");
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
 
-        toggleButton.addEventListener("click", function () {
-          sidebar.classList.toggle("-translate-x-full");
-          overlay.classList.toggle("hidden");
-        });
+      document.querySelectorAll(".scroll-reveal").forEach((el) => {
+        observer.observe(el);
+      });
 
-        overlay.addEventListener("click", function () {
-          sidebar.classList.add("-translate-x-full");
-          overlay.classList.add("hidden");
+      // Tab functionality
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          // Remove active class from all buttons
+          document.querySelectorAll(".tab-button").forEach((btn) => {
+            btn.classList.remove("active", "text-white", "border-primary-500");
+            btn.classList.add("text-gray-400");
+          });
+
+          // Add active class to clicked button
+          button.classList.add("active", "text-white", "border-primary-500");
+          button.classList.remove("text-gray-400");
+
+          // Hide all tab contents
+          document.querySelectorAll(".tab-content").forEach((content) => {
+            content.classList.add("hidden");
+          });
+
+          // Show the selected tab content
+          const tabId = button.id.replace("tab-", "") + "-content";
+          document.getElementById(tabId).classList.remove("hidden");
         });
       });
+
+      // Show welcome toast
+      setTimeout(() => {
+        showToast("Reports data loaded successfully!", "success");
+      }, 1000);
+
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success: "from-success-500 to-success-600",
+          error: "from-red-500 to-red-600",
+          warning: "from-yellow-500 to-yellow-600",
+          info: "from-primary-500 to-primary-600",
+        };
+
+        toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${
+          type === "success"
+            ? "success"
+            : type === "error"
+            ? "red"
+            : type === "warning"
+            ? "yellow"
+            : "primary"
+        }-500`;
+        toast.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <i class="fas fa-${
+              type === "success"
+                ? "check-circle"
+                : type === "error"
+                ? "exclamation-circle"
+                : type === "warning"
+                ? "exclamation-triangle"
+                : "info-circle"
+            } text-${
+          type === "success"
+            ? "success"
+            : type === "error"
+            ? "red"
+            : type === "warning"
+            ? "yellow"
+            : "primary"
+        }-400"></i>
+            <span>${message}</span>
+          </div>
+        `;
+
+        document.getElementById("toast-container").appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.transform = "translateX(100%)";
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
     </script>
   </body>
 </html>
