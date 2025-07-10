@@ -491,10 +491,25 @@ document
   .addEventListener("click", () => {
     document.getElementById("payment-modal").classList.remove("hidden");
   });
-  // Cancel Subscription button
-  document
-    .getElementById("cancel-subscription-button")
-    .addEventListener("click", cancelSubscription);
+// Show the modal on button click
+document
+  .getElementById("cancel-subscription-button")
+  .addEventListener("click", () => {
+    const modal = document.getElementById("cancel-confirmation-modal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  });
+
+// Close the modal when clicking outside (on the overlay)
+document
+  .getElementById("cancel-confirmation-modal")
+  .addEventListener("click", () => {
+    const modal = document.getElementById("cancel-confirmation-modal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  });
+
+
 
   // M-Pesa payment button
   document.getElementById("send-stk").addEventListener("click", processPayment);
