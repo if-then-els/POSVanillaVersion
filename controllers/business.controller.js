@@ -105,13 +105,9 @@ exports.getBusinessDetails = async (req, res) => {
       }
       // If token is valid, you can optionally attach user info to req for further use
       req.user = user; // Contains { id: user._id, business: user.business }
-      return res.status(200).json({
-        message: "Authenticated",
-        user: { id: user.id, business: user.business },
-      });
     });
     const businessId = req.user.business; // Assuming the business ID is stored in the token
-    const business = await BusinessDetails.findById({ id: businessId });
+    const business = await BusinessDetails.findById({ _id: businessId });
     return res.status(200).json({
       business: {
         id: business._id,
@@ -125,6 +121,6 @@ exports.getBusinessDetails = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error", error });
+    //res.status(500).json({ message: "Server error", error });
   }
 };
