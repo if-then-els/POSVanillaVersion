@@ -441,9 +441,7 @@
                 >
                   Your Current Plan
                 </h2>
-                <p class="text-gray-400">
-                  Active subscription with premium features
-                </p>
+                <p class="text-gray-400">Active subscription</p>
               </div>
               <div class="flex items-center space-x-2">
                 <div class="relative">
@@ -506,16 +504,24 @@
                         <div
                           class="w-2 h-2 bg-success-400 rounded-full animate-pulse"
                         ></div>
-                        <span class="text-success-400 font-medium">Active</span>
+                        <span
+                          id="plan-status"
+                          class="text-success-400 font-medium"
+                          >Active</span
+                        >
                       </div>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Start Date:</span>
-                      <span class="text-white font-medium">Jan 15, 2024</span>
+                      <span id="plan-start" class="text-white font-medium"
+                        >Jan 15, 2024</span
+                      >
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Next Billing:</span>
-                      <span class="text-white font-medium">Feb 15, 2024</span>
+                      <span id="plan-end" class="text-white font-medium"
+                        >Feb 15, 2024</span
+                      >
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Auto Renew:</span>
@@ -527,17 +533,18 @@
                             class="w-4 h-4 bg-white rounded-full absolute top-1 right-1 transition-all"
                           ></div>
                         </div>
-                        <span class="text-success-400 font-medium">On</span>
+                        <span
+                          id="plan-autoRenew"
+                          class="text-success-400 font-medium"
+                          >On</span
+                        >
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="space-y-4">
-                <div class="glass-dark rounded-2xl p-6">
-                  <h4 class="text-lg font-semibold text-gray-300 mb-4">
-                    Usage Stats
+              <!-- Usage Stats
                   </h4>
                   <div class="space-y-4">
                     <div>
@@ -582,27 +589,29 @@
                         ></div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
+                 
+              </div> -->
             </div>
 
             <div class="flex flex-wrap gap-4 mt-8 relative z-10">
               <button
                 class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
-              >
+               id="upgrade-plan-btn"
+                >
                 <i class="fas fa-arrow-up mr-2"></i>
                 Upgrade Plan
               </button>
               <button
                 class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
-              >
+                 id="update-payment-button"
+                >
                 <i class="fas fa-credit-card mr-2"></i>
                 Update Payment
               </button>
               <button
                 class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
-              >
+                id="cancel-subscription-button"
+                >
                 <i class="fas fa-times mr-2"></i>
                 Cancel Subscription
               </button>
@@ -613,7 +622,7 @@
           <div
             class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 scroll-reveal"
           >
-            <div class="glass rounded-2xl p-6 hover-lift group">
+            <!-- <div class="glass rounded-2xl p-6 hover-lift group">
               <div class="flex items-center justify-between mb-4">
                 <div
                   class="w-12 h-12 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
@@ -627,7 +636,7 @@
                 <i class="fas fa-arrow-up text-success-400 text-xs"></i>
                 <span class="text-success-400 text-sm">+12% this month</span>
               </div>
-            </div>
+            </div> -->
 
             <div class="glass rounded-2xl p-6 hover-lift group">
               <div class="flex items-center justify-between mb-4">
@@ -636,12 +645,12 @@
                 >
                   <i class="fas fa-calendar text-white"></i>
                 </div>
-                <span class="text-2xl font-bold text-white">8</span>
+                <spa id="months-active" class="text-2xl font-bold text-white">8</span>
               </div>
               <p class="text-gray-400 text-sm">Months Active</p>
               <div class="mt-2 flex items-center space-x-2">
                 <i class="fas fa-clock text-yellow-400 text-xs"></i>
-                <span class="text-yellow-400 text-sm">Since Jan 2024</span>
+                <span id="date-created" class="text-yellow-400 text-sm">Since Jan 2024</span>
               </div>
             </div>
 
@@ -854,7 +863,141 @@
               </div>
             </div>
           </div>
+
+
+        <!-- plans -->
+         
+
+
         </div>
+         <div class="glass rounded-3xl p-8 mb-12 hover-lift scroll-reveal neon-border relative overflow-hidden">
+            <div
+              class="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-accent-500/20 to-primary-500/20 rounded-full morphing-blob"
+            ></div>
+            <div class="flex justify-between items-start mb-8 relative z-10">
+              <div>
+                <h2
+                  class="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                >
+                  Upgrade Your Plan
+                </h2>
+                <p class="text-gray-400">
+                  Choose the perfect plan to boost your POS system's capabilities.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+              <!-- Basic Plan Card -->
+              <div class="glass-dark rounded-2xl p-6 flex flex-col justify-between hover-lift">
+                <div>
+                  <h3 class="text-2xl font-bold text-primary-400 mb-2">Basic Plan</h3>
+                  <p class="text-gray-400 text-sm mb-4">Essential features for small businesses.</p>
+                  <div class="flex items-baseline space-x-2 mb-6">
+                    <span class="text-4xl font-black text-white">KES 2,999</span>
+                    <span class="text-gray-400">/month</span>
+                  </div>
+                  <ul class="space-y-3 text-gray-300 mb-8">
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Up to 1,000 Transactions/month</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>5GB Storage</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Basic Reporting</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-times-circle text-red-400"></i>
+                      <span class="opacity-70">Priority Support</span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold text-white hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
+                  data-plan="basic"
+                >
+                  Select Basic Plan
+                </button>
+              </div>
+
+              <!-- Premium Plan Card -->
+              <div class="glass-dark rounded-2xl p-6 flex flex-col justify-between hover-lift border-2 border-primary-500 animate-glow">
+                <div>
+                  <h3 class="text-2xl font-bold text-accent-400 mb-2">Premium Plan</h3>
+                  <p class="text-gray-400 text-sm mb-4">Advanced features for growing businesses.</p>
+                  <div class="flex items-baseline space-x-2 mb-6">
+                    <span class="text-4xl font-black text-white">KES 5,999</span>
+                    <span class="text-gray-400">/month</span>
+                  </div>
+                  <ul class="space-y-3 text-gray-300 mb-8">
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Up to 5,000 Transactions/month</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>50GB Storage</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Advanced Analytics</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Email & Chat Support</span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  class="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 rounded-xl font-semibold text-white hover:from-accent-600 hover:to-accent-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent-500/25"
+                  data-plan="premium"
+                >
+                  Select Premium Plan
+                </button>
+              </div>
+
+              <!-- Enterprise Plan Card -->
+              <div class="glass-dark rounded-2xl p-6 flex flex-col justify-between hover-lift">
+                <div>
+                  <h3 class="text-2xl font-bold text-success-400 mb-2">Enterprise Plan</h3>
+                  <p class="text-gray-400 text-sm mb-4">Full suite of tools for large enterprises.</p>
+                  <div class="flex items-baseline space-x-2 mb-6">
+                    <span class="text-4xl font-black text-white">KES 9,999</span>
+                    <span class="text-gray-400">/month</span>
+                  </div>
+                  <ul class="space-y-3 text-gray-300 mb-8">
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Unlimited Transactions</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Unlimited Storage</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>Custom Reporting & Integrations</span>
+                    </li>
+                    <li class="flex items-center space-x-2">
+                      <i class="fas fa-check-circle text-success-400"></i>
+                      <span>24/7 Dedicated Support</span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  class="w-full py-3 bg-gradient-to-r from-success-500 to-success-600 rounded-xl font-semibold text-white hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25"
+                  data-plan="enterprise"
+                >
+                  Select Enterprise Plan
+                </button>
+              </div>
+            </div>
+          </div>
+
       </main>
     </div>
 
@@ -932,416 +1075,77 @@
         </button>
       </div>
     </div>
+   <!-- modals -->
+    <!-- Confirmation Modal for Plan Upgrade/Cancel -->
+<div id="confirmation-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
+    <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+      <i class="fas fa-times"></i>
+    </button>
+    <h2 class="text-2xl font-bold mb-4 text-white">Confirm Action</h2>
+    <p class="mb-6 text-gray-300">
+      Are you sure you want to <span id="confirm-plan-name" class="font-semibold text-primary-400"></span>?
+    </p>
+    <div class="flex justify-end gap-4">
+      <button id="cancel-plan-change" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Cancel</button>
+      <button id="confirm-plan-change" class="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition" data-plan="">Confirm</button>
+    </div>
+  </div>
+</div>
 
-    <script>
-      // Theme Toggle
-      const themeToggle = document.getElementById("theme-toggle");
-      themeToggle.addEventListener("click", () => {
-        document.documentElement.classList.toggle("dark");
-        const icon = themeToggle.querySelector("i");
-        icon.classList.toggle("fa-moon");
-        icon.classList.toggle("fa-sun");
-      });
+<!-- M-Pesa Modal for Payment/Upgrade -->
+<div id="mpesa-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
+    <button id="close-mpesa-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+      <i class="fas fa-times"></i>
+    </button>
+    <!-- Step 1: Choose action -->
+    <div id="step1">
+      <h2 class="text-xl font-bold mb-4 text-white">Upgrade Subscription</h2>
+      <button onclick="showUpgradeOptions()" class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition">Upgrade Plan</button>
+      <button onclick="continueToPayment()" class="w-full px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Update Payment</button>
+    </div>
+    <!-- Step 2: Select Plan -->
+    <div id="step2" class="hidden">
+      <h2 class="text-xl font-bold mb-4 text-white">Select a Plan</h2>
+      <div id="plans-list" class="space-y-4"></div>
+      <button onclick="backToStep1()" class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
+    </div>
+    <!-- Step 3: Enter Payment -->
+    <div id="step3" class="hidden">
+      <h2 class="text-xl font-bold mb-4 text-white">Enter Payment Details</h2>
+      <label for="phone-input" class="block mb-2 text-gray-300">M-Pesa Phone Number</label>
+      <input id="phone-input" type="tel" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" placeholder="e.g. 07XXXXXXXX" />
+      <label for="paymentAmount" class="block mb-2 text-gray-300">Amount</label>
+      <input id="paymentAmount" type="text" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" readonly />
+      <div class="flex justify-between gap-4">
+        <button onclick="backToPreviousStep()" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
+        <button onclick="processPayment()" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Pay Now</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      // Sidebar Toggle
-      const toggleSidebar = document.getElementById("toggle-sidebar");
-      const sidebar = document.getElementById("sidebar");
-      const overlay = document.getElementById("overlay");
+<!-- Processing Popup -->
+<div id="processingPopup" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center">
+    <i class="fas fa-spinner fa-spin text-3xl text-primary-400 mb-4"></i>
+    <p class="text-white text-lg mb-2">Processing Payment...</p>
+    <p class="text-gray-400 text-sm">Please complete the payment on your phone.</p>
+  </div>
+</div>
 
-      toggleSidebar.addEventListener("click", () => {
-        sidebar.classList.toggle("-translate-x-full");
-        overlay.classList.toggle("hidden");
-      });
+<!-- Approved Popup -->
+<div id="approvedPopup" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+  <div class="bg-gray-900 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center">
+    <i class="fas fa-check-circle text-4xl text-success-500 mb-4"></i>
+    <p class="text-white text-lg mb-2">Payment Approved!</p>
+    <p class="text-gray-400 text-sm">Your subscription is now active.</p>
+  </div>
+</div>
+         
 
-      overlay.addEventListener("click", () => {
-        sidebar.classList.add("-translate-x-full");
-        overlay.classList.add("hidden");
-      });
-
-      // Scroll Reveal Animation
-      const observerOptions = {
-        threshold: 0.1,
-        rootMargin: "0px 0px -50px 0px",
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("revealed");
-          }
-        });
-      }, observerOptions);
-
-      document.querySelectorAll(".scroll-reveal").forEach((el) => {
-        observer.observe(el);
-      });
-
-      // Floating Action Button
-      const fab = document.getElementById("fab");
-      fab.addEventListener("click", () => {
-        showToast("Quick action menu coming soon!", "info");
-      });
-
-      // Toast Notification System
-      function showToast(message, type = "info") {
-        const toast = document.createElement("div");
-        const colors = {
-          success: "from-success-500 to-success-600",
-          error: "from-red-500 to-red-600",
-          warning: "from-yellow-500 to-yellow-600",
-          info: "from-primary-500 to-primary-600",
-        };
-
-        toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${
-          type === "success"
-            ? "success"
-            : type === "error"
-            ? "red"
-            : type === "warning"
-            ? "yellow"
-            : "primary"
-        }-500`;
-        toast.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-${
-                      type === "success"
-                        ? "check-circle"
-                        : type === "error"
-                        ? "exclamation-circle"
-                        : type === "warning"
-                        ? "exclamation-triangle"
-                        : "info-circle"
-                    } text-${
-          type === "success"
-            ? "success"
-            : type === "error"
-            ? "red"
-            : type === "warning"
-            ? "yellow"
-            : "primary"
-        }-400"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-
-        document.getElementById("toast-container").appendChild(toast);
-
-        setTimeout(() => {
-          toast.style.transform = "translateX(100%)";
-          toast.style.opacity = "0";
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
-
-      // Payment Modal
-      const paymentModal = document.getElementById("payment-modal");
-      const closePaymentModal = document.getElementById("close-payment-modal");
-
-      document
-        .querySelector('[data-action="upgrade"]')
-        ?.addEventListener("click", () => {
-          paymentModal.classList.remove("hidden");
-        });
-
-      closePaymentModal.addEventListener("click", () => {
-        paymentModal.classList.add("hidden");
-      });
-
-      // Add some interactive elements
-      document.addEventListener("DOMContentLoaded", () => {
-        // Animate counters
-        const counters = document.querySelectorAll("[data-counter]");
-        counters.forEach((counter) => {
-          const target = parseInt(counter.getAttribute("data-counter"));
-          let current = 0;
-          const increment = target / 100;
-          const timer = setInterval(() => {
-            current += increment;
-            counter.textContent = Math.floor(current);
-            if (current >= target) {
-              counter.textContent = target;
-              clearInterval(timer);
-            }
-          }, 20);
-        });
-
-        // Show welcome toast
-        setTimeout(() => {
-          showToast("Welcome to your subscription dashboard!", "success");
-        }, 1000);
-      });
-
-      // Add hover effects to cards
-      document.querySelectorAll(".hover-lift").forEach((card) => {
-        card.addEventListener("mouseenter", () => {
-          card.style.transform = "translateY(-8px) scale(1.02)";
-        });
-
-        card.addEventListener("mouseleave", () => {
-          card.style.transform = "translateY(0) scale(1)";
-        });
-      });
-
-      // Particle animation
-      function createParticle() {
-        const particle = document.createElement("div");
-        particle.className = "particle";
-        particle.style.left = Math.random() * 100 + "%";
-        particle.style.top = Math.random() * 100 + "%";
-        particle.style.width = Math.random() * 4 + 1 + "px";
-        particle.style.height = particle.style.width;
-        particle.style.backgroundColor = `hsl(${
-          Math.random() * 360
-        }, 70%, 60%)`;
-        document.querySelector(".gradient-bg").appendChild(particle);
-
-        setTimeout(() => {
-          particle.remove();
-        }, 6000);
-      }
-
-      setInterval(createParticle, 2000);
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        // Fetch subscription details
-        try {
-          const res = await fetch("/subscriptions/details", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          });
-          if (!res.ok) throw new Error("Failed to fetch subscription details");
-          const data = await res.json();
-          const sub = data.subscription;
-
-          // Update plan name and price
-          document.getElementById("plan-name").textContent =
-            sub.planName || "N/A";
-          // Update price (find the element and set its text)
-          document
-            .querySelectorAll(".text-4xl.font-black.text-white")
-            .forEach((el) => {
-              el.textContent =
-                "KES " + (sub.price ? sub.price.toLocaleString() : "0");
-            });
-
-          // Update status, start date, next billing, etc.
-          // (You may need to add IDs to these elements for easier selection)
-
-          // Update billing history table
-          const tbody = document.querySelector("table tbody");
-          tbody.innerHTML = "";
-          (sub.billingHistory || []).forEach((entry) => {
-            const tr = document.createElement("tr");
-            tr.className = "hover:bg-white/5 transition-colors group";
-            tr.innerHTML = `
-              <td class="py-4 px-6 text-white font-medium">${entry.date}</td>
-              <td class="py-4 px-6">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-crown text-white text-sm"></i>
-                  </div>
-                  <div>
-                    <p class="text-white font-medium">${entry.description}</p>
-                    <p class="text-gray-400 text-sm">${entry.cycle}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="py-4 px-6 text-white font-bold">KES ${entry.amount}</td>
-              <td class="py-4 px-6">
-                <span class="bg-gradient-to-r from-success-500 to-success-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  <i class="fas fa-check mr-1"></i>${entry.status}
-                </span>
-              </td>
-              <td class="py-4 px-6">
-                <button class="text-primary-400 hover:text-primary-300 font-medium transition-colors group-hover:scale-110">
-                  <i class="fas fa-download mr-2"></i>Download
-                </button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
-        } catch (err) {
-          showToast("Failed to load subscription data", "error");
-        }
-      });
-
-      document
-        .getElementById("send-stk")
-        .addEventListener("click", async () => {
-          const phone = document.getElementById("payment-phone").value.trim();
-          if (!phone) {
-            showToast("Please enter your phone number.", "error");
-            return;
-          }
-          // Optionally, get the plan/amount from your JS state or DOM
-          try {
-            const res = await fetch("/subscriptions/pay", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
-              body: JSON.stringify({ phone }),
-            });
-            const data = await res.json();
-            if (res.ok) {
-              showToast(
-                "STK Push sent! Complete payment on your phone.",
-                "success"
-              );
-            } else {
-              showToast(data.message || "Payment failed.", "error");
-            }
-          } catch (err) {
-            showToast("Payment request failed.", "error");
-          }
-        });
-    </script>
-    <script>
-      // ...existing code...
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        // Fetch subscription details from backend
-        try {
-          const res = await fetch("/subscriptions/details", {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-          });
-          if (!res.ok) throw new Error("Failed to fetch subscription details");
-          const data = await res.json();
-          const sub = data.subscription;
-
-          // Update plan name and price
-          document.getElementById("plan-name").textContent =
-            sub.planName || "N/A";
-          document
-            .querySelectorAll(".text-4xl.font-black.text-white")
-            .forEach((el) => {
-              el.textContent =
-                "KES " + (sub.price ? sub.price.toLocaleString() : "0");
-            });
-
-          // Update status
-          const statusSpan = document.querySelector(
-            ".text-success-400.font-medium"
-          );
-          if (statusSpan) statusSpan.textContent = sub.status || "Inactive";
-
-          // Update start date and next billing
-          document
-            .querySelectorAll(".text-white.font-medium")
-            .forEach((el, idx) => {
-              if (idx === 0) el.textContent = sub.startDate || "-";
-              if (idx === 1) el.textContent = sub.nextBilling || "-";
-            });
-
-          // Update auto-renew
-          const autoRenewSpan = document.querySelector(
-            ".flex.items-center.space-x-2 > span.text-success-400.font-medium"
-          );
-          if (autoRenewSpan)
-            autoRenewSpan.textContent = sub.autoRenew ? "On" : "Off";
-          const autoRenewKnob = document.querySelector(
-            ".w-4.h-4.bg-white.rounded-full.absolute.top-1"
-          );
-          if (autoRenewKnob) {
-            autoRenewKnob.style.right = sub.autoRenew
-              ? "1px"
-              : "calc(100% - 17px)";
-            autoRenewKnob.style.background = sub.autoRenew ? "#fff" : "#bbb";
-          }
-
-          // Update usage stats
-          // Transactions
-          const txStat = document.querySelectorAll(
-            ".space-y-4 .flex.justify-between.items-center.mb-2 span.text-sm.text-white.font-medium"
-          )[0];
-          if (txStat)
-            txStat.textContent = `${sub.usage.transactions.used.toLocaleString()} / ${sub.usage.transactions.limit.toLocaleString()}`;
-          const txBar = document.querySelectorAll(
-            ".bg-gradient-to-r.from-primary-500.to-primary-600.h-2.rounded-full"
-          )[0];
-          if (txBar)
-            txBar.style.width =
-              (
-                (sub.usage.transactions.used / sub.usage.transactions.limit) *
-                100
-              ).toFixed(0) + "%";
-
-          // Storage
-          const stStat = document.querySelectorAll(
-            ".space-y-4 .flex.justify-between.items-center.mb-2 span.text-sm.text-white.font-medium"
-          )[1];
-          if (stStat)
-            stStat.textContent = `${sub.usage.storage.used}GB / ${sub.usage.storage.limit}GB`;
-          const stBar = document.querySelectorAll(
-            ".bg-gradient-to-r.from-accent-500.to-accent-600.h-2.rounded-full"
-          )[0];
-          if (stBar)
-            stBar.style.width =
-              (
-                (sub.usage.storage.used / sub.usage.storage.limit) *
-                100
-              ).toFixed(0) + "%";
-
-          // API Calls
-          const apiStat = document.querySelectorAll(
-            ".space-y-4 .flex.justify-between.items-center.mb-2 span.text-sm.text-white.font-medium"
-          )[2];
-          if (apiStat)
-            apiStat.textContent = `${(sub.usage.apiCalls.used / 1000).toFixed(
-              1
-            )}K / ${(sub.usage.apiCalls.limit / 1000).toFixed(0)}K`;
-          const apiBar = document.querySelectorAll(
-            ".bg-gradient-to-r.from-success-500.to-success-600.h-2.rounded-full"
-          )[0];
-          if (apiBar)
-            apiBar.style.width =
-              (
-                (sub.usage.apiCalls.used / sub.usage.apiCalls.limit) *
-                100
-              ).toFixed(0) + "%";
-
-          // Update billing history table
-          const tbody = document.querySelector("table tbody");
-          tbody.innerHTML = "";
-          (sub.billingHistory || []).forEach((entry) => {
-            const tr = document.createElement("tr");
-            tr.className = "hover:bg-white/5 transition-colors group";
-            tr.innerHTML = `
-        <td class="py-4 px-6 text-white font-medium">${entry.date}</td>
-        <td class="py-4 px-6">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-              <i class="fas fa-crown text-white text-sm"></i>
-            </div>
-            <div>
-              <p class="text-white font-medium">${entry.description}</p>
-              <p class="text-gray-400 text-sm">${entry.cycle}</p>
-            </div>
-          </div>
-        </td>
-        <td class="py-4 px-6 text-white font-bold">KES ${entry.amount.toLocaleString()}</td>
-        <td class="py-4 px-6">
-          <span class="bg-gradient-to-r from-success-500 to-success-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-            <i class="fas fa-check mr-1"></i>${entry.status}
-          </span>
-        </td>
-        <td class="py-4 px-6">
-          <button class="text-primary-400 hover:text-primary-300 font-medium transition-colors group-hover:scale-110">
-            <i class="fas fa-download mr-2"></i>Download
-          </button>
-        </td>
-      `;
-            tbody.appendChild(tr);
-          });
-        } catch (err) {
-          showToast("Failed to load subscription data", "error");
-        }
-      });
-
-      // ...existing code...
-    </script>
+   
     <script src="./js/sidebar.js"></script>
     <script src="./js/subscriptions.js"></script>
   </body>

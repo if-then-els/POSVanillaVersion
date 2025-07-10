@@ -142,3 +142,32 @@ exports.cancelSubscription = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+exports.getSubscriptionPaymentLogs = async (req, res) => {
+  try {
+    const businessId = req.user.business;
+    if (!businessId) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
+    const logs = await SubscriptionLog.find({ business: businessId })
+      .sort({ date: -1 })
+      .populate("business", "businessName");
+    res.status(200).json({
+      message: "Subscription payment logs retrieved successfully",
+      logs,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+exports.getSubscriptionPlans = async (req, res) => {
+  try {
+    const plans = await Plan.find({});
+    res.status(200).json({
+      message: "Subscription plans retrieved successfully",
+      plans,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
