@@ -110,6 +110,21 @@
       };
     </script>
     <style>
+
+
+/* Center the payment modal specifically */
+/* #payment-modal {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+#payment-modal > div {
+  margin: auto;
+  animation: scaleIn 0.3s ease-out;
+} */
+
       body {
         font-family: "Inter", sans-serif;
       }
@@ -402,7 +417,7 @@
               <h1
                 class="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-success-400 bg-clip-text text-transparent animate-slide-in"
               >
-                Subscription Hub
+                Subscription 
               </h1>
               <p class="text-xl text-gray-400 mb-6 typing-animation max-w-2xl">
                 Manage your POS subscription with style and intelligence
@@ -1067,21 +1082,21 @@
           </button>
         </div>
 
-        <button
+        <!-- <button
           id="close-payment-modal"
           class="absolute top-4 right-4 w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
-        >
-          <i class="fas fa-times text-gray-400"></i>
-        </button>
+        > -->
+          <!-- <i class="fas fa-times text-gray-400"></i> -->
+        <!-- </button> -->
       </div>
     </div>
    <!-- modals -->
     <!-- Confirmation Modal for Plan Upgrade/Cancel -->
 <div id="confirmation-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-    <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+    <!-- <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
       <i class="fas fa-times"></i>
-    </button>
+    </button> -->
     <h2 class="text-2xl font-bold mb-4 text-white">Confirm Action</h2>
     <p class="mb-6 text-gray-300">
       Are you sure you want to <span id="confirm-plan-name" class="font-semibold text-primary-400"></span>?
@@ -1096,9 +1111,9 @@
 <!-- M-Pesa Modal for Payment/Upgrade -->
 <div id="mpesa-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-    <button id="close-mpesa-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
+    <!-- <button id="close-mpesa-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
       <i class="fas fa-times"></i>
-    </button>
+    </button> -->
     <!-- Step 1: Choose action -->
     <div id="step1">
       <h2 class="text-xl font-bold mb-4 text-white">Upgrade Subscription</h2>

@@ -453,6 +453,8 @@ document.addEventListener("DOMContentLoaded", () => {
       upgradePlan(plan);
     });
 
+    
+
   // Cancel plan change
   document
     .getElementById("cancel-plan-change")
@@ -461,26 +463,36 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Close modals
-  document.querySelectorAll("[data-close-modal]").forEach((button) => {
-    button.addEventListener("click", () => {
-      button.closest("[data-modal]").classList.add("hidden");
-      showStep("step1");
-    });
-  });
+ // Close payment-modal when clicking outside modal content
+document.getElementById("payment-modal").addEventListener("click", (e) => {
+  if (e.target.id === "payment-modal") {
+    document.getElementById("payment-modal").classList.add("hidden");
+    showStep("step1"); // reset to initial step
+  }
+});
+
 
   // Upgrade Plan button
-  document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
-    document.getElementById("mpesa-modal").classList.remove("hidden");
-  });
+document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
+  const mpesaModal = document.getElementById("mpesa-modal");
+  mpesaModal.classList.remove("hidden");
+  mpesaModal.classList.add("flex"); // ensure centering
+});
+document.getElementById("mpesa-modal").addEventListener("click", (e) => {
+  if (e.target.id === "mpesa-modal") {
+    e.currentTarget.classList.add("hidden");
+    showStep("step1"); // if you’re using step system
+  }
+});
+
 
   // Update Payment button
-  document
-    .getElementById("update-payment-button")
-    .addEventListener("click", () => {
-      document.getElementById("mpesa-modal").classList.remove("hidden");
-      showStep("step3");
-    });
 
+document
+  .getElementById("update-payment-button")
+  .addEventListener("click", () => {
+    document.getElementById("payment-modal").classList.remove("hidden");
+  });
   // Cancel Subscription button
   document
     .getElementById("cancel-subscription-button")
