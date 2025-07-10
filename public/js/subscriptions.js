@@ -1,12 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Theme Toggle
-  const themeToggle = document.getElementById("theme-toggle");
-  themeToggle.addEventListener("click", () => {
-    document.documentElement.classList.toggle("dark");
-    const icon = themeToggle.querySelector("i");
-    icon.classList.toggle("fa-moon");
-    icon.classList.toggle("fa-sun");
-  });
+  // const themeToggle = document.getElementById("theme-toggle");
+  // themeToggle.addEventListener("click", () => {
+  //   document.documentElement.classList.toggle("dark");
+  //   const icon = themeToggle.querySelector("i");
+  //   icon.classList.toggle("fa-moon");
+  //   icon.classList.toggle("fa-sun");
+  // });
 
   // Sidebar Toggle
   const toggleSidebar = document.getElementById("toggle-sidebar");
@@ -451,8 +451,6 @@ document.addEventListener("DOMContentLoaded", () => {
       upgradePlan(plan);
     });
 
-    
-
   // Cancel plan change
   document
     .getElementById("cancel-plan-change")
@@ -461,36 +459,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Close modals
- // Close payment-modal when clicking outside modal content
-document.getElementById("payment-modal").addEventListener("click", (e) => {
-  if (e.target.id === "payment-modal") {
-    document.getElementById("payment-modal").classList.add("hidden");
-    showStep("step1"); // reset to initial step
-  }
-});
-
+  // Close payment-modal when clicking outside modal content
+  document.getElementById("payment-modal").addEventListener("click", (e) => {
+    if (e.target.id === "payment-modal") {
+      document.getElementById("payment-modal").classList.add("hidden");
+      showStep("step1"); // reset to initial step
+    }
+  });
 
   // Upgrade Plan button
-document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
-  const mpesaModal = document.getElementById("mpesa-modal");
-  mpesaModal.classList.remove("hidden");
-  mpesaModal.classList.add("flex"); // ensure centering
-});
-document.getElementById("mpesa-modal").addEventListener("click", (e) => {
-  if (e.target.id === "mpesa-modal") {
-    e.currentTarget.classList.add("hidden");
-    showStep("step1"); // if you’re using step system
-  }
-});
-
+  document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
+    const mpesaModal = document.getElementById("mpesa-modal");
+    mpesaModal.classList.remove("hidden");
+    mpesaModal.classList.add("flex"); // ensure centering
+  });
+  document.getElementById("mpesa-modal").addEventListener("click", (e) => {
+    if (e.target.id === "mpesa-modal") {
+      e.currentTarget.classList.add("hidden");
+      showStep("step1"); // if you’re using step system
+    }
+  });
 
   // Update Payment button
 
-document
-  .getElementById("update-payment-button")
-  .addEventListener("click", () => {
-    document.getElementById("payment-modal").classList.remove("hidden");
-  });
+  document
+    .getElementById("update-payment-button")
+    .addEventListener("click", () => {
+      document.getElementById("payment-modal").classList.remove("hidden");
+    });
   // Cancel Subscription button
   document
     .getElementById("cancel-subscription-button")
