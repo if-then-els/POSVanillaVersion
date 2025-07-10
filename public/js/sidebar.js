@@ -54,7 +54,7 @@ function loadSidebar() {
               ? "bg-gray-100"
               : ""
           }">
-            <i class="fas fa-cog w-5"></i>
+           <i class="fa-solid fa-bell"></i>
             <span>Subscriptions</span>
           </a>
         </li>
