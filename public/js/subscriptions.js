@@ -145,16 +145,14 @@ document.addEventListener("DOMContentLoaded", () => {
       let priceText = ""; // Declare a variable to hold the price text
 
       if (sub.plan === "trial") {
-        priceText = "Free Trial";
+        priceText = "KES /0 (Free Trial)";
       } else if (sub.plan === "basic") {
         priceText = "KES 3,500";
       } else if (sub.plan === "Standard") {
-        // Remember JavaScript is case-sensitive, "Standard" != "standard"
         priceText = "KES 5,500";
       } else if (sub.plan === "premium") {
         priceText = "KES 9,500";
       } else {
-        // Optional: Handle cases where sub.plan doesn't match any known plan
         priceText = "N/A"; // Or an empty string, or an error message
       }
 
