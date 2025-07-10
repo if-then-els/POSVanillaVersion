@@ -1159,35 +1159,32 @@
   </div>
 </div>
 
-
-<<!-- Cancel Subscription Confirmation Modal -->
+<!-- Cancel Subscription Confirmation Modal -->
 <div id="cancel-confirmation-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative animate-scale-in" onclick="event.stopPropagation();">
     
-    <!-- Close button (optional) -->
-    <!-- <button id="close-cancel-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
-      &times;
-    </button>
-     -->
     <!-- Title -->
     <h2 class="text-2xl font-bold mb-4 text-white">
       Cancel Subscription
     </h2>
     
     <!-- Message -->
-    <p class="mb-6 text-gray-300">
-      Are you sure you want to cancel your subscription?
+    <p class="text-gray-300 mb-2">
+      Are you sure you want to cancel your subscription? This action cannot be undone.
     </p>
+    <!-- <p class="text-red-400 text-sm mb-6">
+      
+    </p> -->
     
     <!-- Action Buttons -->
     <div class="flex justify-end gap-4">
       <button id="cancel-cancel"
-        class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">
+        class="px-4 py-2 rounded-lg bg-green-700 text-gray-200 hover:bg-gray-600 transition">
         No
       </button>
       <button id="confirm-cancel"
-        class="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition">
-         Cancel
+        class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-primary-600 transition">
+        Yes
       </button>
     </div>
   </div>

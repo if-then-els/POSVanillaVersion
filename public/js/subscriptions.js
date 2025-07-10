@@ -509,6 +509,13 @@ document
     modal.classList.remove("flex");
   });
 
+  document.getElementById("cancel-cancel").addEventListener("click", () => {
+  const modal = document.getElementById("cancel-confirmation-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+});
+
+
 
 
   // M-Pesa payment button
