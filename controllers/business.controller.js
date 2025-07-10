@@ -2,6 +2,8 @@ const BusinessDetails = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const Users = require("../models/user");
 const Subscription = require("../models/subscription.model");
+const { verifyToken } = require("../middleware/auth.middleware");
+const jwt = require("jsonwebtoken");
 
 exports.registerBusiness = async (req, res) => {
   try {
@@ -41,6 +43,7 @@ exports.registerBusiness = async (req, res) => {
       businessEmail,
       password: hashedPassword,
       identificationNumber,
+      dateCreated: new Date(),
     });
     await newBusiness.save();
 
@@ -80,6 +83,44 @@ exports.registerBusiness = async (req, res) => {
         id: adminUser._id,
         username: adminUser.username,
         email: adminUser.email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.getBusinessDetails = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res
+        .status(401)
+        .json({ message: "No token, authorization denied" });
+    }
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: "Token is not valid" });
+      }
+      // If token is valid, you can optionally attach user info to req for further use
+      req.user = user; // Contains { id: user._id, business: user.business }
+      return res.status(200).json({
+        message: "Authenticated",
+        user: { id: user.id, business: user.business },
+      });
+    });
+    const businessId = req.user.business; // Assuming the business ID is stored in the token
+    const business = await BusinessDetails.findById({ id: businessId });
+    return res.status(200).json({
+      business: {
+        id: business._id,
+        businessName: business.businessName,
+        businessLocation: business.businessLocation,
+        businessPhone: business.businessPhone,
+        businessEmail: business.businessEmail,
+        identificationNumber: business.identificationNumber,
+        dateCreated: business.dateCreated,
       },
     });
   } catch (error) {
