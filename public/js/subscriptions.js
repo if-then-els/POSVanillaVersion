@@ -365,6 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function processPayment() {
     const phoneInput = document.getElementById("phone-input");
     const phone = phoneInput.value.trim();
+    const durationMonths = Date.now() / (1000 * 60 * 60 * 24 * 30); // Assuming 1 month duration for simplicity
 
     if (!phone) {
       showToast("Please enter your M-Pesa phone number", "error");
@@ -388,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
           businessId: currentBusinessId,
           plan: selectedPlan,
           amount: selectedPlanPrice,
+          durationMonths: durationMonths, // Assuming 1 month duration for simplicity
         }),
       });
 
@@ -405,6 +407,11 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Network error during payment", "error");
     }
   }
+
+  document.getElementById("payNow").addEventListener("click", (e) => {
+    e.preventDefault();
+    processPayment();
+  });
 
   // --- Cancel Subscription (fixed with modal integration) ---
   async function cancelSubscription() {
