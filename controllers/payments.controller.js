@@ -92,6 +92,7 @@ exports.initiateMpesaStkPush = async (req, res) => {
         },
       }
     );
+    console.log("STK Push response:", stkRes.data);
 
     // 6. Store CheckoutRequestID
     newSubscription.mpesaCheckoutRequestID = stkRes.data.CheckoutRequestID;

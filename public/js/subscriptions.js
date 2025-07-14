@@ -1,12 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Theme Toggle
-  const themeToggle = document.getElementById("theme-toggle");
-  themeToggle.addEventListener("click", () => {
-    document.documentElement.classList.toggle("dark");
-    const icon = themeToggle.querySelector("i");
-    icon.classList.toggle("fa-moon");
-    icon.classList.toggle("fa-sun");
-  });
+  // const themeToggle = document.getElementById("theme-toggle");
+  // themeToggle.addEventListener("click", () => {
+  //   document.documentElement.classList.toggle("dark");
+  //   const icon = themeToggle.querySelector("i");
+  //   icon.classList.toggle("fa-moon");
+  //   icon.classList.toggle("fa-sun");
+  // });
 
   // Sidebar Toggle
   const toggleSidebar = document.getElementById("toggle-sidebar");
@@ -107,14 +107,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedPlanPrice = null;
   let currentBusinessId = null;
 
-  // --- Fetch Subscription Details Function ---
+  // --- Fetch Subscription Details Function (updated) ---
   async function fetchSubscriptionDetails() {
     try {
       const response = await fetch("/subscriptions/details", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
@@ -123,16 +121,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const sub = data.subscription;
 
       if (!sub) {
-        document.getElementById("plan-name").textContent = "N/A";
-        document.getElementById("plan-status").textContent = "N/A";
-        document.getElementById("plan-start").textContent = "N/A";
-        document.getElementById("plan-end").textContent = "N/A";
+        // ... (existing empty state handling) ...
         return;
       }
 
-      // Update UI
-      document.getElementById("plan-name").textContent =
-        (sub.plan || "N/A") + " Plan";
+      // Update UI with subscription details
+      document.getElementById("plan-name").textContent = sub.plan
+        ? `${sub.plan} Plan`
+        : "N/A";
       document.getElementById("plan-status").textContent = sub.status
         ? sub.status.charAt(0).toUpperCase() + sub.status.slice(1)
         : "N/A";
@@ -142,21 +138,17 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("plan-end").textContent = sub.endDate
         ? new Date(sub.endDate).toLocaleDateString()
         : "N/A";
-      let priceText = ""; // Declare a variable to hold the price text
 
-      if (sub.plan === "trial") {
-        priceText = "KES /0 (Free Trial)";
-      } else if (sub.plan === "basic") {
-        priceText = "KES 3,500";
-      } else if (sub.plan === "Standard") {
-        priceText = "KES 5,500";
-      } else if (sub.plan === "premium") {
-        priceText = "KES 9,500";
-      } else {
-        priceText = "N/A"; // Or an empty string, or an error message
-      }
+      // Set plan price using backend data
+      const planPrices = {
+        trial: "KES 0 (Free Trial)",
+        basic: "KES 3,500",
+        Standard: "KES 5,500",
+        premium: "KES 9,500",
+      };
 
-      document.getElementById("plan-price").textContent = priceText;
+      document.getElementById("plan-price").textContent =
+        planPrices[sub.plan] || "N/A";
 
       // Update auto-renew status
       const autoRenewStatus = document.getElementById("plan-autoRenew");
@@ -265,6 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const monthsActive = Math.floor(
             (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30)
           );
+          console.log("Months active:", monthsActive);
           document.getElementById("months-active").textContent = monthsActive;
           document.getElementById("date-created").textContent =
             startDate.toLocaleDateString();
@@ -277,7 +270,84 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Failed to load subscription data", "error");
     }
   }
+  async function fetchAvailablePlans() {
+    try {
+      const response = await fetch("/plans", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
 
+      if (!response.ok) throw new Error("Failed to fetch plans");
+
+      const responseData = await response.json();
+
+      // 1. Check if response is directly an array
+      let plansArray = [];
+      if (Array.isArray(responseData)) {
+        plansArray = responseData;
+      }
+      // 2. Check for common response structures
+      else if (responseData.plans && Array.isArray(responseData.plans)) {
+        plansArray = responseData.plans;
+      }
+      // 3. Fallback to empty array
+      else {
+        console.error("Unexpected plans response:", responseData);
+        throw new Error("Invalid plans data format");
+      }
+
+      const plansList = document.getElementById("plans-list");
+      plansList.innerHTML = "";
+
+      // Handle empty plans
+      if (plansArray.length === 0) {
+        plansList.innerHTML = `
+        <div class="text-center py-4 text-gray-400">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          No subscription plans available
+        </div>
+      `;
+        return;
+      }
+
+      // Render plans
+      plansArray.forEach((plan) => {
+        const button = document.createElement("button");
+        button.className =
+          "w-full px-4 py-3 mb-2 bg-gray-800 rounded-lg text-left hover:bg-gray-700";
+        button.innerHTML = `
+        <div class="font-semibold">${plan.name} Plan</div>
+        <div class="text-sm text-gray-400">KES ${plan.price}</div>
+      `;
+        button.addEventListener("click", () => {
+          selectedPlan = plan.name;
+          selectedPlanPrice = plan.price;
+          document.getElementById(
+            "confirm-plan-name"
+          ).textContent = `${plan.name} subscription`;
+          document
+            .getElementById("confirmation-modal")
+            .classList.remove("hidden");
+          document.getElementById("confirm-plan-change").dataset.plan =
+            plan.name;
+        });
+        plansList.appendChild(button);
+      });
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+
+      const plansList = document.getElementById("plans-list");
+      plansList.innerHTML = `
+      <div class="text-center py-4 text-red-400">
+        <i class="fas fa-exclamation-triangle mr-2"></i>
+        Failed to load plans: ${error.message}
+      </div>
+    `;
+
+      showToast("Failed to load available plans", "error");
+    }
+  }
   // --- Plan Upgrade Function ---
   async function upgradePlan(plan) {
     if (!currentBusinessId) {
@@ -285,30 +355,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const planPrices = {
-      basic: 2999,
-      premium: 5999,
-      enterprise: 9999,
-    };
-
-    const price = planPrices[plan];
-    if (!price) {
-      showToast("Invalid plan selected", "error");
-      return;
-    }
-
     // Show M-Pesa modal
-    document.getElementById("paymentAmount").value = `KES ${price}`;
+    document.getElementById("paymentAmount").value = `KES ${selectedPlanPrice}`;
     showStep("step3");
     document.getElementById("mpesa-modal").classList.remove("hidden");
-    selectedPlan = plan;
-    selectedPlanPrice = price;
   }
 
-  // --- Payment Processing ---
+  // --- Payment Processing (fixed) ---
   async function processPayment() {
     const phoneInput = document.getElementById("phone-input");
     const phone = phoneInput.value.trim();
+    const durationMonths = 1; // Assuming 1 month duration for simplicity
 
     if (!phone) {
       showToast("Please enter your M-Pesa phone number", "error");
@@ -332,6 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
           businessId: currentBusinessId,
           plan: selectedPlan,
           amount: selectedPlanPrice,
+          durationMonths: durationMonths, // Assuming 1 month duration for simplicity
         }),
       });
 
@@ -350,53 +408,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- Payment Status Polling ---
-  async function pollPaymentStatus(
-    transactionId,
-    attempts = 0,
-    maxAttempts = 20
-  ) {
-    if (attempts >= maxAttempts) {
-      document.getElementById("processingPopup").classList.add("hidden");
-      showToast("Payment timed out", "error");
-      return;
-    }
+  document.getElementById("payNow").addEventListener("click", (e) => {
+    e.preventDefault();
+    processPayment();
+  });
 
-    try {
-      const response = await fetch(`/payments/status/${transactionId}`);
-      const data = await response.json();
-
-      if (data.status === "success") {
-        document.getElementById("processingPopup").classList.add("hidden");
-        document.getElementById("approvedPopup").classList.remove("hidden");
-        fetchSubscriptionDetails();
-
-        setTimeout(() => {
-          document.getElementById("approvedPopup").classList.add("hidden");
-          document.getElementById("mpesa-modal").classList.add("hidden");
-          showStep("step1");
-        }, 3000);
-      } else if (data.status === "failed") {
-        document.getElementById("processingPopup").classList.add("hidden");
-        showToast("Payment failed. Please try again", "error");
-      } else {
-        // Continue polling
-        setTimeout(() => pollPaymentStatus(transactionId, attempts + 1), 2000);
-      }
-    } catch (error) {
-      console.error("Payment status check failed:", error);
-      setTimeout(() => pollPaymentStatus(transactionId, attempts + 1), 2000);
-    }
-  }
-
-  // --- Cancel Subscription ---
+  // --- Cancel Subscription (fixed with modal integration) ---
   async function cancelSubscription() {
     if (!currentBusinessId) {
       showToast("Business ID not found", "error");
       return;
     }
-
-    if (!confirm("Are you sure you want to cancel your subscription?")) return;
 
     try {
       const response = await fetch("/subscriptions/cancel", {
@@ -428,6 +450,34 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(stepId).classList.remove("hidden");
   }
 
+  // --- UPDATED: Plan upgrade button handler ---
+  document.getElementById("upgradeplanbtn").addEventListener("click", () => {
+    showStep("step2");
+    fetchAvailablePlans(); // Fetch plans from backend
+  });
+
+  // --- FIXED: Cancel subscription modal handlers ---
+  document
+    .getElementById("cancel-subscription-button")
+    .addEventListener("click", () => {
+      document
+        .getElementById("cancel-confirmation-modal")
+        .classList.remove("hidden");
+    });
+
+  document.getElementById("cancel-cancel").addEventListener("click", () => {
+    document
+      .getElementById("cancel-confirmation-modal")
+      .classList.add("hidden");
+  });
+
+  document.getElementById("confirm-cancel").addEventListener("click", () => {
+    document
+      .getElementById("cancel-confirmation-modal")
+      .classList.add("hidden");
+    cancelSubscription();
+  });
+
   // --- Event Listeners ---
 
   // Plan selection buttons
@@ -451,8 +501,6 @@ document.addEventListener("DOMContentLoaded", () => {
       upgradePlan(plan);
     });
 
-    
-
   // Cancel plan change
   document
     .getElementById("cancel-plan-change")
@@ -461,62 +509,51 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Close modals
- // Close payment-modal when clicking outside modal content
-document.getElementById("payment-modal").addEventListener("click", (e) => {
-  if (e.target.id === "payment-modal") {
-    document.getElementById("payment-modal").classList.add("hidden");
-    showStep("step1"); // reset to initial step
-  }
-});
-
+  // Close payment-modal when clicking outside modal content
+  document.getElementById("payment-modal").addEventListener("click", (e) => {
+    if (e.target.id === "payment-modal") {
+      document.getElementById("payment-modal").classList.add("hidden");
+      showStep("step1"); // reset to initial step
+    }
+  });
 
   // Upgrade Plan button
-document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
-  const mpesaModal = document.getElementById("mpesa-modal");
-  mpesaModal.classList.remove("hidden");
-  mpesaModal.classList.add("flex"); // ensure centering
-});
-document.getElementById("mpesa-modal").addEventListener("click", (e) => {
-  if (e.target.id === "mpesa-modal") {
-    e.currentTarget.classList.add("hidden");
-    showStep("step1"); // if you’re using step system
-  }
-});
-
+  document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
+    const mpesaModal = document.getElementById("mpesa-modal");
+    mpesaModal.classList.remove("hidden");
+    mpesaModal.classList.add("flex"); // ensure centering
+  });
+  document.getElementById("mpesa-modal").addEventListener("click", (e) => {
+    if (e.target.id === "mpesa-modal") {
+      e.currentTarget.classList.add("hidden");
+      showStep("step1"); // if you’re using step system
+    }
+  });
 
   // Update Payment button
 
-document
-  .getElementById("update-payment-button")
-  .addEventListener("click", () => {
-    document.getElementById("payment-modal").classList.remove("hidden");
-  });
-// Show the modal on button click
-document
-  .getElementById("cancel-subscription-button")
-  .addEventListener("click", () => {
-    const modal = document.getElementById("cancel-confirmation-modal");
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-  });
+  document
+    .getElementById("update-payment-button")
+    .addEventListener("click", () => {
+      document.getElementById("payment-modal").classList.remove("hidden");
+    });
+  // Show the modal on button click
+  document
+    .getElementById("cancel-subscription-button")
+    .addEventListener("click", () => {
+      const modal = document.getElementById("cancel-confirmation-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    });
 
-// Close the modal when clicking outside (on the overlay)
-document
-  .getElementById("cancel-confirmation-modal")
-  .addEventListener("click", () => {
-    const modal = document.getElementById("cancel-confirmation-modal");
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-  });
-
-  document.getElementById("cancel-cancel").addEventListener("click", () => {
-  const modal = document.getElementById("cancel-confirmation-modal");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-});
-
-
-
+  // Close the modal when clicking outside (on the overlay)
+  document
+    .getElementById("cancel-confirmation-modal")
+    .addEventListener("click", () => {
+      const modal = document.getElementById("cancel-confirmation-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    });
 
   // M-Pesa payment button
   document.getElementById("send-stk").addEventListener("click", processPayment);

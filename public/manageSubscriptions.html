@@ -112,18 +112,7 @@
     <style>
 
 
-/* Center the payment modal specifically */
-/* #payment-modal {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
 
-#payment-modal > div {
-  margin: auto;
-  animation: scaleIn 0.3s ease-out;
-} */
 
       body {
         font-family: "Inter", sans-serif;
@@ -285,14 +274,14 @@
     </div>
 
     <!-- Dark Mode Toggle -->
-    <button
+    <!-- <button
       id="theme-toggle"
       class="fixed top-6 right-6 z-50 glass rounded-full p-3 hover:scale-110 transition-all duration-300 group"
     >
       <i
         class="fas fa-moon text-yellow-400 group-hover:rotate-12 transition-transform duration-300"
       ></i>
-    </button>
+    </button> -->
 
     <!-- Mobile Navigation -->
     <nav
@@ -1117,8 +1106,8 @@
     <!-- Step 1: Choose action -->
     <div id="step1">
       <h2 class="text-xl font-bold mb-4 text-white">Upgrade Subscription</h2>
-      <button onclick="showUpgradeOptions()" class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition">Upgrade Plan</button>
-      <button onclick="continueToPayment()" class="w-full px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Update Payment</button>
+      <button id="upgradeplanbtn" class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition">Upgrade Plan</button>
+      <!-- <button onclick="continueToPayment()" class="w-full px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Update Payment</button> -->
     </div>
     <!-- Step 2: Select Plan -->
     <div id="step2" class="hidden">
@@ -1135,7 +1124,7 @@
       <input id="paymentAmount" type="text" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" readonly />
       <div class="flex justify-between gap-4">
         <button onclick="backToPreviousStep()" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
-        <button onclick="processPayment()" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Pay Now</button>
+        <button id="payNow" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Pay Now</button>
       </div>
     </div>
   </div>
@@ -1191,8 +1180,6 @@
 </div>
 
 
-
-         
 
    
     <script src="./js/sidebar.js"></script>
