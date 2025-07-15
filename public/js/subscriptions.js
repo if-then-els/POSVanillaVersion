@@ -357,6 +357,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show M-Pesa modal
     document.getElementById("paymentAmount").value = `KES ${selectedPlanPrice}`;
+    document.getElementById("");
+
     showStep("step3");
     document.getElementById("mpesa-modal").classList.remove("hidden");
   }
@@ -365,7 +367,8 @@ document.addEventListener("DOMContentLoaded", () => {
   async function processPayment() {
     const phoneInput = document.getElementById("phone-input");
     const phone = phoneInput.value.trim();
-    const durationMonths = 1; // Assuming 1 month duration for simplicity
+
+    const durationMonths = 1;
 
     if (!phone) {
       showToast("Please enter your M-Pesa phone number", "error");
