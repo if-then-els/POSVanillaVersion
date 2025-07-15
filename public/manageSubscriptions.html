@@ -605,13 +605,13 @@
                 <i class="fas fa-arrow-up mr-2"></i>
                 Upgrade Plan
               </button>
-              <button
-                class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
-                 id="update-payment-button"
-                >
-                <i class="fas fa-credit-card mr-2"></i>
-                Update Payment
-              </button>
+             <button
+  id="update-payment-button"
+  class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
+>
+  <i class="fas fa-credit-card mr-2"></i>
+  Update Payment
+</button>
               <button
                 class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
                 id="cancel-subscription-button"
@@ -1057,7 +1057,8 @@
             >
             <input
               type="text"
-              value="KES 5,999"
+              id="payment-amount"
+              placeholder="KES 5,999"
               readonly
               class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white font-bold"
             />
@@ -1067,7 +1068,7 @@
             id="send-stk"
           >
             <i class="fas fa-mobile-alt mr-2"></i>
-            Send STK Push
+            Pay via M-Pesa
           </button>
         </div>
 
@@ -1081,7 +1082,7 @@
     </div>
    <!-- modals -->
     <!-- Confirmation Modal for Plan Upgrade/Cancel -->
-<div id="confirmation-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+<div id="confirmation-modal" class="fixed inset-0 bg-black/60 z-[60] hidden items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
     <!-- <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
       <i class="fas fa-times"></i>
@@ -1098,7 +1099,7 @@
 </div>
 
 <!-- M-Pesa Modal for Payment/Upgrade -->
-<div id="mpesa-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
+<div id="mpesa-modal" class="fixed inset-0 bg-black/60 z-[50] hidden items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
     <!-- <button id="close-mpesa-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
       <i class="fas fa-times"></i>
@@ -1116,16 +1117,21 @@
       <button onclick="backToStep1()" class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
     </div>
     <!-- Step 3: Enter Payment -->
-    <div id="step3" class="hidden">
+    <div id="step3" class="hidden  data-step>
       <h2 class="text-xl font-bold mb-4 text-white">Enter Payment Details</h2>
       <label for="phone-input" class="block mb-2 text-gray-300">M-Pesa Phone Number</label>
       <input id="phone-input" type="tel" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" placeholder="e.g. 07XXXXXXXX" />
       <label for="paymentAmount" class="block mb-2 text-gray-300">Amount</label>
       <input id="paymentAmount" type="text" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" readonly />
-      <div class="flex justify-between gap-4">
-        <button onclick="backToPreviousStep()" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
-        <button id="payNow" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Pay Now</button>
-      </div>
+     <div class="flex justify-between gap-4">
+    <button data-step-action="prev-step" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">
+      Back
+    </button>
+    <button id="payNow" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">
+      Pay Now
+    </button>
+  </div>
+</div>
     </div>
   </div>
 </div>
