@@ -54,7 +54,7 @@ function loadSidebar() {
               ? "bg-gray-100"
               : ""
           }">
-            <i class="fas fa-cog w-5"></i>
+           <i class="fa-solid fa-bell"></i>
             <span>Subscriptions</span>
           </a>
         </li>
@@ -117,9 +117,8 @@ function loadSidebar() {
   updateUserInfo();
 
   // Logout listener
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
+  const logoutBtn = function logout() {
+    document.getElementById("logout-btn").addEventListener("click", () => {
       fetch("/logout", {
         method: "POST",
         headers: {
@@ -129,14 +128,14 @@ function loadSidebar() {
       })
         .then((response) => {
           if (!response.ok) throw new Error("Logout failed");
-          window.location.href = "/login.html"; // Redirect to login
+          window.location.href = "/login.html"; // Redirect to login page
         })
         .catch((error) => {
-          console.error("Logout error:", error);
-          alert("Failed to logout. Please try again.");
+          console.error(error);
+          alert("Logout failed. Please try again.");
         });
     });
-  }
+  };
 }
 
 // Sidebar toggle functionality

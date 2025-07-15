@@ -7,6 +7,7 @@ const businessDetailsSchema = new mongoose.Schema({
   businessEmail: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   identificationNumber: { type: String, required: true },
+  dateCreated: { type: Date, default: Date.now },
   users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
