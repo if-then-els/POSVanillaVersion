@@ -898,7 +898,7 @@
                   <h3 class="text-2xl font-bold text-primary-400 mb-2">Basic Plan</h3>
                   <p class="text-gray-400 text-sm mb-4">Essential features for small businesses.</p>
                   <div class="flex items-baseline space-x-2 mb-6">
-                    <span class="text-4xl font-black text-white">KES 2,999</span>
+                    <span class="text-4xl font-black text-white">KES 3,500</span>
                     <span class="text-gray-400">/month</span>
                   </div>
                   <ul class="space-y-3 text-gray-300 mb-8">
@@ -970,7 +970,7 @@
                   <h3 class="text-2xl font-bold text-success-400 mb-2">Enterprise Plan</h3>
                   <p class="text-gray-400 text-sm mb-4">Full suite of tools for large enterprises.</p>
                   <div class="flex items-baseline space-x-2 mb-6">
-                    <span class="text-4xl font-black text-white">KES 9,999</span>
+                    <span class="text-4xl font-black text-white">KES 9,500</span>
                     <span class="text-gray-400">/month</span>
                   </div>
                   <ul class="space-y-3 text-gray-300 mb-8">
@@ -1080,13 +1080,9 @@
         <!-- </button> -->
       </div>
     </div>
-   <!-- modals -->
-    <!-- Confirmation Modal for Plan Upgrade/Cancel -->
-<div id="confirmation-modal" class="fixed inset-0 bg-black/60 z-[60] hidden items-center justify-center">
+<!-- Confirmation Modal for Plan Upgrade/Cancel -->
+<div id="confirmation-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-    <!-- <button id="close-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
-      <i class="fas fa-times"></i>
-    </button> -->
     <h2 class="text-2xl font-bold mb-4 text-white">Confirm Action</h2>
     <p class="mb-6 text-gray-300">
       Are you sure you want to <span id="confirm-plan-name" class="font-semibold text-primary-400"></span>?
@@ -1099,39 +1095,32 @@
 </div>
 
 <!-- M-Pesa Modal for Payment/Upgrade -->
-<div id="mpesa-modal" class="fixed inset-0 bg-black/60 z-[50] hidden items-center justify-center">
+<div id="mpesa-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] hidden flex items-center justify-center">
   <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-    <!-- <button id="close-mpesa-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
-      <i class="fas fa-times"></i>
-    </button> -->
     <!-- Step 1: Choose action -->
     <div id="step1">
       <h2 class="text-xl font-bold mb-4 text-white">Upgrade Subscription</h2>
       <button id="upgradeplanbtn" class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition">Upgrade Plan</button>
-      <!-- <button onclick="continueToPayment()" class="w-full px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Update Payment</button> -->
     </div>
+
     <!-- Step 2: Select Plan -->
     <div id="step2" class="hidden">
       <h2 class="text-xl font-bold mb-4 text-white">Select a Plan</h2>
       <div id="plans-list" class="space-y-4"></div>
       <button onclick="backToStep1()" class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
     </div>
+
     <!-- Step 3: Enter Payment -->
-    <div id="step3" class="hidden  data-step>
+    <div id="step3" class="hidden" data-step>
       <h2 class="text-xl font-bold mb-4 text-white">Enter Payment Details</h2>
       <label for="phone-input" class="block mb-2 text-gray-300">M-Pesa Phone Number</label>
       <input id="phone-input" type="tel" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" placeholder="e.g. 07XXXXXXXX" />
       <label for="paymentAmount" class="block mb-2 text-gray-300">Amount</label>
       <input id="paymentAmount" type="text" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" readonly />
-     <div class="flex justify-between gap-4">
-    <button data-step-action="prev-step" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">
-      Back
-    </button>
-    <button id="payNow" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">
-      Pay Now
-    </button>
-  </div>
-</div>
+      <div class="flex justify-between gap-4">
+        <button data-step-action="prev-step" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
+        <button id="payNow" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Pay Now</button>
+      </div>
     </div>
   </div>
 </div>
