@@ -106,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedPlan = null;
   let selectedPlanPrice = null;
   let currentBusinessId = null;
+  let currentPlanPrice = null; // Added to store current plan price
 
   // --- Fetch Subscription Details Function (updated) ---
   async function fetchSubscriptionDetails() {
@@ -125,6 +126,24 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Set plan prices using backend data
+      const planPricesNumeric = {
+        trial: 0,
+        basic: 3500,
+        Standard: 5500,
+        premium: 9500,
+      };
+
+      const planPricesDisplay = {
+        trial: "KES 0 (Free Trial)",
+        basic: "KES 3,500",
+        Standard: "KES 5,500",
+        premium: "KES 9,500",
+      };
+
+      // Store current plan price numerically
+      currentPlanPrice = planPricesNumeric[sub.plan] ?? null;
+
       // Update UI with subscription details
       document.getElementById("plan-name").textContent = sub.plan
         ? `${sub.plan} Plan`
@@ -139,16 +158,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ? new Date(sub.endDate).toLocaleDateString()
         : "N/A";
 
-      // Set plan price using backend data
-      const planPrices = {
-        trial: "KES 0 (Free Trial)",
-        basic: "KES 3,500",
-        Standard: "KES 5,500",
-        premium: "KES 9,500",
-      };
-
+      // Set display price
       document.getElementById("plan-price").textContent =
-        planPrices[sub.plan] || "N/A";
+        planPricesDisplay[sub.plan] || "N/A";
 
       // Update auto-renew status
       const autoRenewStatus = document.getElementById("plan-autoRenew");
@@ -355,10 +367,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Show M-Pesa modal
-    document.getElementById("paymentAmount").value = `KES ${selectedPlanPrice}`;
-    document.getElementById("");
-
+    // Show M-Pesa modal and set payment amount
+    document.getElementById(
+      "payment-amount"
+    ).value = `KES ${selectedPlanPrice}`;
     showStep("step3");
     document.getElementById("mpesa-modal").classList.remove("hidden");
   }
@@ -533,13 +545,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Update Payment button
-
+  // Update Payment button - MODIFIED
   document
     .getElementById("update-payment-button")
     .addEventListener("click", () => {
+      // Set payment amount to current plan price
+      if (currentPlanPrice !== null) {
+        document.getElementById(
+          "payment-amount"
+        ).value = `KES ${currentPlanPrice.toLocaleString()}`;
+      } else {
+        document.getElementById("payment-amount").value = "KES 0";
+      }
       document.getElementById("payment-modal").classList.remove("hidden");
     });
+
   // Show the modal on button click
   document
     .getElementById("cancel-subscription-button")
@@ -548,8 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
       modal.classList.remove("hidden");
       modal.classList.add("flex");
     });
-  //fetch amount for amount input
-  document.getElementById("payment-amount").value = `KES ${selectedPlanPrice}`;
+
   // Close the modal when clicking outside (on the overlay)
   document
     .getElementById("cancel-confirmation-modal")
