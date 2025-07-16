@@ -548,7 +548,8 @@ document.addEventListener("DOMContentLoaded", () => {
       modal.classList.remove("hidden");
       modal.classList.add("flex");
     });
-
+  //fetch amount for amount input
+  document.getElementById("payment-amount").value = `KES ${selectedPlanPrice}`;
   // Close the modal when clicking outside (on the overlay)
   document
     .getElementById("cancel-confirmation-modal")
