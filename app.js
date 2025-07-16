@@ -9,6 +9,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const multer = require("multer");
+const Plan = require("./models/plan.model");
 
 const port = 5000;
 
@@ -24,6 +25,7 @@ mongoose
     console.log("Error connecting to DB", err);
   });
 
+app.use(express.json());
 app.use((req, res, next) => {
   // Middleware to handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -48,6 +50,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 //import routes
+const paymentsRoutes = require("./routes/payments.routes");
 const userRoutes = require("./routes/user.routes");
 const inventoryRoutes = require("./routes/inventory.routes");
 const ownerRoutes = require("./routes/owner.route");
@@ -57,8 +60,8 @@ const settingsRoutes = require("./routes/settings.routes");
 const businessRoutes = require("./routes/business.routes");
 const subscriptionMiddleware = require("./middleware/subscription.middleware");
 const subscriptionsRoutes = require("./routes/subscriptions.routes");
-const paymentsRoutes = require("./routes/payments.routes");
 
+app.use("/", paymentsRoutes);
 app.use("/", settingsRoutes);
 app.use("/", userRoutes);
 app.use("/", inventoryRoutes);
@@ -67,13 +70,26 @@ app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
 app.use("/", userRoutes);
 app.use("/api/business", businessRoutes);
-app.use("/", subscriptionsRoutes);
-app.use("/", paymentsRoutes);
+// public, must be before subscriptionMiddleware
+app.use(subscriptionMiddleware); // protected
+app.use("/", subscriptionsRoutes); // protected
 
 // Apply subscription middleware
-app.use(subscriptionMiddleware);
-app.route("/ping").get((req, res) => {
-  res.status(200).json({ message: "pong" });
+
+async function seedPlans() {
+  const plans = [
+    { name: "basic", price: 1, description: "Basic Plan" },
+    { name: "Standard", price: 5500, description: "Standard Plan" },
+    { name: "premium", price: 9500, description: "Premium Plan" },
+  ];
+  for (const plan of plans) {
+    await Plan.updateOne({ name: plan.name }, { $set: plan }, { upsert: true });
+  }
+}
+
+// Call this after mongoose.connect(...)
+mongoose.connection.once("open", () => {
+  seedPlans().then(() => console.log("Plans seeded"));
 });
 
 //start app

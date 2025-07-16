@@ -1,57 +1,32 @@
 const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
-const SubscriptionLog = require("../models/subscriptionLog.model"); // New: for logging
+const SubscriptionLog = require("../models/subscriptionLog.model");
+const Plan = require("../models/plan.model");
 
 exports.upgradeSubscription = async (req, res) => {
   try {
-    const { businessId, newPlan, durationMonths, newPlanPrice } = req.body;
-    if (!businessId || !newPlan || !durationMonths || !newPlanPrice) {
+    const { businessId, newPlan, durationMonths, phone } = req.body;
+    if (!businessId || !newPlan || !durationMonths) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Find current active subscription
-    const currentSub = await Subscription.findOne({
-      business: businessId,
-      status: "active",
-      endDate: { $gte: new Date() },
-    });
-
-    let discount = 0;
-    let startDate = new Date();
-    let endDate = new Date();
-    let oldPlan = null;
-
-    if (currentSub) {
-      oldPlan = currentSub.plan;
-      // Prorate unused days
-      const now = new Date();
-      const totalDays = Math.ceil(
-        (currentSub.endDate - currentSub.startDate) / (1000 * 60 * 60 * 24)
-      );
-      const remainingDays = Math.max(
-        Math.ceil((currentSub.endDate - now) / (1000 * 60 * 60 * 24)),
-        0
-      );
-      const dailyRate = currentSub.price ? currentSub.price / totalDays : 0;
-      discount = dailyRate * remainingDays;
-
-      // Expire current subscription
-      currentSub.status = "expired";
-      await currentSub.save();
+    // Fetch plan price from DB
+    const planDoc = await Plan.findOne({ name: newPlan });
+    if (!planDoc) {
+      return res.status(400).json({ message: "Selected plan does not exist" });
     }
+    const newPlanPrice = planDoc.price;
 
-    // Calculate final price after discount
-    const totalPrice = newPlanPrice * durationMonths - discount;
-
-    endDate.setMonth(endDate.getMonth() + Number(durationMonths));
-
-    // Expire any other active subscriptions
+    // Expire current subscription
     await Subscription.updateMany(
       { business: businessId, status: "active" },
       { $set: { status: "expired" } }
     );
 
-    // Create new subscription (pending until payment)
+    // Create new pending subscription
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + Number(durationMonths));
     const newSub = await Subscription.create({
       business: businessId,
       plan: newPlan,
@@ -60,26 +35,37 @@ exports.upgradeSubscription = async (req, res) => {
       status: "pending",
       autoRenew: false,
       price: newPlanPrice * durationMonths,
-      discount,
-      totalPrice,
+      totalPrice: newPlanPrice * durationMonths,
     });
 
     // Log the change
     await SubscriptionLog.create({
       business: businessId,
-      oldPlan,
+      oldPlan: null,
       newPlan,
       action: "upgrade",
       date: new Date(),
-      discount,
-      totalPrice,
+      discount: 0,
+      totalPrice: newPlanPrice * durationMonths,
     });
 
-    res.status(200).json({
-      message: "Subscription upgrade initiated. Please complete payment.",
+    // If paid plan, trigger M-Pesa
+    if (newPlan !== "trial" && phone) {
+      // Call initiateMpesaPayment controller here or from frontend
+      return res.status(200).json({
+        message: "Subscription upgrade initiated. Please complete payment.",
+        subscription: newSub,
+        requirePayment: true,
+      });
+    }
+
+    // For free/trial plans, activate immediately
+    newSub.status = "active";
+    await newSub.save();
+    return res.status(200).json({
+      message: "Subscription upgraded successfully.",
       subscription: newSub,
-      totalPrice,
-      discount,
+      requirePayment: false,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -88,14 +74,17 @@ exports.upgradeSubscription = async (req, res) => {
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
+    // Try to get business from req.user, fallback to req.query or req.body for testing
     const business = req.user.business;
+    console.log("business from req.user:", business);
     if (!business) {
       return res.status(400).json({ message: "Business ID is required" });
     }
     const subscription = await Subscription.findOne({
       business: business,
       status: "active",
-    }).populate("business", "businessName businessEmail");
+    });
+    //console.log("Found subscription:", subscription);
     if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });
     }
@@ -111,13 +100,74 @@ exports.getSubscriptionDetails = async (req, res) => {
         price: subscription.price,
         discount: subscription.discount,
         totalPrice: subscription.totalPrice,
+        business: subscription.business,
       },
     });
   } catch (error) {
-    console.error("Error retrieving subscription details:", error);
     res.status(500).json({
       message: "Server error retrieving subscription details",
       error: error.message,
     });
+  }
+};
+
+exports.cancelSubscription = async (req, res) => {
+  try {
+    const { businessId } = req.body;
+    if (!businessId) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
+    const sub = await Subscription.findOne({
+      business: businessId,
+      status: "active",
+    });
+    if (!sub) {
+      return res.status(404).json({ message: "No active subscription found" });
+    }
+    sub.status = "cancelled";
+    await sub.save();
+
+    await SubscriptionLog.create({
+      business: businessId,
+      oldPlan: sub.plan,
+      newPlan: null,
+      action: "cancel",
+      date: new Date(),
+      discount: 0,
+      totalPrice: sub.totalPrice,
+    });
+
+    res.status(200).json({ message: "Subscription cancelled" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.getSubscriptionPaymentLogs = async (req, res) => {
+  try {
+    const businessId = req.user.business;
+    if (!businessId) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
+    const logs = await SubscriptionLog.find({ business: businessId })
+      .sort({ date: -1 })
+      .populate("business", "businessName");
+    res.status(200).json({
+      message: "Subscription payment logs retrieved successfully",
+      logs,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+exports.getSubscriptionPlans = async (req, res) => {
+  try {
+    const plans = await Plan.find({});
+    res.status(200).json({
+      message: "Subscription plans retrieved successfully",
+      plans,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
   }
 };

@@ -12,13 +12,15 @@ const SubscriptionSchema = new mongoose.Schema(
     endDate: { type: Date },
     status: {
       type: String,
-      enum: ["active", "inactive", "cancelled", "expired"],
+      enum: ["active", "inactive", "cancelled", "expired", "pending"],
       default: "inactive",
     },
     autoRenew: { type: Boolean, default: false },
     paymentMethod: { type: String },
     lastPaymentDate: { type: Date },
     nextBillingDate: { type: Date },
+    mpesaCheckoutRequestID: { type: String, default: null }, // M-Pesa STK Push ID
+    mpesaTransactionId: { type: String, default: null }, // M-Pesa Receipt Number
   },
   { timestamps: true }
 );

@@ -2,10 +2,16 @@ const express = require("express");
 const router = express.Router();
 const paymentsController = require("../controllers/payments.controller");
 
-// Initiate M-Pesa payment
-router.post("/payments/mpesa", paymentsController.initiateMpesaPayment);
+// M-Pesa STK Push Initiation
+router.post("/payments/mpesa/stkpush", paymentsController.initiateMpesaStkPush);
 
-// M-Pesa callback (should be public)
-router.post("/payments/mpesa/callback", paymentsController.mpesaCallback);
+// M-Pesa C2B Confirmation Callback
+router.post(
+  "/payments/mpesa/c2b/confirmation",
+  paymentsController.mpesaConfirmationCallback
+);
+
+// Optional: M-Pesa C2B Validation Callback
+// router.post("/payments/mpesa/c2b/validation", paymentsController.mpesaValidationCallback);
 
 module.exports = router;

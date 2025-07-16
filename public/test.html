@@ -11,8 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Google Fonts for better typography -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Custom CSS - PRESERVED -->
-    <link rel="stylesheet" href="./css/styles.css" />
 
     <script>
       // Tailwind configuration from manageSubscriptions.html
@@ -229,15 +227,15 @@
         transform: translateY(0);
       }
 
-      /* Original sales.html custom styles - adapted for dark theme */
+      /* Custom smooth transitions for sales.html elements */
       .smooth-transition {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       
-      /* Better focus states - adapted for dark theme */
+      /* Better focus states */
       [type="text"]:focus, [type="email"]:focus, textarea:focus, select:focus {
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); /* Using primary-500 from new palette */
-        border-color: #0ea5e9; /* Using primary-500 from new palette */
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); /* Using primary-500 */
+        border-color: #0ea5e9; /* Using primary-500 */
       }
       
       /* Custom scrollbar for dark theme */
@@ -320,17 +318,73 @@
     </nav>
 
     <div class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10">
-      <!-- Sidebar - EMPTY DIV, CONTENT TO BE RENDERED BY sidebar.js -->
+      <!-- Sidebar -->
       <div
         id="sidebar"
         class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
-      ></div>
+      >
+        <div class="p-6">
+          <div class="flex items-center space-x-3 mb-8">
+            <div
+              class="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-slow"
+            >
+              <i class="fas fa-bolt text-white"></i>
+            </div>
+            <div>
+              <h1
+                class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
+              >
+                POS Hub
+              </h1>
+              <p class="text-xs text-gray-400">Next-Gen Management</p>
+            </div>
+          </div>
+
+          <nav class="space-y-2">
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-primary-500/20 to-accent-500/20 border border-primary-500/30"
+            >
+              <i class="fas fa-home text-primary-400"></i>
+              <span class="text-white">Dashboard</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-credit-card text-accent-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Subscriptions</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-chart-line text-success-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Analytics</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-users text-yellow-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Team</span>
+            </a>
+            <a
+              href="#"
+              class="flex items-center space-x-3 p-3 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+            >
+              <i class="fas fa-cog text-gray-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-gray-300 group-hover:translate-x-1 transition-transform">Settings</span>
+            </a>
+          </nav>
+        </div>
+      </div>
 
       <!-- Overlay -->
       <div id="overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"></div>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative" id="main-content">
+      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative">
         <div class="max-w-5xl mx-auto">
           <!-- Page header with breadcrumbs -->
           <div class="mb-6 scroll-reveal">
@@ -1270,10 +1324,5 @@
         renderCart();
       });
     </script>
-    <!-- External Scripts - PRESERVED -->
-    <script src="./js/sidebar.js"></script>
-    <script src="./js/utils.js"></script>
-    <script src="./js/auth.js"></script>
-    <script src="./js/sales.js"></script>
   </body>
 </html>

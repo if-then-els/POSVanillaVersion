@@ -2,734 +2,943 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>User Management - SwiftPOS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Management - POS System</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for Icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
     <script>
-      // Tailwind configuration
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
             colors: {
               primary: {
-                DEFAULT: "#4f46e5",
-                50: "#eef2ff",
-                100: "#e0e7ff",
-                200: "#c7d2fe",
-                300: "#a5b4fc",
-                400: "#818cf8",
-                500: "#6366f1",
-                600: "#4f46e5",
-                700: "#4338ca",
-                800: "#3730a3",
-                900: "#312e81",
-                950: "#1e1b4b",
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              accent: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+              success: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+                800: "#166534",
+                900: "#14532d",
+              },
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "bounce-slow": "bounce 3s infinite",
+              "spin-slow": "spin 8s linear infinite",
+              gradient: "gradient 15s ease infinite",
+              "slide-up": "slideUp 0.5s ease-out",
+              "slide-in": "slideIn 0.6s ease-out",
+              "scale-in": "scaleIn 0.4s ease-out",
+              glow: "glow 2s ease-in-out infinite alternate",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-20px)" },
+              },
+              gradient: {
+                "0%, 100%": {
+                  "background-size": "200% 200%",
+                  "background-position": "left center",
+                },
+                "50%": {
+                  "background-size": "200% 200%",
+                  "background-position": "right center",
+                },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(100px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+              slideIn: {
+                "0%": { transform: "translateX(-100px)", opacity: "0" },
+                "100%": { transform: "translateX(0)", opacity: "1" },
+              },
+              scaleIn: {
+                "0%": { transform: "scale(0.8)", opacity: "0" },
+                "100%": { transform: "scale(1)", opacity: "1" },
+              },
+              glow: {
+                "0%": { boxShadow: "0 0 20px rgba(14, 165, 233, 0.5)" },
+                "100%": { boxShadow: "0 0 40px rgba(14, 165, 233, 0.8)" },
               },
             },
           },
         },
       };
     </script>
-  </head>
-  <body class="bg-gray-50">
-    <div class="flex h-screen overflow-hidden">
-      <!-- Sidebar -->
-      <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r shadow-sm">
-        <div class="flex items-center justify-center h-16 px-4 border-b">
-          <div class="flex items-center">
-            <i class="fas fa-cash-register text-primary-600 text-2xl mr-2"></i>
-            <span class="text-xl font-bold">SwiftPOS</span>
-          </div>
-        </div>
-        <div class="h-full overflow-y-auto">
-          <nav class="px-4 py-4">
-            <div class="space-y-1">
-              <a
-                href="dashboard.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <i
-                  class="fas fa-tachometer-alt mr-3 text-gray-400 group-hover:text-gray-500"
-                ></i>
-                Dashboard
-              </a>
-              <a
-                href="sales.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <i
-                  class="fas fa-shopping-cart mr-3 text-gray-400 group-hover:text-gray-500"
-                ></i>
-                Sales
-              </a>
-              <a
-                href="inventory.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <i
-                  class="fas fa-boxes mr-3 text-gray-400 group-hover:text-gray-500"
-                ></i>
-                Inventory
-              </a>
-              <a
-                href="customers.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <i
-                  class="fas fa-users mr-3 text-gray-400 group-hover:text-gray-500"
-                ></i>
-                Customers
-              </a>
-              <a
-                href="reports.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <i
-                  class="fas fa-chart-bar mr-3 text-gray-400 group-hover:text-gray-500"
-                ></i>
-                Reports
-              </a>
-              <a
-                href="users.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md bg-primary-50 text-primary-600"
-              >
-                <i class="fas fa-user-cog mr-3 text-primary-500"></i>
-                User Management
-              </a>
-              <a
-                href="settings.html"
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              >
-                <i
-                  class="fas fa-cog mr-3 text-gray-400 group-hover:text-gray-500"
-                ></i>
-                Settings
-              </a>
-            </div>
 
-            <div class="mt-8">
-              <h3
-                class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"
-              >
-                Account
-              </h3>
-              <div class="mt-1 space-y-1">
-                <a
-                  href="profile.html"
-                  class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                >
-                  <i
-                    class="fas fa-user mr-3 text-gray-400 group-hover:text-gray-500"
-                  ></i>
-                  Your Profile
-                </a>
-                <a
-                  href="#"
-                  class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                >
-                  <i
-                    class="fas fa-sign-out-alt mr-3 text-gray-400 group-hover:text-gray-500"
-                  ></i>
-                  Sign out
-                </a>
-              </div>
-            </div>
-          </nav>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .glass-dark {
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .gradient-bg {
+        background: linear-gradient(-45deg, #0ea5e9, #d946ef, #22c55e, #f59e0b);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+
+      .hover-lift {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 0.6s ease-out;
+      }
+
+      .scroll-reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 z-0">
+      <div class="gradient-bg absolute inset-0 opacity-20"></div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav
+      class="md:hidden flex justify-between items-center p-4 glass fixed top-0 w-full z-40 backdrop-blur-md"
+    >
+      <div class="flex items-center space-x-2">
+        <div
+          class="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg flex items-center justify-center"
+        >
+          <i class="fas fa-bolt text-white text-sm"></i>
         </div>
+        <h1
+          class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
+        >
+          SwiftPOS
+        </h1>
+      </div>
+      <button
+        id="toggle-sidebar"
+        class="p-2 hover:bg-white/10 rounded-lg transition-colors"
+      >
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </nav>
+
+    <div
+      class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10"
+    >
+      <!-- Sidebar -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
+      >
+        <!-- Sidebar content loaded via JS -->
       </div>
 
-      <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto ml-64 p-6">
-        <div
-          class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-        >
-          <div>
-            <h1 class="text-3xl font-bold">User Management</h1>
-            <p class="text-gray-600">Manage system users and permissions</p>
-          </div>
-          <div class="flex gap-2">
-            <button
-              id="add-user"
-              class="flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <i class="fas fa-plus mr-2"></i> Add User
-            </button>
-            <button
-              id="export-users"
-              class="flex items-center px-4 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <i class="fas fa-download mr-2"></i> Export
-            </button>
-          </div>
-        </div>
+      <!-- Overlay -->
+      <div
+        id="overlay"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"
+      ></div>
 
-        <!-- User Filter Card -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div class="p-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold">Filter Users</h2>
-          </div>
-          <div class="p-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label
-                  for="search"
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  >Search</label
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative">
+        <div class="max-w-6xl mx-auto">
+          <!-- Header Section -->
+          <div class="mb-12 scroll-reveal">
+            <div class="relative">
+              <h1
+                class="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-success-400 bg-clip-text text-transparent animate-slide-in"
+              >
+                User Management
+              </h1>
+              <p class="text-xl text-gray-400 mb-6">
+                Manage system users and permissions
+              </p>
+
+              <div class="flex items-center space-x-4">
+                <div
+                  class="flex items-center space-x-2 glass px-4 py-2 rounded-full"
                 >
+                  <div
+                    class="w-2 h-2 bg-success-400 rounded-full animate-pulse"
+                  ></div>
+                  <span class="text-sm"
+                    >Active Users: <span id="active-users-count">0</span></span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Bar -->
+          <div class="glass rounded-2xl p-6 mb-8 scroll-reveal">
+            <div
+              class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            >
+              <div class="flex-1">
                 <div class="relative">
                   <div
                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                   >
-                    <i class="fas fa-search text-gray-400"></i>
+                    <i class="fas fa-search text-gray-500"></i>
                   </div>
                   <input
                     type="text"
-                    id="search"
-                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                    placeholder="Name, email..."
+                    id="user-search"
+                    class="glass-dark w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Search users..."
                   />
                 </div>
               </div>
-              <div>
-                <label
-                  for="role"
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  >Role</label
-                >
-                <select
-                  id="role"
-                  class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-                >
-                  <option value="">All Roles</option>
-                  <option value="admin">Administrator</option>
-                  <option value="manager">Manager</option>
-                  <option value="cashier">Cashier</option>
-                  <option value="inventory">Inventory Staff</option>
-                </select>
-              </div>
-              <div>
-                <label
-                  for="status"
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  >Status</label
-                >
-                <select
-                  id="status"
-                  class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md"
-                >
-                  <option value="">All Statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
-                </select>
-              </div>
-              <div class="flex items-end">
+              <div class="flex gap-4">
                 <button
-                  id="apply-filters"
-                  class="w-full bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary"
+                  id="add-user-btn"
+                  class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
                 >
-                  Apply Filters
+                  <i class="fas fa-user-plus mr-2"></i> Add User
+                </button>
+                <button
+                  id="export-users-btn"
+                  class="px-6 py-3 glass-dark border border-gray-700 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 hover:scale-105"
+                >
+                  <i class="fas fa-file-export mr-2"></i> Export
                 </button>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Users Table Card -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div
-            class="p-4 border-b border-gray-200 flex items-center justify-between"
-          >
-            <h2 class="text-lg font-semibold">All Users</h2>
-            <div class="flex items-center text-sm text-gray-500">
-              <span>1-10 of 24 users</span>
-              <div class="ml-4 flex space-x-2">
+          <!-- Users Table -->
+          <div class="glass rounded-3xl p-8 scroll-reveal">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-gray-700">
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Name
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Email
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Role
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Status
+                    </th>
+                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
+                      Last Active
+                    </th>
+                    <th
+                      class="text-right py-4 px-6 text-gray-400 font-semibold"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="users-table" class="divide-y divide-gray-700">
+                  <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                      Loading users...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between mt-6">
+              <div class="text-sm text-gray-400">
+                Showing <span id="users-start">1</span> to
+                <span id="users-end">10</span> of
+                <span id="users-total">0</span> users
+              </div>
+              <div class="flex gap-2">
                 <button
-                  class="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                  id="prev-page"
+                  class="glass-dark px-4 py-2 rounded-xl hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled
                 >
-                  <i class="fas fa-chevron-left"></i>
+                  Previous
                 </button>
-                <button class="p-1 rounded-md hover:bg-gray-100">
-                  <i class="fas fa-chevron-right"></i>
+                <button
+                  id="next-page"
+                  class="glass-dark px-4 py-2 rounded-xl hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Next
                 </button>
               </div>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    User
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Role
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Last Active
-                  </th>
-                  <th
-                    scope="col"
-                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <!-- User 1 -->
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img
-                          class="h-10 w-10 rounded-full"
-                          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                          alt=""
-                        />
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">
-                          Sarah Johnson
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          sarah@example.com
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">Administrator</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                    >
-                      Active
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    2 hours ago
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <div class="flex justify-end space-x-2">
-                      <button class="text-primary-600 hover:text-primary-900">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-lock"></i>
-                      </button>
-                      <button class="text-red-600 hover:text-red-900">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- User 2 -->
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img
-                          class="h-10 w-10 rounded-full"
-                          src="https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                          alt=""
-                        />
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">
-                          Michael Chen
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          michael@example.com
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">Manager</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                    >
-                      Active
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    1 day ago
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <div class="flex justify-end space-x-2">
-                      <button class="text-primary-600 hover:text-primary-900">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-lock"></i>
-                      </button>
-                      <button class="text-red-600 hover:text-red-900">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- User 3 -->
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img
-                          class="h-10 w-10 rounded-full"
-                          src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                          alt=""
-                        />
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">
-                          David Wilson
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          david@example.com
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">Cashier</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"
-                    >
-                      Pending
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    Never
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <div class="flex justify-end space-x-2">
-                      <button class="text-primary-600 hover:text-primary-900">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-lock"></i>
-                      </button>
-                      <button class="text-red-600 hover:text-red-900">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- User 4 -->
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img
-                          class="h-10 w-10 rounded-full"
-                          src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                          alt=""
-                        />
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">
-                          Emily Rodriguez
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          emily@example.com
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">Inventory Staff</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
-                    >
-                      Active
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    3 hours ago
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <div class="flex justify-end space-x-2">
-                      <button class="text-primary-600 hover:text-primary-900">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-lock"></i>
-                      </button>
-                      <button class="text-red-600 hover:text-red-900">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-
-                <!-- User 5 -->
-                <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <img
-                          class="h-10 w-10 rounded-full"
-                          src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=60"
-                          alt=""
-                        />
-                      </div>
-                      <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900">
-                          Jessica Lee
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          jessica@example.com
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">Cashier</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
-                    >
-                      Suspended
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    2 weeks ago
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <div class="flex justify-end space-x-2">
-                      <button class="text-primary-600 hover:text-primary-900">
-                        <i class="fas fa-edit"></i>
-                      </button>
-                      <button class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-lock"></i>
-                      </button>
-                      <button class="text-red-600 hover:text-red-900">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div
-            class="px-4 py-3 border-t border-gray-200 flex items-center justify-between"
-          >
-            <div class="text-sm text-gray-500">
-              Showing <span class="font-medium">1</span> to
-              <span class="font-medium">5</span> of
-              <span class="font-medium">24</span> users
-            </div>
-            <div class="flex space-x-2">
-              <button
-                class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Previous
-              </button>
-              <button
-                class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Next
-              </button>
             </div>
           </div>
         </div>
       </main>
     </div>
 
-    <!-- Add User Modal (Hidden by default) -->
-    <div id="add-user-modal" class="fixed z-50 inset-0 overflow-y-auto hidden">
+    <!-- Add User Modal -->
+    <div
+      id="add-user-modal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+    >
       <div
-        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+        class="fixed inset-0 bg-black/70 backdrop-blur-sm"
+        id="modal-backdrop"
+      ></div>
+      <div
+        class="glass rounded-2xl w-full max-w-md relative z-10 animate-scale-in"
       >
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-        </div>
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Add New User</h3>
+            <button id="close-modal" class="text-gray-400 hover:text-white">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
 
-        <span
-          class="hidden sm:inline-block sm:align-middle sm:h-screen"
-          aria-hidden="true"
-          >&#8203;</span
-        >
-
-        <div
-          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-        >
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
-              <div
-                class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 sm:mx-0 sm:h-10 sm:w-10"
+          <form id="add-user-form" class="space-y-4">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Full Name</label
               >
-                <i class="fas fa-user-plus text-primary-600"></i>
-              </div>
-              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Add New User
-                </h3>
-                <div class="mt-2">
-                  <form class="space-y-4">
-                    <div>
-                      <label
-                        for="full-name"
-                        class="block text-sm font-medium text-gray-700"
-                        >Full Name</label
-                      >
-                      <input
-                        type="text"
-                        id="full-name"
-                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        for="email"
-                        class="block text-sm font-medium text-gray-700"
-                        >Email Address</label
-                      >
-                      <input
-                        type="email"
-                        id="email"
-                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        for="role"
-                        class="block text-sm font-medium text-gray-700"
-                        >Role</label
-                      >
-                      <select
-                        id="role"
-                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                      >
-                        <option value="cashier">Cashier</option>
-                        <option value="inventory">Inventory Staff</option>
-                        <option value="manager">Manager</option>
-                        <option value="admin">Administrator</option>
-                      </select>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                      <div>
-                        <label
-                          for="password"
-                          class="block text-sm font-medium text-gray-700"
-                          >Password</label
-                        >
-                        <input
-                          type="password"
-                          id="password"
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label
-                          for="confirm-password"
-                          class="block text-sm font-medium text-gray-700"
-                          >Confirm Password</label
-                        >
-                        <input
-                          type="password"
-                          id="confirm-password"
-                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                        />
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
+              <input
+                type="text"
+                name="fullName"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
             </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Email</label
+              >
+              <input
+                type="email"
+                name="email"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Role</label
+              >
+              <select
+                name="role"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              >
+                <option value="">Select Role</option>
+                <option value="admin">Administrator</option>
+                <option value="manager">Manager</option>
+                <option value="cashier">Cashier</option>
+                <option value="inventory">Inventory Manager</option>
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Initial Password</label
+              >
+              <input
+                type="password"
+                name="password"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3">
+              <button
+                type="button"
+                id="cancel-add-user"
+                class="px-4 py-2 glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-save mr-2"></i> Save User
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div
+      id="edit-user-modal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="fixed inset-0 bg-black/70 backdrop-blur-sm"
+        id="edit-modal-backdrop"
+      ></div>
+      <div
+        class="glass rounded-2xl w-full max-w-md relative z-10 animate-scale-in"
+      >
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Edit User</h3>
             <button
-              type="button"
-              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm"
+              id="close-edit-modal"
+              class="text-gray-400 hover:text-white"
             >
-              Add User
-            </button>
-            <button
-              type="button"
-              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-            >
-              Cancel
+              <i class="fas fa-times text-xl"></i>
             </button>
           </div>
+
+          <form id="edit-user-form" class="space-y-4">
+            <input type="hidden" id="edit-user-id" name="userId" />
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Full Name</label
+              >
+              <input
+                type="text"
+                id="edit-fullName"
+                name="fullName"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Email</label
+              >
+              <input
+                type="email"
+                id="edit-email"
+                name="email"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Role</label
+              >
+              <select
+                id="edit-role"
+                name="role"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              >
+                <option value="admin">Administrator</option>
+                <option value="manager">Manager</option>
+                <option value="cashier">Cashier</option>
+                <option value="inventory">Inventory Manager</option>
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Status</label
+              >
+              <select
+                id="edit-status"
+                name="status"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+
+            <div class="pt-4 flex justify-end gap-3">
+              <button
+                type="button"
+                id="cancel-edit-user"
+                class="px-4 py-2 glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-save mr-2"></i> Save Changes
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
 
     <!-- Toast notification container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+    <div
+      id="toast-container"
+      class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"
+    ></div>
 
+    <!-- Scripts -->
+    <script src="./js/sidebar.js"></script>
+    <script src="./js/utils.js"></script>
     <script>
-      // Simple modal toggle for demonstration
-      document
-        .getElementById("add-user")
-        .addEventListener("click", function () {
-          document.getElementById("add-user-modal").classList.remove("hidden");
-        });
+      // Initialize scroll reveal animations
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("revealed");
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
 
-      // Close modal when clicking cancel or outside
-      document.querySelectorAll('[aria-hidden="true"]').forEach((el) => {
-        el.addEventListener("click", function () {
-          document.getElementById("add-user-modal").classList.add("hidden");
-        });
+      document.querySelectorAll(".scroll-reveal").forEach((el) => {
+        observer.observe(el);
       });
 
-      document
-        .querySelector("#add-user-modal button:last-child")
-        .addEventListener("click", function () {
-          document.getElementById("add-user-modal").classList.add("hidden");
+      // Mock data for demonstration
+      let users = [
+        {
+          id: 1,
+          name: "John Doe",
+          email: "john@example.com",
+          role: "admin",
+          status: "active",
+          lastActive: "2023-05-15 14:30",
+          avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+        },
+        {
+          id: 2,
+          name: "Jane Smith",
+          email: "jane@example.com",
+          role: "manager",
+          status: "active",
+          lastActive: "2023-05-14 09:15",
+          avatar: "https://randomuser.me/api/portraits/women/1.jpg",
+        },
+        {
+          id: 3,
+          name: "Robert Johnson",
+          email: "robert@example.com",
+          role: "cashier",
+          status: "active",
+          lastActive: "2023-05-15 10:45",
+          avatar: "https://randomuser.me/api/portraits/men/2.jpg",
+        },
+        {
+          id: 4,
+          name: "Emily Davis",
+          email: "emily@example.com",
+          role: "inventory",
+          status: "inactive",
+          lastActive: "2023-05-10 16:20",
+          avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+        },
+        {
+          id: 5,
+          name: "Michael Wilson",
+          email: "michael@example.com",
+          role: "cashier",
+          status: "suspended",
+          lastActive: "2023-05-05 11:10",
+          avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+        },
+      ];
+
+      // Current page for pagination
+      let currentPage = 1;
+      const usersPerPage = 5;
+
+      // DOM elements
+      const usersTable = document.getElementById("users-table");
+      const activeUsersCount = document.getElementById("active-users-count");
+      const usersStart = document.getElementById("users-start");
+      const usersEnd = document.getElementById("users-end");
+      const usersTotal = document.getElementById("users-total");
+      const prevPageBtn = document.getElementById("prev-page");
+      const nextPageBtn = document.getElementById("next-page");
+      const addUserBtn = document.getElementById("add-user-btn");
+      const addUserModal = document.getElementById("add-user-modal");
+      const closeModalBtn = document.getElementById("close-modal");
+      const modalBackdrop = document.getElementById("modal-backdrop");
+      const cancelAddUserBtn = document.getElementById("cancel-add-user");
+      const addUserForm = document.getElementById("add-user-form");
+      const editUserModal = document.getElementById("edit-user-modal");
+      const closeEditModalBtn = document.getElementById("close-edit-modal");
+      const editModalBackdrop = document.getElementById("edit-modal-backdrop");
+      const cancelEditUserBtn = document.getElementById("cancel-edit-user");
+      const editUserForm = document.getElementById("edit-user-form");
+      const userSearch = document.getElementById("user-search");
+
+      // Load users into table
+      function loadUsers(page = 1, searchTerm = "") {
+        currentPage = page;
+
+        // Filter users if search term exists
+        let filteredUsers = users;
+        if (searchTerm) {
+          filteredUsers = users.filter(
+            (user) =>
+              user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              user.email.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+
+        // Calculate pagination
+        const totalUsers = filteredUsers.length;
+        const totalPages = Math.ceil(totalUsers / usersPerPage);
+        const startIndex = (page - 1) * usersPerPage;
+        const endIndex = Math.min(startIndex + usersPerPage, totalUsers);
+        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+        // Update pagination info
+        usersStart.textContent = startIndex + 1;
+        usersEnd.textContent = endIndex;
+        usersTotal.textContent = totalUsers;
+
+        // Update pagination buttons
+        prevPageBtn.disabled = page === 1;
+        nextPageBtn.disabled = page >= totalPages;
+
+        // Update active users count
+        const activeCount = users.filter((u) => u.status === "active").length;
+        activeUsersCount.textContent = activeCount;
+
+        // Render users
+        usersTable.innerHTML = "";
+
+        if (paginatedUsers.length === 0) {
+          usersTable.innerHTML = `
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                No users found
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        paginatedUsers.forEach((user) => {
+          const row = document.createElement("tr");
+          row.className = "hover:bg-white/5 transition-colors";
+          row.innerHTML = `
+            <td class="py-4 px-6">
+              <div class="flex items-center space-x-3">
+                <img src="${user.avatar}" alt="${
+            user.name
+          }" class="w-10 h-10 rounded-full object-cover">
+                <div>
+                  <div class="font-medium">${user.name}</div>
+                  <div class="text-sm text-gray-400">ID: ${user.id}</div>
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-6">${user.email}</td>
+            <td class="py-4 px-6">
+              <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                user.role === "admin"
+                  ? "bg-purple-900/50 text-purple-300"
+                  : user.role === "manager"
+                  ? "bg-blue-900/50 text-blue-300"
+                  : user.role === "cashier"
+                  ? "bg-green-900/50 text-green-300"
+                  : "bg-yellow-900/50 text-yellow-300"
+              }">
+                ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+              </span>
+            </td>
+            <td class="py-4 px-6">
+              <div class="flex items-center">
+                <div class="w-2 h-2 rounded-full mr-2 ${
+                  user.status === "active"
+                    ? "bg-green-500"
+                    : user.status === "inactive"
+                    ? "bg-gray-500"
+                    : "bg-red-500"
+                }"></div>
+                <span>${
+                  user.status.charAt(0).toUpperCase() + user.status.slice(1)
+                }</span>
+              </div>
+            </td>
+            <td class="py-4 px-6 text-sm text-gray-400">${user.lastActive}</td>
+            <td class="py-4 px-6 text-right">
+              <div class="flex justify-end space-x-2">
+                <button class="edit-user-btn p-2 text-primary-400 hover:text-primary-300" data-id="${
+                  user.id
+                }">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="delete-user-btn p-2 text-red-400 hover:text-red-300" data-id="${
+                  user.id
+                }">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          usersTable.appendChild(row);
         });
+
+        // Add event listeners to action buttons
+        document.querySelectorAll(".edit-user-btn").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const userId = parseInt(e.currentTarget.getAttribute("data-id"));
+            openEditUserModal(userId);
+          });
+        });
+
+        document.querySelectorAll(".delete-user-btn").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const userId = parseInt(e.currentTarget.getAttribute("data-id"));
+            deleteUser(userId);
+          });
+        });
+      }
+
+      // Open add user modal
+      function openAddUserModal() {
+        addUserModal.classList.remove("hidden");
+      }
+
+      // Close add user modal
+      function closeAddUserModal() {
+        addUserModal.classList.add("hidden");
+        addUserForm.reset();
+      }
+
+      // Open edit user modal
+      function openEditUserModal(userId) {
+        const user = users.find((u) => u.id === userId);
+        if (user) {
+          document.getElementById("edit-user-id").value = user.id;
+          document.getElementById("edit-fullName").value = user.name;
+          document.getElementById("edit-email").value = user.email;
+          document.getElementById("edit-role").value = user.role;
+          document.getElementById("edit-status").value = user.status;
+
+          editUserModal.classList.remove("hidden");
+        }
+      }
+
+      // Close edit user modal
+      function closeEditUserModal() {
+        editUserModal.classList.add("hidden");
+        editUserForm.reset();
+      }
+
+      // Add new user
+      function addUser(userData) {
+        // In a real app, this would be an API call
+        const newUser = {
+          id: users.length + 1,
+          name: userData.fullName,
+          email: userData.email,
+          role: userData.role,
+          status: "active",
+          lastActive: new Date().toLocaleString(),
+          avatar: `https://randomuser.me/api/portraits/${
+            Math.random() > 0.5 ? "men" : "women"
+          }/${Math.floor(Math.random() * 50)}.jpg`,
+        };
+
+        users.unshift(newUser);
+        loadUsers(1);
+        showToast("User added successfully!", "success");
+      }
+
+      // Update user
+      function updateUser(userData) {
+        // In a real app, this would be an API call
+        const userIndex = users.findIndex(
+          (u) => u.id === parseInt(userData.userId)
+        );
+        if (userIndex !== -1) {
+          users[userIndex] = {
+            ...users[userIndex],
+            name: userData.fullName,
+            email: userData.email,
+            role: userData.role,
+            status: userData.status,
+          };
+
+          loadUsers(currentPage);
+          showToast("User updated successfully!", "success");
+        }
+      }
+
+      // Delete user
+      function deleteUser(userId) {
+        if (confirm("Are you sure you want to delete this user?")) {
+          // In a real app, this would be an API call
+          users = users.filter((u) => u.id !== userId);
+          loadUsers(currentPage);
+          showToast("User deleted successfully!", "success");
+        }
+      }
+
+      // Show toast notification
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success: "from-success-500 to-success-600",
+          error: "from-red-500 to-red-600",
+          warning: "from-yellow-500 to-yellow-600",
+          info: "from-primary-500 to-primary-600",
+        };
+
+        toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${
+          type === "success"
+            ? "success"
+            : type === "error"
+            ? "red"
+            : type === "warning"
+            ? "yellow"
+            : "primary"
+        }-500`;
+        toast.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <i class="fas fa-${
+              type === "success"
+                ? "check-circle"
+                : type === "error"
+                ? "exclamation-circle"
+                : type === "warning"
+                ? "exclamation-triangle"
+                : "info-circle"
+            } text-${
+          type === "success"
+            ? "success"
+            : type === "error"
+            ? "red"
+            : type === "warning"
+            ? "yellow"
+            : "primary"
+        }-400"></i>
+            <span>${message}</span>
+          </div>
+        `;
+
+        document.getElementById("toast-container").appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.transform = "translateX(100%)";
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      // Event listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        loadUsers();
+
+        // Add user modal
+        addUserBtn.addEventListener("click", openAddUserModal);
+        closeModalBtn.addEventListener("click", closeAddUserModal);
+        modalBackdrop.addEventListener("click", closeAddUserModal);
+        cancelAddUserBtn.addEventListener("click", closeAddUserModal);
+
+        // Edit user modal
+        closeEditModalBtn.addEventListener("click", closeEditUserModal);
+        editModalBackdrop.addEventListener("click", closeEditUserModal);
+        cancelEditUserBtn.addEventListener("click", closeEditUserModal);
+
+        // Pagination
+        prevPageBtn.addEventListener("click", () => {
+          if (currentPage > 1) {
+            loadUsers(currentPage - 1);
+          }
+        });
+
+        nextPageBtn.addEventListener("click", () => {
+          loadUsers(currentPage + 1);
+        });
+
+        // Search
+        userSearch.addEventListener("input", (e) => {
+          loadUsers(1, e.target.value);
+        });
+
+        // Form submissions
+        addUserForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(addUserForm);
+          const userData = Object.fromEntries(formData.entries());
+          addUser(userData);
+          closeAddUserModal();
+        });
+
+        editUserForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const formData = new FormData(editUserForm);
+          const userData = Object.fromEntries(formData.entries());
+          updateUser(userData);
+          closeEditUserModal();
+        });
+      });
     </script>
   </body>
 </html>
