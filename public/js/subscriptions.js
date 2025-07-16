@@ -106,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedPlan = null;
   let selectedPlanPrice = null;
   let currentBusinessId = null;
-  let currentPlanPrice = null; // Added to store current plan price
 
   // --- Fetch Subscription Details Function (updated) ---
   async function fetchSubscriptionDetails() {
@@ -126,24 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Set plan prices using backend data
-      const planPricesNumeric = {
-        trial: 0,
-        basic: 3500,
-        Standard: 5500,
-        premium: 9500,
-      };
-
-      const planPricesDisplay = {
-        trial: "KES 0 (Free Trial)",
-        basic: "KES 3,500",
-        Standard: "KES 5,500",
-        premium: "KES 9,500",
-      };
-
-      // Store current plan price numerically
-      currentPlanPrice = planPricesNumeric[sub.plan] ?? null;
-
       // Update UI with subscription details
       document.getElementById("plan-name").textContent = sub.plan
         ? `${sub.plan} Plan`
@@ -158,9 +139,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ? new Date(sub.endDate).toLocaleDateString()
         : "N/A";
 
-      // Set display price
+      // Set plan price using backend data
+      const planPrices = {
+        trial: "KES 0 (Free Trial)",
+        basic: "KES 3,500",
+        Standard: "KES 5,500",
+        premium: "KES 9,500",
+      };
+
       document.getElementById("plan-price").textContent =
-        planPricesDisplay[sub.plan] || "N/A";
+        planPrices[sub.plan] || "N/A";
 
       // Update auto-renew status
       const autoRenewStatus = document.getElementById("plan-autoRenew");
@@ -237,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div>
                 <p class="text-white font-medium">${entry.description}</p>
                 <p class="text-gray-400 text-sm">${entry.cycle}</p>
-              </div>
+              </div> 
             </div>
           </td>
           <td class="py-4 px-6 text-white font-bold">KES ${entry.amount.toLocaleString()}</td>
@@ -332,18 +320,26 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="font-semibold">${plan.name} Plan</div>
         <div class="text-sm text-gray-400">KES ${plan.price}</div>
       `;
-        button.addEventListener("click", () => {
-          selectedPlan = plan.name;
-          selectedPlanPrice = plan.price;
-          document.getElementById(
-            "confirm-plan-name"
-          ).textContent = `${plan.name} subscription`;
-          document
-            .getElementById("confirmation-modal")
-            .classList.remove("hidden");
-          document.getElementById("confirm-plan-change").dataset.plan =
-            plan.name;
-        });
+       button.addEventListener("click", () => {
+  // Collapse other plans
+  document.querySelectorAll("#plans-list > button").forEach((btn) => {
+    if (btn !== button) {
+      btn.classList.add("hidden");
+    }
+  });
+
+  selectedPlan = plan.name;
+  selectedPlanPrice = plan.price;
+  document.getElementById(
+    "confirm-plan-name"
+  ).textContent = `${plan.name} subscription`;
+  document
+    .getElementById("confirmation-modal")
+    .classList.remove("hidden");
+  document.getElementById("confirm-plan-change").dataset.plan =
+    plan.name;
+});
+
         plansList.appendChild(button);
       });
     } catch (error) {
@@ -367,10 +363,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Show M-Pesa modal and set payment amount
-    document.getElementById(
-      "payment-amount"
-    ).value = `KES ${selectedPlanPrice}`;
+    // Show M-Pesa modal
+    document.getElementById("paymentAmount").value = `KES ${selectedPlanPrice}`;
+    document.getElementById("");
+
     showStep("step3");
     document.getElementById("mpesa-modal").classList.remove("hidden");
   }
@@ -545,21 +541,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Update Payment button - MODIFIED
+  // Update Payment button
+
   document
     .getElementById("update-payment-button")
     .addEventListener("click", () => {
-      // Set payment amount to current plan price
-      if (currentPlanPrice !== null) {
-        document.getElementById(
-          "payment-amount"
-        ).value = `KES ${currentPlanPrice.toLocaleString()}`;
-      } else {
-        document.getElementById("payment-amount").value = "KES 0";
-      }
       document.getElementById("payment-modal").classList.remove("hidden");
     });
-
   // Show the modal on button click
   document
     .getElementById("cancel-subscription-button")
