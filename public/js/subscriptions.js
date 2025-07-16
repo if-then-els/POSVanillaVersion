@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div>
                 <p class="text-white font-medium">${entry.description}</p>
                 <p class="text-gray-400 text-sm">${entry.cycle}</p>
-              </div>
+              </div> 
             </div>
           </td>
           <td class="py-4 px-6 text-white font-bold">KES ${entry.amount.toLocaleString()}</td>
@@ -332,18 +332,26 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="font-semibold">${plan.name} Plan</div>
         <div class="text-sm text-gray-400">KES ${plan.price}</div>
       `;
-        button.addEventListener("click", () => {
-          selectedPlan = plan.name;
-          selectedPlanPrice = plan.price;
-          document.getElementById(
-            "confirm-plan-name"
-          ).textContent = `${plan.name} subscription`;
-          document
-            .getElementById("confirmation-modal")
-            .classList.remove("hidden");
-          document.getElementById("confirm-plan-change").dataset.plan =
-            plan.name;
-        });
+       button.addEventListener("click", () => {
+  // Collapse other plans
+  document.querySelectorAll("#plans-list > button").forEach((btn) => {
+    if (btn !== button) {
+      btn.classList.add("hidden");
+    }
+  });
+
+  selectedPlan = plan.name;
+  selectedPlanPrice = plan.price;
+  document.getElementById(
+    "confirm-plan-name"
+  ).textContent = `${plan.name} subscription`;
+  document
+    .getElementById("confirmation-modal")
+    .classList.remove("hidden");
+  document.getElementById("confirm-plan-change").dataset.plan =
+    plan.name;
+});
+
         plansList.appendChild(button);
       });
     } catch (error) {
