@@ -2,6 +2,7 @@ const axios = require("axios");
 const Subscription = require("../models/subscription.model");
 const SubscriptionLog = require("../models/subscriptionLog.model");
 const Plan = require("../models/plan.model");
+const mongoose = require("mongoose");
 
 // Helper: Get M-Pesa Access Token
 const getAccessToken = async () => {
@@ -102,6 +103,7 @@ exports.initiateMpesaStkPush = async (req, res) => {
       message: "STK Push initiated successfully",
       CheckoutRequestID: stkRes.data.CheckoutRequestID,
       subscriptionId: newSubscription._id,
+      transactionId: newSubscription._id,
     });
   } catch (error) {
     console.error(
@@ -117,7 +119,10 @@ exports.initiateMpesaStkPush = async (req, res) => {
 
 // M-Pesa C2B Confirmation Callback
 exports.mpesaConfirmationCallback = async (req, res) => {
-  console.log("M-Pesa callback received:", JSON.stringify(req.body));
+  console.log("======== MPESA CALLBACK RECEIVED ========");
+  console.log("Headers:", JSON.stringify(req.headers));
+  console.log("Body:", JSON.stringify(req.body));
+  console.log("=========================================");
   try {
     const body = req.body;
     const stkCallback = body.Body?.stkCallback;
@@ -189,5 +194,79 @@ exports.mpesaConfirmationCallback = async (req, res) => {
   } catch (error) {
     console.error("M-Pesa confirmation callback error:", error);
     res.status(500).json({ message: "Callback processing error" });
+  }
+};
+
+exports.getPaymentStatus = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Check if ID is valid MongoDB ID or MPESA CheckoutRequestID
+    let subscription;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      // Search by subscription ID
+      subscription = await Subscription.findById(id);
+    } else {
+      // Search by CheckoutRequestID
+      subscription = await Subscription.findOne({ mpesaCheckoutRequestID: id });
+    }
+
+    if (!subscription) {
+      return res.status(404).json({
+        status: "not_found",
+        message: "Transaction not found",
+      });
+    }
+
+    // Map internal status to client-friendly status
+    const statusMap = {
+      pending: "processing",
+      active: "completed",
+      failed: "failed",
+    };
+
+    res.status(200).json({
+      status: statusMap[subscription.status] || subscription.status,
+      transactionId: subscription.mpesaTransactionId,
+      amount: subscription.totalPrice,
+      plan: subscription.plan,
+      timestamp: subscription.lastPaymentDate || subscription.createdAt,
+      currency: "KES",
+    });
+  } catch (error) {
+    console.error("Payment status check error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to check payment status",
+    });
+  }
+};
+
+// payments.controller.js
+exports.checkMpesaPaymentStatus = async (req, res) => {
+  const { checkoutRequestID } = req.body;
+
+  try {
+    const accessToken = await getAccessToken();
+    const response = await axios.post(
+      "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
+      {
+        BusinessShortCode: process.env.MPESA_SHORTCODE,
+        Password: password,
+        Timestamp: timestamp,
+        CheckoutRequestID: checkoutRequestID,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to check payment status",
+      error: error.response.data,
+    });
   }
 };
