@@ -332,25 +332,25 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="font-semibold">${plan.name} Plan</div>
         <div class="text-sm text-gray-400">KES ${plan.price}</div>
       `;
-       button.addEventListener("click", () => {
-  // Collapse other plans
-  document.querySelectorAll("#plans-list > button").forEach((btn) => {
-    if (btn !== button) {
-      btn.classList.add("hidden");
-    }
-  });
+        button.addEventListener("click", () => {
+          // Collapse other plans
+          document.querySelectorAll("#plans-list > button").forEach((btn) => {
+            if (btn !== button) {
+              btn.classList.add("hidden");
+            }
+          });
 
-  selectedPlan = plan.name;
-  selectedPlanPrice = plan.price;
-  document.getElementById(
-    "confirm-plan-name"
-  ).textContent = `${plan.name} subscription`;
-  document
-    .getElementById("confirmation-modal")
-    .classList.remove("hidden");
-  document.getElementById("confirm-plan-change").dataset.plan =
-    plan.name;
-});
+          selectedPlan = plan.name;
+          selectedPlanPrice = plan.price;
+          document.getElementById(
+            "confirm-plan-name"
+          ).textContent = `${plan.name} subscription`;
+          document
+            .getElementById("confirmation-modal")
+            .classList.remove("hidden");
+          document.getElementById("confirm-plan-change").dataset.plan =
+            plan.name;
+        });
 
         plansList.appendChild(button);
       });
@@ -435,6 +435,23 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     processPayment();
   });
+
+  async function pollPaymentStatus(transactionId) {
+    const checkStatus = async () => {
+      const res = await fetch(`/payments/status/${transactionId}`);
+      const { status } = await res.json();
+
+      if (status === "completed") {
+        showToast("Payment successful!", "success");
+        fetchSubscriptionDetails(); // Refresh data
+      } else if (status === "failed") {
+        showToast("Payment failed", "error");
+      } else {
+        setTimeout(checkStatus, 3000); // Keep polling
+      }
+    };
+    checkStatus();
+  }
 
   // --- Cancel Subscription (fixed with modal integration) ---
   async function cancelSubscription() {
