@@ -64,7 +64,7 @@ function loadSidebar() {
               ? "bg-gray-100"
               : ""
           }">
-           <i class="fa-solid fa-bell"></i>
+         <i class="fa-solid fa-users"></i>
             <span>User management</span>
           </a>
         </li>

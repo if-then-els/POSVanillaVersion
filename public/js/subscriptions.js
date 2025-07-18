@@ -385,8 +385,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Payment Processing (fixed) ---
   async function processPayment() {
-    const phoneInput = document.getElementById("phone-input");
-    const phone = phoneInput.value.trim();
+    // const phoneInput = document.getElementById("phone-input");
+    const phone = document.getElementById("phone-input").value.trim();
 
     const durationMonths = 1;
 
