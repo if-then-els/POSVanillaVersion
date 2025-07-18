@@ -1,6 +1,6 @@
 const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
-const SubscriptionLog = require("../models/subscriptionLog.model");
+const SubscriptionLog = require("../models/subscriptionLog.model"); // Ensure this is correctly imported
 const Plan = require("../models/plan.model");
 
 exports.upgradeSubscription = async (req, res) => {
@@ -17,11 +17,37 @@ exports.upgradeSubscription = async (req, res) => {
     }
     const newPlanPrice = planDoc.price;
 
-    // Expire current subscription
-    await Subscription.updateMany(
-      { business: businessId, status: "active" },
-      { $set: { status: "expired" } }
-    );
+    // --- Start: New logic for handling current subscription ---
+
+    // Find the current active subscription for this business
+    const currentActiveSubscription = await Subscription.findOne({
+      business: businessId,
+      status: "active",
+    });
+
+    if (currentActiveSubscription) {
+      // 1. Create a log entry for the expiring subscription
+      const expiredLog = await SubscriptionLog.create({
+        business: currentActiveSubscription.business,
+        plan: currentActiveSubscription.plan, // Use the ID of the plan
+        startDate: currentActiveSubscription.startDate,
+        endDate: new Date(), // Set end date to now
+        status: "expired", // Mark as expired in the log
+        price: currentActiveSubscription.price,
+        mpesaTransactionId: currentActiveSubscription.mpesaTransactionId, // Keep original transaction ID
+        // Add any other relevant fields from the old subscription you want to log
+      });
+      console.log("Logged expired subscription:", expiredLog);
+
+      // 2. Delete the old active subscription from the main Subscription collection
+      await Subscription.deleteOne({ _id: currentActiveSubscription._id });
+      console.log(
+        "Deleted old active subscription:",
+        currentActiveSubscription._id
+      );
+    }
+
+    // --- End: New logic ---
 
     // Create new pending subscription
     const startDate = new Date();
@@ -29,85 +55,23 @@ exports.upgradeSubscription = async (req, res) => {
     endDate.setMonth(endDate.getMonth() + Number(durationMonths));
     const newSub = await Subscription.create({
       business: businessId,
-      plan: newPlan,
+      plan: planDoc._id, // Store the actual ObjectId of the plan
       startDate,
       endDate,
-      status: "pending",
+      status: "pending", // New subscription starts as pending
       autoRenew: false,
       price: newPlanPrice * durationMonths,
-      totalPrice: newPlanPrice * durationMonths,
+      // mpesaTransactionId will be updated later upon successful payment confirmation
     });
 
-    // Log the change
-    await SubscriptionLog.create({
-      business: businessId,
-      oldPlan: null,
-      newPlan,
-      action: "upgrade",
-      date: new Date(),
-      discount: 0,
-      totalPrice: newPlanPrice * durationMonths,
-    });
-
-    // If paid plan, trigger M-Pesa
-    if (newPlan !== "trial" && phone) {
-      // Call initiateMpesaPayment controller here or from frontend
-      return res.status(200).json({
-        message: "Subscription upgrade initiated. Please complete payment.",
-        subscription: newSub,
-        requirePayment: true,
-      });
-    }
-
-    // For free/trial plans, activate immediately
-    newSub.status = "active";
-    await newSub.save();
-    return res.status(200).json({
-      message: "Subscription upgraded successfully.",
-      subscription: newSub,
-      requirePayment: false,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-exports.getSubscriptionDetails = async (req, res) => {
-  try {
-    // Try to get business from req.user, fallback to req.query or req.body for testing
-    const business = req.user.business;
-    console.log("business from req.user:", business);
-    if (!business) {
-      return res.status(400).json({ message: "Business ID is required" });
-    }
-    const subscription = await Subscription.findOne({
-      business: business,
-      status: "active",
-    });
-    //console.log("Found subscription:", subscription);
-    if (!subscription) {
-      return res.status(404).json({ message: "No active subscription found" });
-    }
     res.status(200).json({
-      message: "subscription details retrieved sucessfully",
-      subscription: {
-        id: subscription._id,
-        plan: subscription.plan,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-        status: subscription.status,
-        autoRenew: subscription.autoRenew,
-        price: subscription.price,
-        discount: subscription.discount,
-        totalPrice: subscription.totalPrice,
-        business: subscription.business,
-      },
+      message: "New subscription initiated. Awaiting payment confirmation.",
+      subscriptionId: newSub._id,
+      // You might want to return the new subscription details for frontend tracking
     });
   } catch (error) {
-    res.status(500).json({
-      message: "Server error retrieving subscription details",
-      error: error.message,
-    });
+    console.error("Error upgrading subscription:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -117,28 +81,60 @@ exports.cancelSubscription = async (req, res) => {
     if (!businessId) {
       return res.status(400).json({ message: "Business ID is required" });
     }
-    const sub = await Subscription.findOne({
+
+    const subscription = await Subscription.findOne({
       business: businessId,
       status: "active",
     });
-    if (!sub) {
+
+    if (!subscription) {
+      return res.status(404).json({ message: "Active subscription not found" });
+    }
+
+    // Create a log entry for the cancelled subscription
+    const cancelledLog = await SubscriptionLog.create({
+      business: subscription.business,
+      plan: subscription.plan,
+      startDate: subscription.startDate,
+      endDate: new Date(), // Set end date to now
+      status: "cancelled", // Mark as cancelled in the log
+      price: subscription.price,
+      mpesaTransactionId: subscription.mpesaTransactionId,
+    });
+    console.log("Logged cancelled subscription:", cancelledLog);
+
+    // Delete the active subscription from the main Subscription collection
+    await Subscription.deleteOne({ _id: subscription._id });
+
+    res.status(200).json({ message: "Subscription cancelled successfully" });
+  } catch (error) {
+    console.error("Error cancelling subscription:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.getSubscriptionDetails = async (req, res) => {
+  try {
+    const businessId = req.user.business; // Assuming businessId is attached to req.user
+    if (!businessId) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
+
+    const subscription = await Subscription.findOne({
+      business: businessId,
+      status: "active",
+    }).populate("plan"); // Populate plan details
+
+    if (!subscription) {
       return res.status(404).json({ message: "No active subscription found" });
     }
-    sub.status = "cancelled";
-    await sub.save();
 
-    await SubscriptionLog.create({
-      business: businessId,
-      oldPlan: sub.plan,
-      newPlan: null,
-      action: "cancel",
-      date: new Date(),
-      discount: 0,
-      totalPrice: sub.totalPrice,
+    res.status(200).json({
+      message: "Subscription details retrieved successfully",
+      subscription,
     });
-
-    res.status(200).json({ message: "Subscription cancelled" });
   } catch (error) {
+    console.error("Error getting subscription details:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -151,7 +147,8 @@ exports.getSubscriptionPaymentLogs = async (req, res) => {
     }
     const logs = await SubscriptionLog.find({ business: businessId })
       .sort({ date: -1 })
-      .populate("business", "businessName");
+      .populate("business", "businessName")
+      .populate("plan", "name price"); // Populate plan name and price
     res.status(200).json({
       message: "Subscription payment logs retrieved successfully",
       logs,
@@ -160,6 +157,7 @@ exports.getSubscriptionPaymentLogs = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 exports.getSubscriptionPlans = async (req, res) => {
   try {
     const plans = await Plan.find({});
@@ -168,6 +166,29 @@ exports.getSubscriptionPlans = async (req, res) => {
       plans,
     });
   } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// This function will now serve as the primary way to get historical subscriptions
+exports.getSubscriptionHistory = async (req, res) => {
+  try {
+    const businessId = req.user.business; // Assuming businessId is attached to req.user
+    if (!businessId) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
+
+    // Fetch all subscription logs for the business, sorted by end date descending
+    const history = await SubscriptionLog.find({ business: businessId })
+      .sort({ endDate: -1 })
+      .populate("plan", "name price"); // Populate plan name and price for display
+
+    res.status(200).json({
+      message: "Subscription history retrieved successfully",
+      history,
+    });
+  } catch (error) {
+    console.error("Error getting subscription history:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };

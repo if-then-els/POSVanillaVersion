@@ -49,4 +49,10 @@ router.get("/subscriptions/status", async (req, res) => {
   }
 });
 
+router.get(
+  "/subscriptions/history",
+  subscriptionMiddleware,
+  subscriptionsController.getSubscriptionHistory
+);
+
 module.exports = router;
