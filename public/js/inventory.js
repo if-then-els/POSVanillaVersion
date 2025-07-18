@@ -101,7 +101,7 @@ async function loadProducts() {
     if (filteredProducts.length === 0) {
       productsTable.innerHTML = `
         <tr>
-          <td colspan="7" class="px-6 py-4 text-center text-gray-500">No products found</td>
+          <td colspan="6" class="px-6 py-4 text-center text-gray-500">No products found</td>
         </tr>
       `;
     } else {
@@ -113,11 +113,6 @@ async function loadProducts() {
               <input type="checkbox" class="product-checkbox" data-id="${
                 product._id
               }" />
-            </td>
-            <td class="px-6 py-4">
-              <img src="../assets/images/placeholder.png" alt="${
-                product.productName
-              }" class="h-10 w-10 rounded-md object-cover">
             </td>
             <td class="px-6 py-4">${product.productName}</td>
             <td class="px-6 py-4">${product.productBatchNumber}</td>
@@ -152,7 +147,7 @@ async function loadProducts() {
     if (lowStockProducts.length === 0) {
       lowStockTable.innerHTML = `
         <tr>
-          <td colspan="6" class="px-6 py-4 text-center text-gray-500">No low stock products found</td>
+          <td colspan="5" class="px-6 py-4 text-center text-gray-500">No low stock products found</td>
         </tr>
       `;
     } else {
@@ -160,11 +155,6 @@ async function loadProducts() {
         .map(
           (product) => `
           <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4">
-              <img src="../assets/images/placeholder.png" alt="${
-                product.productName
-              }" class="h-10 w-10 rounded-md object-cover">
-            </td>
             <td class="px-6 py-4">${product.productName}</td>
             <td class="px-6 py-4">${product.productBatchNumber}</td>
             <td class="px-6 py-4">${formatCurrency(product.productPrice)}</td>
