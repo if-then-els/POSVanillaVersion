@@ -58,6 +58,16 @@ function loadSidebar() {
             <span>Subscriptions</span>
           </a>
         </li>
+          <li>
+          <a href="./users.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
+            window.location.pathname.endsWith("users.html")
+              ? "bg-gray-100"
+              : ""
+          }">
+           <i class="fa-solid fa-bell"></i>
+            <span>User management</span>
+          </a>
+        </li>
         <li>
           <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
             window.location.pathname.endsWith("settings.html")
