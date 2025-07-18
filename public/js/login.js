@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Validate form
     if (!email || !password || !businessName) {
-      showLoginError("Please enter both username and password");
+      showLoginError("Please enter all required fields");
       return;
     }
 
@@ -23,49 +23,46 @@ document.addEventListener("DOMContentLoaded", function () {
       password: password,
       businessName: businessName,
     };
-    console.log("Login data:", loginData);
+
     async function login() {
       try {
         const response = await fetch("/login", {
-          // <--- Changed here
-          method: "POST", // Specify POST method
+          method: "POST",
           headers: {
-            "Content-Type": "application/json", // Tell the server we're sending JSON
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(loginData), // Convert your data to a JSON string
+          body: JSON.stringify(loginData),
         });
 
         if (!response.ok) {
-          throw new Error("HTTP error, status: " + response.status);
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Login failed");
         }
 
         const data = await response.json();
         return data;
       } catch (error) {
         console.error("Error during Login", error);
-        showLoginError("An error occurred during login. Please try again.");
+        throw error; // Re-throw to handle in the calling function
       }
     }
 
-    login().then((data) => {
-      if (data && data.message === "Login successful") {
-        window.location.href = "/dashboard.html";
-      } else {
-        showLoginError(data.message || "Invalid username or password");
-      }
-    });
+    login()
+      .then((data) => {
+        if (data && data.message === "Login successful") {
+          // Only show success toast and redirect
+          showToast("Login successful! Redirecting...", "success");
+          setTimeout(() => {
+            window.location.href = "/dashboard.html";
+          }, 1500);
+        }
+      })
+      .catch((error) => {
+        // Only show error toast (not using the alert anymore)
+        showToast(error.message || "Invalid credentials or business name", "error");
+      });
   });
 
-  function showLoginError(message) {
-    const loginAlertMessage = document.getElementById("loginAlertMessage"); // Assuming these are defined elsewhere
-    const loginAlert = document.getElementById("loginAlert"); // Assuming these are defined elsewhere
-
-    loginAlertMessage.textContent = message;
-    loginAlert.classList.remove("hidden");
-
-    setTimeout(() => {
-      loginAlert.classList.add("hidden");
-    }, 3000);
-  }
+  // Hide the alert initially (we'll only use toasts now)
   loginAlert.classList.add("hidden");
 });
