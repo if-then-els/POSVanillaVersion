@@ -361,7 +361,18 @@
               >
               <input
                 type="text"
-                name="fullName"
+                name="name"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Phone</label
+              >
+              <input
+                type="tel"
+                name="phone"
                 class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 required
               />
@@ -461,7 +472,20 @@
               <input
                 type="text"
                 id="edit-fullName"
-                name="fullName"
+                name="name"
+                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"
+                >Phone</label
+              >
+              <input
+                type="tel"
+                id="edit-phone"
+                name="phone"
                 class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 required
               />
@@ -542,403 +566,6 @@
     <!-- Scripts -->
     <script src="./js/sidebar.js"></script>
     <script src="./js/utils.js"></script>
-    <script>
-      // Initialize scroll reveal animations
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("revealed");
-            }
-          });
-        },
-        { threshold: 0.1 }
-      );
-
-      document.querySelectorAll(".scroll-reveal").forEach((el) => {
-        observer.observe(el);
-      });
-
-      // Mock data for demonstration
-      let users = [
-        {
-          id: 1,
-          name: "John Doe",
-          email: "john@example.com",
-          role: "admin",
-          status: "active",
-          lastActive: "2023-05-15 14:30",
-          avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-        },
-        {
-          id: 2,
-          name: "Jane Smith",
-          email: "jane@example.com",
-          role: "manager",
-          status: "active",
-          lastActive: "2023-05-14 09:15",
-          avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-        },
-        {
-          id: 3,
-          name: "Robert Johnson",
-          email: "robert@example.com",
-          role: "cashier",
-          status: "active",
-          lastActive: "2023-05-15 10:45",
-          avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-        },
-        {
-          id: 4,
-          name: "Emily Davis",
-          email: "emily@example.com",
-          role: "inventory",
-          status: "inactive",
-          lastActive: "2023-05-10 16:20",
-          avatar: "https://randomuser.me/api/portraits/women/2.jpg",
-        },
-        {
-          id: 5,
-          name: "Michael Wilson",
-          email: "michael@example.com",
-          role: "cashier",
-          status: "suspended",
-          lastActive: "2023-05-05 11:10",
-          avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-        },
-      ];
-
-      // Current page for pagination
-      let currentPage = 1;
-      const usersPerPage = 5;
-
-      // DOM elements
-      const usersTable = document.getElementById("users-table");
-      const activeUsersCount = document.getElementById("active-users-count");
-      const usersStart = document.getElementById("users-start");
-      const usersEnd = document.getElementById("users-end");
-      const usersTotal = document.getElementById("users-total");
-      const prevPageBtn = document.getElementById("prev-page");
-      const nextPageBtn = document.getElementById("next-page");
-      const addUserBtn = document.getElementById("add-user-btn");
-      const addUserModal = document.getElementById("add-user-modal");
-      const closeModalBtn = document.getElementById("close-modal");
-      const modalBackdrop = document.getElementById("modal-backdrop");
-      const cancelAddUserBtn = document.getElementById("cancel-add-user");
-      const addUserForm = document.getElementById("add-user-form");
-      const editUserModal = document.getElementById("edit-user-modal");
-      const closeEditModalBtn = document.getElementById("close-edit-modal");
-      const editModalBackdrop = document.getElementById("edit-modal-backdrop");
-      const cancelEditUserBtn = document.getElementById("cancel-edit-user");
-      const editUserForm = document.getElementById("edit-user-form");
-      const userSearch = document.getElementById("user-search");
-
-      // Load users into table
-      function loadUsers(page = 1, searchTerm = "") {
-        currentPage = page;
-
-        // Filter users if search term exists
-        let filteredUsers = users;
-        if (searchTerm) {
-          filteredUsers = users.filter(
-            (user) =>
-              user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              user.email.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-        }
-
-        // Calculate pagination
-        const totalUsers = filteredUsers.length;
-        const totalPages = Math.ceil(totalUsers / usersPerPage);
-        const startIndex = (page - 1) * usersPerPage;
-        const endIndex = Math.min(startIndex + usersPerPage, totalUsers);
-        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
-        // Update pagination info
-        usersStart.textContent = startIndex + 1;
-        usersEnd.textContent = endIndex;
-        usersTotal.textContent = totalUsers;
-
-        // Update pagination buttons
-        prevPageBtn.disabled = page === 1;
-        nextPageBtn.disabled = page >= totalPages;
-
-        // Update active users count
-        const activeCount = users.filter((u) => u.status === "active").length;
-        activeUsersCount.textContent = activeCount;
-
-        // Render users
-        usersTable.innerHTML = "";
-
-        if (paginatedUsers.length === 0) {
-          usersTable.innerHTML = `
-            <tr>
-              <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                No users found
-              </td>
-            </tr>
-          `;
-          return;
-        }
-
-        paginatedUsers.forEach((user) => {
-          const row = document.createElement("tr");
-          row.className = "hover:bg-white/5 transition-colors";
-          row.innerHTML = `
-            <td class="py-4 px-6">
-              <div class="flex items-center space-x-3">
-                <img src="${user.avatar}" alt="${
-            user.name
-          }" class="w-10 h-10 rounded-full object-cover">
-                <div>
-                  <div class="font-medium">${user.name}</div>
-                  <div class="text-sm text-gray-400">ID: ${user.id}</div>
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-6">${user.email}</td>
-            <td class="py-4 px-6">
-              <span class="px-3 py-1 rounded-full text-xs font-medium ${
-                user.role === "admin"
-                  ? "bg-purple-900/50 text-purple-300"
-                  : user.role === "manager"
-                  ? "bg-blue-900/50 text-blue-300"
-                  : user.role === "cashier"
-                  ? "bg-green-900/50 text-green-300"
-                  : "bg-yellow-900/50 text-yellow-300"
-              }">
-                ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-              </span>
-            </td>
-            <td class="py-4 px-6">
-              <div class="flex items-center">
-                <div class="w-2 h-2 rounded-full mr-2 ${
-                  user.status === "active"
-                    ? "bg-green-500"
-                    : user.status === "inactive"
-                    ? "bg-gray-500"
-                    : "bg-red-500"
-                }"></div>
-                <span>${
-                  user.status.charAt(0).toUpperCase() + user.status.slice(1)
-                }</span>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-sm text-gray-400">${user.lastActive}</td>
-            <td class="py-4 px-6 text-right">
-              <div class="flex justify-end space-x-2">
-                <button class="edit-user-btn p-2 text-primary-400 hover:text-primary-300" data-id="${
-                  user.id
-                }">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="delete-user-btn p-2 text-red-400 hover:text-red-300" data-id="${
-                  user.id
-                }">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </td>
-          `;
-          usersTable.appendChild(row);
-        });
-
-        // Add event listeners to action buttons
-        document.querySelectorAll(".edit-user-btn").forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            const userId = parseInt(e.currentTarget.getAttribute("data-id"));
-            openEditUserModal(userId);
-          });
-        });
-
-        document.querySelectorAll(".delete-user-btn").forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            const userId = parseInt(e.currentTarget.getAttribute("data-id"));
-            deleteUser(userId);
-          });
-        });
-      }
-
-      // Open add user modal
-      function openAddUserModal() {
-        addUserModal.classList.remove("hidden");
-      }
-
-      // Close add user modal
-      function closeAddUserModal() {
-        addUserModal.classList.add("hidden");
-        addUserForm.reset();
-      }
-
-      // Open edit user modal
-      function openEditUserModal(userId) {
-        const user = users.find((u) => u.id === userId);
-        if (user) {
-          document.getElementById("edit-user-id").value = user.id;
-          document.getElementById("edit-fullName").value = user.name;
-          document.getElementById("edit-email").value = user.email;
-          document.getElementById("edit-role").value = user.role;
-          document.getElementById("edit-status").value = user.status;
-
-          editUserModal.classList.remove("hidden");
-        }
-      }
-
-      // Close edit user modal
-      function closeEditUserModal() {
-        editUserModal.classList.add("hidden");
-        editUserForm.reset();
-      }
-
-      // Add new user
-      function addUser(userData) {
-        // In a real app, this would be an API call
-        const newUser = {
-          id: users.length + 1,
-          name: userData.fullName,
-          email: userData.email,
-          role: userData.role,
-          status: "active",
-          lastActive: new Date().toLocaleString(),
-          avatar: `https://randomuser.me/api/portraits/${
-            Math.random() > 0.5 ? "men" : "women"
-          }/${Math.floor(Math.random() * 50)}.jpg`,
-        };
-
-        users.unshift(newUser);
-        loadUsers(1);
-        showToast("User added successfully!", "success");
-      }
-
-      // Update user
-      function updateUser(userData) {
-        // In a real app, this would be an API call
-        const userIndex = users.findIndex(
-          (u) => u.id === parseInt(userData.userId)
-        );
-        if (userIndex !== -1) {
-          users[userIndex] = {
-            ...users[userIndex],
-            name: userData.fullName,
-            email: userData.email,
-            role: userData.role,
-            status: userData.status,
-          };
-
-          loadUsers(currentPage);
-          showToast("User updated successfully!", "success");
-        }
-      }
-
-      // Delete user
-      function deleteUser(userId) {
-        if (confirm("Are you sure you want to delete this user?")) {
-          // In a real app, this would be an API call
-          users = users.filter((u) => u.id !== userId);
-          loadUsers(currentPage);
-          showToast("User deleted successfully!", "success");
-        }
-      }
-
-      // Show toast notification
-      function showToast(message, type = "info") {
-        const toast = document.createElement("div");
-        const colors = {
-          success: "from-success-500 to-success-600",
-          error: "from-red-500 to-red-600",
-          warning: "from-yellow-500 to-yellow-600",
-          info: "from-primary-500 to-primary-600",
-        };
-
-        toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${
-          type === "success"
-            ? "success"
-            : type === "error"
-            ? "red"
-            : type === "warning"
-            ? "yellow"
-            : "primary"
-        }-500`;
-        toast.innerHTML = `
-          <div class="flex items-center space-x-3">
-            <i class="fas fa-${
-              type === "success"
-                ? "check-circle"
-                : type === "error"
-                ? "exclamation-circle"
-                : type === "warning"
-                ? "exclamation-triangle"
-                : "info-circle"
-            } text-${
-          type === "success"
-            ? "success"
-            : type === "error"
-            ? "red"
-            : type === "warning"
-            ? "yellow"
-            : "primary"
-        }-400"></i>
-            <span>${message}</span>
-          </div>
-        `;
-
-        document.getElementById("toast-container").appendChild(toast);
-
-        setTimeout(() => {
-          toast.style.transform = "translateX(100%)";
-          toast.style.opacity = "0";
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
-
-      // Event listeners
-      document.addEventListener("DOMContentLoaded", () => {
-        loadUsers();
-
-        // Add user modal
-        addUserBtn.addEventListener("click", openAddUserModal);
-        closeModalBtn.addEventListener("click", closeAddUserModal);
-        modalBackdrop.addEventListener("click", closeAddUserModal);
-        cancelAddUserBtn.addEventListener("click", closeAddUserModal);
-
-        // Edit user modal
-        closeEditModalBtn.addEventListener("click", closeEditUserModal);
-        editModalBackdrop.addEventListener("click", closeEditUserModal);
-        cancelEditUserBtn.addEventListener("click", closeEditUserModal);
-
-        // Pagination
-        prevPageBtn.addEventListener("click", () => {
-          if (currentPage > 1) {
-            loadUsers(currentPage - 1);
-          }
-        });
-
-        nextPageBtn.addEventListener("click", () => {
-          loadUsers(currentPage + 1);
-        });
-
-        // Search
-        userSearch.addEventListener("input", (e) => {
-          loadUsers(1, e.target.value);
-        });
-
-        // Form submissions
-        addUserForm.addEventListener("submit", (e) => {
-          e.preventDefault();
-          const formData = new FormData(addUserForm);
-          const userData = Object.fromEntries(formData.entries());
-          addUser(userData);
-          closeAddUserModal();
-        });
-
-        editUserForm.addEventListener("submit", (e) => {
-          e.preventDefault();
-          const formData = new FormData(editUserForm);
-          const userData = Object.fromEntries(formData.entries());
-          updateUser(userData);
-          closeEditUserModal();
-        });
-      });
-    </script>
+    <script src="./js/user-management.js"></script>
   </body>
 </html>
