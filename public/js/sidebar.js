@@ -12,74 +12,60 @@ function loadSidebar() {
       <h1 class="text-xl font-bold">POS System</h1>
       <!-- Removed inner toggle -->
     </div>
-    <nav class="p-4">
-      <ul class="space-y-2">
-        <li>
-          <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("dashboard.html")
-              ? "bg-gray-100"
-              : ""
-          }">
-            <i class="fas fa-home w-5"></i><span>Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("sales.html") ? "bg-gray-100" : ""
-          }">
-            <i class="fas fa-shopping-cart w-5"></i><span>Sales</span>
-          </a>
-        </li>
-        <li>
-          <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("inventory.html")
-              ? "bg-gray-100"
-              : ""
-          }">
-            <i class="fas fa-box w-5"></i><span>Inventory</span>
-          </a>
-        </li>
-        <li>
-          <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("reports.html")
-              ? "bg-gray-100"
-              : ""
-          }">
-            <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
-          </a>
-        </li>
-         <li>
-          <a href="./manageSubscriptions.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("manageSubscriptions.html")
-              ? "bg-gray-100"
-              : ""
-          }">
-           <i class="fa-solid fa-bell"></i>
-            <span>Subscriptions</span>
-          </a>
-        </li>
-          <li>
-          <a href="./users.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("users.html")
-              ? "bg-gray-100"
-              : ""
-          }">
-         <i class="fa-solid fa-users"></i>
-            <span>User management</span>
-          </a>
-        </li>
-        <li>
-          <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 ${
-            window.location.pathname.endsWith("settings.html")
-              ? "bg-gray-100"
-              : ""
-          }">
-            <i class="fas fa-cog w-5"></i><span>Settings</span>
-          </a>
-        </li>
-        
-      </ul>
-    </nav>
+   <nav class="p-4">
+  <ul class="space-y-2">
+    <li>
+      <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("dashboard.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fas fa-home w-5"></i><span>Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("sales.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fas fa-shopping-cart w-5"></i><span>Sales</span>
+      </a>
+    </li>
+    <li>
+      <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("inventory.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fas fa-box w-5"></i><span>Inventory</span>
+      </a>
+    </li>
+    <li>
+      <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("reports.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
+      </a>
+    </li>
+    <li>
+      <a href="./manageSubscriptions.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("manageSubscriptions.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fa-solid fa-bell w-5"></i><span>Subscriptions</span>
+      </a>
+    </li>
+    <li>
+      <a href="./users.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("users.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fa-solid fa-users w-5"></i><span>User management</span>
+      </a>
+    </li>
+    <li>
+      <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
+        window.location.pathname.endsWith("settings.html") ? "bg-gray-700 text-white" : ""
+      }">
+        <i class="fas fa-cog w-5"></i><span>Settings</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
     <div class="border-t mt-auto p-4">
       <div class="flex items-center gap-3 rounded-md px-3 py-2">
         <i class="fas fa-user w-5"></i>
