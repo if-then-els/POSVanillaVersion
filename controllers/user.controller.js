@@ -271,6 +271,7 @@ exports.updateUser = async (req, res) => {
   try {
     const businessId = req.user.business;
     const userId = req.params.id;
+    console.log("Updating user:", userId, "for business:", businessId);
     const { name, email, role, phone, status } = req.body;
 
     // Check if user exists and belongs to this business
