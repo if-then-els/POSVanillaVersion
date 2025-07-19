@@ -498,7 +498,7 @@ async function showReceipt(sale) {
             .join("")}
         </table>
         <div class="total">Total: ${
-          settings.currency || "$"
+          settings.currency || "Ksh"
         }${sale.total.toFixed(2)}</div>
         <hr>
         <div>${settings.footerText || "Thank you for your purchase!"}</div>
