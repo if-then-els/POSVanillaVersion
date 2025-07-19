@@ -7,6 +7,11 @@ const {
   loginUser,
   verifyAuth,
   fetchUserDetails,
+  getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  resetPassword,
 } = require("../controllers/user.controller");
 
 router.post("/register", registerUser);
@@ -18,4 +23,10 @@ router.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
+//business user management
+router.get("/users", verifyToken, getAllUsers);
+router.post("/users", verifyToken, createUser);
+router.put("/users/:id", verifyToken, updateUser);
+router.delete("/users/:id", verifyToken, deleteUser);
+router.post("/users/:id/reset-password", verifyToken, resetPassword);
 module.exports = router;
