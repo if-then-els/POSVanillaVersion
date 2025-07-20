@@ -150,6 +150,11 @@
         opacity: 1;
         transform: translateY(0);
       }
+      @media (max-width: 767px) {
+        body.sidebar-open {
+          overflow: hidden;
+        }
+      }
     </style>
   </head>
 
@@ -160,6 +165,12 @@
     </div>
 
     <!-- Mobile Navigation -->
+    <!-- <button
+      id="toggle-sidebar"
+      class="p-2 hover:bg-white/10 rounded-lg transition-colors"
+    >
+      <i class="fas fa-bars text-xl"></i>
+    </button> -->
     <nav
       class="md:hidden flex justify-between items-center p-4 glass fixed top-0 w-full z-40 backdrop-blur-md"
     >
