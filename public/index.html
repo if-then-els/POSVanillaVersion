@@ -1150,7 +1150,7 @@
 
             <div>
               <label class="block text-gray-300 text-sm font-semibold mb-2"
-                >Business Registration Number</label
+                >Owners ID Number</label
               >
               <input
                 type="text"
@@ -1158,7 +1158,7 @@
                 name="identificationNumber"
                 required
                 class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
-                placeholder="e.g. C123456 or BRN-789456"
+                placeholder=""
               />
             </div>
 
@@ -1800,7 +1800,7 @@
         };
 
         try {
-          const res = await fetch("/api/business/register", {
+          const res = await fetch("/api/business/business/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -1808,6 +1808,15 @@
           const data = await res.json();
           loadingOverlay.classList.add("hidden");
           if (res.ok) {
+            localStorage.setItem("token", data.token);
+
+            // Set cookie (optional)
+            document.cookie = `token=${data.token}; path=/; max-age=${
+              24 * 60 * 60
+            }`;
+
+            // Redirect to dashboard
+            window.location.href = "/dashboard.html";
             showToast(
               "Account created successfully! Welcome to SwiftPOS!",
               "success"
