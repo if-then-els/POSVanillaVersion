@@ -2,12 +2,16 @@ const Subscription = require("../models/subscription.model");
 const jwt = require("jsonwebtoken");
 
 module.exports = async function (req, res, next) {
-  // Allow M-Pesa callbacks to be public
-  if (
-    req.path === "/payments/mpesa/c2b/confirmation" ||
-    req.path === "/payments/mpesa/callback" || // <-- Add this line
-    req.path === "/mpesa/callback" // <-- If your callback is registered at this path
-  ) {
+  // Allow public routes and registration endpoint
+  const publicRoutes = [
+    "/business/register", // Add this line
+    "/payments/mpesa/c2b/confirmation",
+    "/payments/mpesa/callback",
+    "/mpesa/callback",
+  ];
+
+  // Skip subscription check for public routes
+  if (publicRoutes.includes(req.path)) {
     return next();
   }
 
@@ -15,15 +19,15 @@ module.exports = async function (req, res, next) {
     const token = req.cookies.token;
 
     if (!token) {
-      return res.status(401).json({ message: "Authentication token missing." });
+      return res
+        .status(401)
+        .json({ message: "Authentication token missing subs auth." });
     }
 
     let user;
     try {
-      // Verify the token synchronously as it's within an async function's try block
       user = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
-      // Specific error handling for JWT issues
       if (err.name === "TokenExpiredError") {
         return res
           .status(401)
@@ -32,10 +36,8 @@ module.exports = async function (req, res, next) {
       return res.status(403).json({ message: "Invalid authentication token." });
     }
 
-    // Attach the user payload to the request object
     req.user = user;
 
-    // Ensure req.user.business exists before proceeding
     if (!req.user || !req.user.business) {
       return res
         .status(403)
@@ -43,16 +45,13 @@ module.exports = async function (req, res, next) {
     }
 
     const businessId = req.user.business;
-    //  console.log("Checking subscription for business ID:", businessId); // For debugging
 
-    // Query for an active and unexpired subscription
+    // Query for active subscription
     const subscription = await Subscription.findOne({
       business: businessId,
-
+      status: "active", // Add status check
       endDate: { $gte: new Date() },
     });
-
-    //console.log("Found subscription:", subscription); // For debugging
 
     if (!subscription) {
       return res.status(403).json({
@@ -60,11 +59,9 @@ module.exports = async function (req, res, next) {
       });
     }
 
-    // If everything is good, proceed to the next middleware or route handler
     next();
   } catch (err) {
-    // Catch-all for any unexpected errors during the process
-    console.error("Subscription check failed unexpectedly:", err); // Log the actual error for debugging
+    console.error("Subscription check failed unexpectedly:", err);
     res
       .status(500)
       .json({ message: "Subscription check failed due to a server error." });
