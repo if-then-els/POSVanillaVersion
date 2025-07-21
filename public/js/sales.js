@@ -326,15 +326,15 @@ function renderCart() {
   const total = subtotal + tax;
 
   if (document.getElementById("cart-subtotal")) {
-    document.getElementById("cart-subtotal").textContent = `$${subtotal.toFixed(
+    document.getElementById("cart-subtotal").textContent = `KSH ${subtotal.toFixed(
       2
     )}`;
   }
   if (document.getElementById("cart-tax")) {
-    document.getElementById("cart-tax").textContent = `$${tax.toFixed(2)}`;
+    document.getElementById("cart-tax").textContent = `KSH ${tax.toFixed(2)}`;
   }
   if (cartTotalSpan) {
-    cartTotalSpan.textContent = `$${total.toFixed(2)}`;
+    cartTotalSpan.textContent = `KSH ${total.toFixed(2)}`;
   }
 
 

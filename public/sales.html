@@ -487,16 +487,16 @@
                     <div class="space-y-2">
                       <div class="flex justify-between">
                         <span class="text-gray-400">Subtotal</span>
-                        <span id="mobile-cart-subtotal" class="font-medium text-white">$0.00</span>
+                        <span id="mobile-cart-subtotal" class="font-medium text-white">KSH 0.00</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-400">Tax (10%)</span>
-                        <span id="mobile-cart-tax" class="font-medium text-white">$0.00</span>
+                        <span id="mobile-cart-tax" class="font-medium text-white">KSH 0.00</span>
                       </div>
                     </div>
                     <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
                       <span>Total:</span>
-                      <span id="mobile-cart-total" class="text-xl text-primary-400">$0.00</span>
+                      <span id="mobile-cart-total" class="text-xl text-primary-400">KSH 0.00</span>
                     </div>
                     <button
                       id="mobile-checkout-btn"
@@ -566,16 +566,16 @@
                     <div class="space-y-2">
                       <div class="flex justify-between">
                         <span class="text-gray-400">Subtotal</span>
-                        <span id="cart-subtotal" class="font-medium text-white">$0.00</span>
+                        <span id="cart-subtotal" class="font-medium text-white">KSH 0.00</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-400">Tax (10%)</span>
-                        <span id="cart-tax" class="font-medium text-white">$0.00</span>
+                        <span id="cart-tax" class="font-medium text-white">KSH 0.00</span>
                       </div>
                     </div>
                     <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
                       <span>Total:</span>
-                      <span id="cart-total" class="text-xl text-primary-400">$0.00</span>
+                      <span id="cart-total" class="text-xl text-primary-400">KSH 0.00</span>
                     </div>
                     <button
                       id="checkout-btn"
@@ -718,15 +718,15 @@
                         <div class="pt-3 space-y-2">
                           <div class="flex justify-between text-gray-400">
                             <span>Subtotal</span>
-                            <span id="checkout-subtotal" class="text-white">$0.00</span>
+                            <span id="checkout-subtotal" class="text-white">KES 0.00</span>
                           </div>
                           <div class="flex justify-between text-gray-400">
                             <span>Tax (10%)</span>
-                            <span id="checkout-tax" class="text-white">$0.00</span>
+                            <span id="checkout-tax" class="text-white">KES 0.00</span>
                           </div>
                           <div class="flex justify-between font-bold text-white border-t border-gray-700 pt-2">
                             <span>Total</span>
-                            <span id="checkout-total" class="text-primary-400">$0.00</span>
+                            <span id="checkout-total" class="text-primary-400">KES 0.00</span>
                           </div>
                         </div>
                       </div>
@@ -1125,14 +1125,14 @@
     const tax = subtotal * 0.10; // 10% tax
     const total = subtotal + tax;
 
-    cartSubtotalSpan.textContent = `KES ${subtotal.toFixed(2)}`;
-    cartTaxSpan.textContent = `KES ${tax.toFixed(2)}`;
-    cartTotalSpan.textContent = `KES ${total.toFixed(2)}`;
+    // Update cart totals
+cartSubtotalSpan.textContent = `KES ${subtotal.toFixed(2)}`;
+cartTaxSpan.textContent = `KES ${tax.toFixed(2)}`;
+cartTotalSpan.textContent = `KES ${total.toFixed(2)}`;
 
-    mobileCartSubtotalSpan.textContent = `KES ${subtotal.toFixed(2)}`;
-    mobileCartTaxSpan.textContent = `KES ${tax.toFixed(2)}`;
-    mobileCartTotalSpan.textContent = `KES ${total.toFixed(2)}`;
-
+mobileCartSubtotalSpan.textContent = `KES ${subtotal.toFixed(2)}`;
+mobileCartTaxSpan.textContent = `KES ${tax.toFixed(2)}`;
+mobileCartTotalSpan.textContent = `KES ${total.toFixed(2)}`;
     // Update cart counts and button states
     const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     document.getElementById('cart-count').textContent = `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`;
