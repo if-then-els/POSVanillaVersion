@@ -879,133 +879,121 @@
 
 
         </div>
-         <div class="glass rounded-3xl p-8 mb-12 hover-lift scroll-reveal neon-border relative overflow-hidden">
-            <div
-              class="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-accent-500/20 to-primary-500/20 rounded-full morphing-blob"
-            ></div>
-            <div class="flex justify-between items-start mb-8 relative z-10">
-              <div>
-                <h2
-                  class="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
-                >
-                  Upgrade Your Plan
-                </h2>
-                <p class="text-gray-400">
-                  Choose the perfect plan to boost your POS system's capabilities.
-                </p>
-              </div>
-            </div>
+        <section id="pricing" class="py-20 relative">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16 scroll-reveal">
+      <h2 class="text-4xl md:text-5xl font-black mb-6">
+        <span class="text-gradient">Simple Pricing</span>
+      </h2>
+      <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+        Choose the perfect plan for your business. Start free, scale as you grow.
+      </p>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-              <!-- Basic Plan Card -->
-              <div class="glass-dark rounded-2xl p-6 flex flex-col justify-between hover-lift">
-                <div>
-                  <h3 class="text-2xl font-bold text-primary-400 mb-2">Basic Plan</h3>
-                  <p class="text-gray-400 text-sm mb-4">Essential features for small businesses.</p>
-                  <div class="flex items-baseline space-x-2 mb-6">
-                    <span class="text-4xl font-black text-white">KES 3,500</span>
-                    <span class="text-gray-400">/month</span>
-                  </div>
-                  <ul class="space-y-3 text-gray-300 mb-8">
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Up to 1,000 Transactions/month</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>5GB Storage</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Basic Reporting</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-times-circle text-red-400"></i>
-                      <span class="opacity-70">Priority Support</span>
-                    </li>
-                  </ul>
-                </div>
-                <button
-                  class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold text-white hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
-                  data-plan="basic"
-                >
-                  Select Basic Plan
-                </button>
-              </div>
+      <!-- Billing Toggle -->
+      <div class="inline-flex glass rounded-2xl p-1 mb-12">
+        <button
+          class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-primary-500 to-accent-500 text-white"
+          id="monthly-btn"
+        >
+          Monthly
+        </button>
+        <button
+          class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-300 hover:text-white"
+          id="yearly-btn"
+        >
+          Yearly <span class="text-success-400 text-sm ml-1">Save 20%</span>
+        </button>
+      </div>
+    </div>
 
-              <!-- Premium Plan Card -->
-              <div class="glass-dark rounded-2xl p-6 flex flex-col justify-between hover-lift border-2 border-primary-500 animate-glow">
-                <div>
-                  <h3 class="text-2xl font-bold text-accent-400 mb-2">Premium Plan</h3>
-                  <p class="text-gray-400 text-sm mb-4">Advanced features for growing businesses.</p>
-                  <div class="flex items-baseline space-x-2 mb-6">
-                    <span class="text-4xl font-black text-white">KES 5,500</span>
-                    <span class="text-gray-400">/month</span>
-                  </div>
-                  <ul class="space-y-3 text-gray-300 mb-8">
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Up to 5,000 Transactions/month</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>50GB Storage</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Advanced Analytics</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Email & Chat Support</span>
-                    </li>
-                  </ul>
-                </div>
-                <button
-                  class="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 rounded-xl font-semibold text-white hover:from-accent-600 hover:to-accent-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent-500/25"
-                  data-plan="premium"
-                >
-                  Select Premium Plan
-                </button>
-              </div>
-
-              <!-- Enterprise Plan Card -->
-              <div class="glass-dark rounded-2xl p-6 flex flex-col justify-between hover-lift">
-                <div>
-                  <h3 class="text-2xl font-bold text-success-400 mb-2">Enterprise Plan</h3>
-                  <p class="text-gray-400 text-sm mb-4">Full suite of tools for large enterprises.</p>
-                  <div class="flex items-baseline space-x-2 mb-6">
-                    <span class="text-4xl font-black text-white">KES 9,500</span>
-                    <span class="text-gray-400">/month</span>
-                  </div>
-                  <ul class="space-y-3 text-gray-300 mb-8">
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Unlimited Transactions</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Unlimited Storage</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>Custom Reporting & Integrations</span>
-                    </li>
-                    <li class="flex items-center space-x-2">
-                      <i class="fas fa-check-circle text-success-400"></i>
-                      <span>24/7 Dedicated Support</span>
-                    </li>
-                  </ul>
-                </div>
-                <button
-                  class="w-full py-3 bg-gradient-to-r from-success-500 to-success-600 rounded-xl font-semibold text-white hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25"
-                  data-plan="enterprise"
-                >
-                  Select Enterprise Plan
-                </button>
-              </div>
-            </div>
+    <!-- Pricing Cards Row -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <!-- Basic Plan -->
+      <div class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-white mb-2">Basic</h3>
+          <p class="text-gray-400 mb-6">Perfect for small businesses</p>
+          <div class="mb-6">
+            <span class="text-5xl font-black text-white">KSH 2,000</span>
+            <span class="text-gray-400">/month</span>
           </div>
+          <a
+            href="#register"
+            class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+          >
+            Start Free Trial
+          </a>
+        </div>
+        <ul class="space-y-4">
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>1 AdminAccount and 1 User Account</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Up to 500 products</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Basic reporting</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Email support</li>
+        </ul>
+      </div>
+
+      <!-- Standard Plan -->
+      <div class="pricing-card featured rounded-3xl p-8 scroll-reveal hover-lift relative" style="animation-delay: 0.1s">
+        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+          <span class="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-6 py-2 rounded-full text-sm font-bold">
+            Most Popular
+          </span>
+        </div>
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-white mb-2">Standard</h3>
+          <p class="text-gray-400 mb-6">Best for growing businesses</p>
+          <div class="mb-6">
+            <span class="text-5xl font-black text-white">KSH 4,500</span>
+            <span class="text-gray-400">/month</span>
+          </div>
+          <a
+            href="#register"
+            class="block w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+          >
+            Start Free Trial
+          </a>
+        </div>
+        <ul class="space-y-4">
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Everything in Starter and:</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Up to 10 Accounts</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Unlimited products</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Online/Mobile Payments (M-Pesa)</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Advanced reporting</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>AI Analytics</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Priority support (Chat & Email)</li>
+        </ul>
+      </div>
+
+      <!-- Premium Plan -->
+      <div class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift" style="animation-delay: 0.2s">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
+          <p class="text-gray-400 mb-6">For large businesses</p>
+          <div class="mb-6">
+            <span class="text-3xl font-black text-white">Contact Sales for Quote</span>
+            <span class="text-gray-400">/month</span>
+          </div>
+          <a
+            href="#register"
+            class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+          >
+            Contact Sales
+          </a>
+        </div>
+        <ul class="space-y-4">
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Everything in Basic and:</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Unlimited registers</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Unlimited products</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Custom Online Payments (Mpesa, Banks, PayPal...)</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Custom reporting</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Multi-location support</li>
+          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>24/7 dedicated support</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
 
       </main>
     </div>
