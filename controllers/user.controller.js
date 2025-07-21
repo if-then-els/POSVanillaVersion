@@ -2,6 +2,7 @@ const Users = require("../models/user");
 const Business = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const sendResetCodeEmail = require("../utils/emailService");
 
 exports.registerUser = async (req, res) => {
   try {
@@ -349,6 +350,35 @@ exports.resetPassword = async (req, res) => {
     await user.save();
 
     res.json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const resetCode = Math.floor(100000 + Math.random() * 900000);
+
+    user.resetCode = resetCode;
+
+    user.resetCodeExpires = Date.now() + 3600000;
+    await user.save();
+
+    // Send code via email using Gmail service
+    await sendResetCodeEmail(user.email, resetCode);
+
+    res.status(200).json({ message: "Reset code sent to email" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
