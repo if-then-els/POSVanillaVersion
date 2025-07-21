@@ -89,7 +89,7 @@ async function seedPlans() {
 
 // Call this after mongoose.connect(...)
 mongoose.connection.once("open", () => {
-  seedPlans().then(() => console.log("Plans seeded"));
+  seedPlans().then(() => console.log(" Plans seeded"));
 });
 
 //start app
