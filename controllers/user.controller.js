@@ -384,3 +384,20 @@ exports.forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// POST /verify-reset-code
+exports.verifyResetCode = async (req, res) => {
+  const { email, code } = req.body;
+  const user = await Users.findOne({ email });
+  if (!user || !user.resetCode || !user.resetCodeExpires) {
+    return res.status(400).json({ message: "Invalid request" });
+  }
+  if (user.resetCode !== Number(code) || user.resetCodeExpires < Date.now()) {
+    return res.status(400).json({ message: "Invalid or expired code" });
+  }
+  // Optionally, clear the code after successful verification
+  user.resetCode = null;
+  user.resetCodeExpires = null;
+  await user.save();
+  res.json({ message: "Code verified" });
+};

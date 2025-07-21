@@ -19,7 +19,7 @@ const sendResetCodeEmail = async (recipientEmail, resetCode) => {
     const mailOptions = {
       from: process.env.GMAIL_USER,
       to: recipientEmail,
-      subject: "Password Reset Code",
+      subject: "Password Reset Code for SwiftPOS",
       html: `
                 <p>You requested a password reset. Your reset code is:</p>
                 <h3>${resetCode}</h3>
