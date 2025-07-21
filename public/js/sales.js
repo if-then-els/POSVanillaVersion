@@ -223,8 +223,8 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
     throw new Error(data.message || "Sale failed");
   }
 }
-
 let cart = [];
+
 
 // Add product to cart
 function addToCart(product) {
@@ -337,6 +337,26 @@ function renderCart() {
     cartTotalSpan.textContent = `$${total.toFixed(2)}`;
   }
 
+
+  // ✅ Update mobile cart totals
+if (document.getElementById("mobile-cart-subtotal")) {
+    document.getElementById("mobile-cart-subtotal").textContent = `KSH ${subtotal.toFixed(2)}`;
+}
+if (document.getElementById("mobile-cart-tax")) {
+    document.getElementById("mobile-cart-tax").textContent = `KSH ${tax.toFixed(2)}`;
+}
+if (document.getElementById("mobile-cart-total")) {
+    document.getElementById("mobile-cart-total").textContent = `KSH ${total.toFixed(2)}`;
+}
+
+// ✅ Enable/disable mobile buttons
+const mobileCheckoutBtn = document.getElementById("mobile-checkout-btn");
+const mobileClearCartBtn = document.getElementById("mobile-clear-cart-btn");
+
+if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = cart.length === 0;
+if (mobileClearCartBtn) mobileClearCartBtn.disabled = cart.length === 0;
+
+
   // Enable/disable checkout and clear cart buttons
   if (checkoutBtn) checkoutBtn.disabled = cart.length === 0;
   if (clearCartBtn) clearCartBtn.disabled = cart.length === 0;
@@ -384,30 +404,25 @@ function clearCart() {
   renderCart();
 }
 
-// Show checkout modal
 function showCheckoutModal() {
   if (cart.length === 0) return;
+
+  renderCart();  // ✅ Ensure cart UI and totals are refreshed before showing modal
+
   document.getElementById("checkout-modal").classList.remove("hidden");
 
   // Render checkout items
   const checkoutItemsDiv = document.getElementById("checkout-items");
   const checkoutTotalSpan = document.getElementById("checkout-total");
+
   if (checkoutItemsDiv) {
     checkoutItemsDiv.innerHTML = cart
-      .map(
-        (item) =>
-          `<div class="flex justify-between"><span>${item.productName} x ${
-            item.quantity
-          }</span><span>$${(item.productPrice * item.quantity).toFixed(
-            2
-          )}</span></div>`
-      )
-      .join("");
+      .map((item) =>
+        `<div class="flex justify-between"><span>${item.productName} x ${item.quantity}</span><span>$${(item.productPrice * item.quantity).toFixed(2)}</span></div>`
+      ).join("");
   }
-  const total = cart.reduce(
-    (sum, item) => sum + item.quantity * item.productPrice,
-    0
-  );
+
+  const total = cart.reduce((sum, item) => sum + item.quantity * item.productPrice, 0);
   if (checkoutTotalSpan) checkoutTotalSpan.textContent = `$${total.toFixed(2)}`;
 }
 
