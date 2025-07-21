@@ -4,9 +4,9 @@ const {
   registerBusiness,
   getBusinessDetails,
 } = require("../controllers/business.controller");
-const validateBusinessRegistration = require("../middleware/validateBusinessRegistration.middleware");
+const { verifyToken } = require("../middleware/auth.middleware");
 
-router.post("/register", registerBusiness);
-router.get("/business/details", getBusinessDetails);
+router.post("/business/register", registerBusiness);
+router.get("/business/details", verifyToken, getBusinessDetails);
 
 module.exports = router;

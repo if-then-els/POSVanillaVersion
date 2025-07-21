@@ -1,20 +1,51 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ["user", "admin"], required: true },
-  phone: { type: String, required: true },
-  business: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "BusinessDetails",
-    required: true,
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ["admin", "manager", "cashier", "inventory"],
+      required: true,
+    },
+    phone: { type: String, required: true },
+    business: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "BusinessDetails",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "suspended"],
+      default: "active",
+    },
+    lastActive: { type: Date },
+    avatar: { type: String },
   },
+  { timestamps: true }
+);
+
+// Compound unique index for email + business
+userSchema.index({ email: 1, business: 1 }, { unique: true });
+
+// Password hash middleware
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
-// Compound unique index for username + business
-userSchema.index({ username: 1, business: 1 }, { unique: true });
+// Method to compare password
+userSchema.methods.comparePassword = async function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
 module.exports = mongoose.model("User", userSchema);

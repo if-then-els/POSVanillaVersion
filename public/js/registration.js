@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     try {
-      const res = await fetch("/api/business/register", {
+      const res = await fetch("/business/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

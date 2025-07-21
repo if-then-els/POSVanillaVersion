@@ -2,7 +2,6 @@ const BusinessDetails = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const Users = require("../models/user");
 const Subscription = require("../models/subscription.model");
-const { verifyToken } = require("../middleware/auth.middleware");
 const jwt = require("jsonwebtoken");
 
 exports.registerBusiness = async (req, res) => {
@@ -18,24 +17,39 @@ exports.registerBusiness = async (req, res) => {
       adminEmail,
       adminPhone,
     } = req.body;
-    if (
-      !businessName ||
-      !businessLocation ||
-      !businessPhone ||
-      !businessEmail ||
-      !password ||
-      !identificationNumber ||
-      !adminUsername ||
-      !adminEmail ||
-      !adminPhone
-    ) {
-      return res.status(400).json({ message: "All fields are required" });
+
+    // Validate required fields
+    const requiredFields = [
+      "businessName",
+      "businessLocation",
+      "businessPhone",
+      "businessEmail",
+      "password",
+      "identificationNumber",
+      "adminUsername",
+      "adminEmail",
+      "adminPhone",
+    ];
+
+    const missingFields = requiredFields.filter((field) => !req.body[field]);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: "All fields are required",
+        missingFields,
+      });
     }
+
+    // Check for existing business
     const existingBusiness = await BusinessDetails.findOne({ businessEmail });
     if (existingBusiness) {
-      return res.status(400).json({ message: "Business carts" });
+      return res.status(400).json({ message: "Business already exists" });
     }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new business
     const newBusiness = new BusinessDetails({
       businessName,
       businessLocation,
@@ -47,7 +61,7 @@ exports.registerBusiness = async (req, res) => {
     });
     await newBusiness.save();
 
-    // Create admin user for this business
+    // Create admin user
     const adminUser = new Users({
       username: adminUsername,
       email: adminEmail,
@@ -57,10 +71,12 @@ exports.registerBusiness = async (req, res) => {
       business: newBusiness._id,
     });
     await adminUser.save();
+
+    // Add admin to business users
     newBusiness.users.push(adminUser._id);
     await newBusiness.save();
 
-    // Create free trial subscription
+    // Create trial subscription
     const trialEnd = new Date();
     trialEnd.setMonth(trialEnd.getMonth() + 1);
     await Subscription.create({
@@ -72,8 +88,20 @@ exports.registerBusiness = async (req, res) => {
       autoRenew: false,
     });
 
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: adminUser._id,
+        business: newBusiness._id,
+        role: "admin",
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+    console;
     res.status(201).json({
       message: "Business and admin user registered successfully",
+      token, // Send token to client
       business: {
         id: newBusiness._id,
         businessName: newBusiness.businessName,
@@ -86,29 +114,36 @@ exports.registerBusiness = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Registration Error:", error);
+    res.status(500).json({
+      message: "Server error during registration",
+      error: error.message,
+    });
   }
 };
 
 exports.getBusinessDetails = async (req, res) => {
   try {
-    const token = req.cookies.token;
-    if (!token) {
-      return res
-        .status(401)
-        .json({ message: "No token, authorization denied" });
+    // Business ID comes from verifyToken middleware
+    const businessId = req.user.business;
+
+    if (!businessId) {
+      return res.status(400).json({
+        message: "Business ID missing in token",
+      });
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (err) {
-        return res.status(403).json({ message: "Token is not valid" });
-      }
-      // If token is valid, you can optionally attach user info to req for further use
-      req.user = user; // Contains { id: user._id, business: user.business }
-    });
-    const businessId = req.user.business; // Assuming the business ID is stored in the token
-    const business = await BusinessDetails.findById({ _id: businessId });
-    return res.status(200).json({
+
+    const business = await BusinessDetails.findById(businessId).select(
+      "-password -__v"
+    ); // Exclude sensitive fields
+
+    if (!business) {
+      return res.status(404).json({
+        message: "Business not found",
+      });
+    }
+
+    res.status(200).json({
       business: {
         id: business._id,
         businessName: business.businessName,
@@ -120,7 +155,10 @@ exports.getBusinessDetails = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    //res.status(500).json({ message: "Server error", error });
+    console.error("Business Details Error:", error);
+    res.status(500).json({
+      message: "Server error retrieving business details",
+      error: error.message,
+    });
   }
 };

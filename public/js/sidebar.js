@@ -16,49 +16,63 @@ function loadSidebar() {
   <ul class="space-y-2">
     <li>
       <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("dashboard.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("dashboard.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-home w-5"></i><span>Dashboard</span>
       </a>
     </li>
     <li>
       <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("sales.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("sales.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-shopping-cart w-5"></i><span>Sales</span>
       </a>
     </li>
     <li>
       <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("inventory.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("inventory.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-box w-5"></i><span>Inventory</span>
       </a>
     </li>
     <li>
       <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("reports.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("reports.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
       </a>
     </li>
     <li>
       <a href="./manageSubscriptions.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("manageSubscriptions.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("manageSubscriptions.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fa-solid fa-bell w-5"></i><span>Subscriptions</span>
       </a>
     </li>
     <li>
       <a href="./users.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("users.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("users.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fa-solid fa-users w-5"></i><span>User management</span>
       </a>
     </li>
     <li>
       <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("settings.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("settings.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-cog w-5"></i><span>Settings</span>
       </a>
@@ -139,38 +153,43 @@ document.addEventListener("DOMContentLoaded", () => {
   loadSidebar();
 
   const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay"); // make sure you have this div
-  const mainContent = document.getElementById("main-content");
+  const overlay = document.getElementById("overlay");
   const toggleButton = document.getElementById("toggle-sidebar");
 
-  if (!sidebar || !overlay || !toggleButton || !mainContent) return;
+  // FIX: Removed mainContent reference since it doesn't exist
+  if (!sidebar || !overlay || !toggleButton) return;
 
   const openSidebar = () => {
-    sidebar.classList.remove("-translate-x-full"); // show sidebar
-    overlay.classList.remove("hidden"); // show overlay
+    sidebar.classList.remove("-translate-x-full");
+    overlay.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden"); // Prevent scrolling
   };
 
   const closeSidebar = () => {
-    sidebar.classList.add("-translate-x-full"); // hide sidebar
-    overlay.classList.add("hidden"); // hide overlay
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden"); // Re-enable scrolling
   };
 
   toggleButton.addEventListener("click", openSidebar);
   overlay.addEventListener("click", closeSidebar);
 
-  // Also close on resize so it's visible at md+
+  // FIX: Better resize handling
   window.addEventListener("resize", () => {
     if (window.innerWidth >= 768) {
       sidebar.classList.remove("-translate-x-full");
       overlay.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
     } else {
       closeSidebar();
     }
   });
 
-  // Close sidebar when clicking a link inside
+  // FIX: Close sidebar when clicking any link
   sidebar.addEventListener("click", (e) => {
-    if (e.target.tagName === "A") closeSidebar();
+    if (e.target.closest("a")) {
+      closeSidebar();
+    }
   });
 });
 

@@ -53,6 +53,11 @@
       .transition-all {
         transition: all 0.3s ease;
       }
+      @media (max-width: 767px) {
+        body.sidebar-open {
+          overflow: hidden;
+        }
+      }
     </style>
     <!-- ...existing code... -->
     <link rel="manifest" href="manifest.json" />
