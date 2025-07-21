@@ -12,6 +12,7 @@ const {
   updateUser,
   deleteUser,
   resetPassword,
+  forgotPassword,
 } = require("../controllers/user.controller");
 
 router.post("/register", registerUser);
@@ -22,6 +23,7 @@ router.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.status(200).json({ message: "Logged out successfully" });
 });
+router.post("/forgot-password", forgotPassword);
 
 //business user management
 router.get("/users", verifyToken, getAllUsers);
