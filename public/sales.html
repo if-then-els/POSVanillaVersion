@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS - PRESERVED -->
     <link rel="stylesheet" href="./css/styles.css" />
+    
 
     <script>
       // Tailwind configuration from manageSubscriptions.html
@@ -113,6 +114,13 @@
     </script>
     <style>
       /* Custom styles from manageSubscriptions.html */
+
+#chatInput {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+
       body {
         font-family: "Inter", sans-serif;
       }
@@ -777,7 +785,50 @@
         </main>
       </div>
     </div>
+<!-- 
+    feedback modal  -->
+   <div
+  id="feedbackModal"
+  class="fixed bottom-28 left-4 sm:left-auto sm:right-4 w-80 max-h-[80vh] glass-dark rounded-2xl shadow-lg border border-gray-600 flex flex-col hidden z-50"
+>
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-4 rounded-t-2xl flex justify-between items-center">
+    <h2 class="text-lg font-semibold">Feedback</h2>
+    <button id="closeChat" class="text-white text-xl">&times;</button>
+  </div>
 
+  <!-- Chat messages -->
+  <div
+    id="chatBox"
+    class="p-4 space-y-3 overflow-y-auto flex-1 text-sm bg-gray-800 text-white"
+    style="max-height: 300px;"
+  >
+    <div class="bg-gray-700 p-2 rounded-lg max-w-[75%]">
+      👋 Hello! Share your thoughts with us.
+    </div>
+  </div>
+
+  <!-- Chat input -->
+  <form id="chatForm" class="flex border-t border-gray-700 bg-gray-900 p-2 rounded-b-2xl">
+    <textarea
+      id="chatInput"
+      rows="1"
+      placeholder="Type your feedback..."
+      class="flex-1 resize-none px-4 py-2 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-accent-400"
+      required
+    ></textarea>
+
+    <button
+      type="submit"
+      id="sendButton"
+      class="ml-2 px-4 py-2 rounded-lg bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium transition flex items-center justify-center gap-2"
+    >
+      <span id="sendText">Send</span>
+      <span id="sendSpinner" class="hidden animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+      <span id="sendCheck" class="hidden"><i class="fas fa-check-circle text-green-400"></i></span>
+    </button>
+  </form>
+</div>
     <!-- Floating Action Button -->
 <button
   id="fab"
@@ -832,11 +883,122 @@
     observer.observe(el);
   });
 
-  // Floating Action Button
-  const fab = document.getElementById("fab");
-  fab.addEventListener("click", () => {
-    showToast("Quick action menu coming soon!", "info");
-  });
+ // Floating Action Button with Chatbot System
+
+const fab = document.getElementById("fab");
+const feedbackModal = document.getElementById("feedbackModal");
+const closeChat = document.getElementById("closeChat");
+const chatForm = document.getElementById("chatForm");
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatInput");
+
+const sendButton = document.getElementById("sendButton");
+const sendText = document.getElementById("sendText");
+const sendSpinner = document.getElementById("sendSpinner");
+const sendCheck = document.getElementById("sendCheck");
+
+// Toggle chat modal
+fab.addEventListener("click", () => {
+  feedbackModal.classList.toggle("hidden");
+});
+
+closeChat.addEventListener("click", () => {
+  feedbackModal.classList.add("hidden");
+});
+
+// Auto-resize chat input
+chatInput.addEventListener("input", () => {
+  chatInput.style.height = "auto";
+  chatInput.style.height = chatInput.scrollHeight + "px";
+});
+
+chatForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  // Disable send button and show spinner
+  sendButton.disabled = true;
+  sendText.classList.add("hidden");
+  sendSpinner.classList.remove("hidden");
+
+  const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Create user message element
+  const userMsgWrapper = document.createElement("div");
+  userMsgWrapper.className = "flex justify-end mb-1";
+
+  const userMsg = document.createElement("div");
+  userMsg.className = "bg-blue-600 p-2 rounded-lg max-w-[75%] text-white relative break-words";
+
+  const msgContent = document.createElement("div");
+  msgContent.innerText = msg;
+  msgContent.style.whiteSpace = "pre-wrap"; // ✅ Preserve line breaks
+
+  const msgMeta = document.createElement("div");
+  msgMeta.className = "text-xs text-white/80 mt-1 flex justify-end items-center gap-1";
+
+  const msgTime = document.createElement("span");
+  msgTime.innerText = timeNow;
+
+  const ticks = document.createElement("span");
+  ticks.innerHTML = `<i class="fa fa-clock animate-spin"></i>`; // spinner icon
+
+  msgMeta.appendChild(msgTime);
+  msgMeta.appendChild(ticks);
+
+  userMsg.appendChild(msgContent);
+  userMsg.appendChild(msgMeta);
+  userMsgWrapper.appendChild(userMsg);
+  chatBox.appendChild(userMsgWrapper);
+
+  // Clear input
+  chatInput.value = "";
+  chatInput.style.height = "auto";
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // Simulate message send delay
+  setTimeout(() => {
+    sendSpinner.classList.add("hidden");
+    sendCheck.classList.remove("hidden");
+
+    // ✅ Change to double check mark after "delivery"
+    ticks.innerHTML = `<i class="fa fa-check-double text-white"></i>`;
+
+    // Simulate admin reply
+    setTimeout(() => {
+      const adminTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const replyWrapper = document.createElement("div");
+      replyWrapper.className = "flex justify-start mb-1";
+
+      const replyMsg = document.createElement("div");
+      replyMsg.className = "bg-gray-700 text-white p-2 rounded-lg max-w-[75%] break-words";
+
+      const replyContent = document.createElement("div");
+      replyContent.innerText = "Thank you for your feedback! 😊";
+      replyContent.style.whiteSpace = "pre-wrap"; // consistent formatting
+
+      const replyMeta = document.createElement("div");
+      replyMeta.className = "text-xs text-white/80 mt-1 text-right";
+      replyMeta.innerText = adminTime;
+
+      replyMsg.appendChild(replyContent);
+      replyMsg.appendChild(replyMeta);
+      replyWrapper.appendChild(replyMsg);
+      chatBox.appendChild(replyWrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }, 1000);
+
+    // Reset send button after confirmation
+    setTimeout(() => {
+      sendCheck.classList.add("hidden");
+      sendText.classList.remove("hidden");
+      sendButton.disabled = false;
+    }, 1500);
+  }, 1000);
+});
 
   // Toast Notification System
   function showToast(message, type = "info") {
