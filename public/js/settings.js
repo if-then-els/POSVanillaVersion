@@ -26,36 +26,54 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- STORE SETTINGS ---
+// Logo upload handling
+document.getElementById("upload-logo-btn").addEventListener("click", () => {
+  document.getElementById("store-logo").click();
+});
+
+document.getElementById("store-logo").addEventListener("change", function () {
+  if (this.files && this.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      document.getElementById("logo-preview").src = e.target.result;
+    };
+    reader.readAsDataURL(this.files[0]);
+  }
+});
+
+// Update loadStoreSettings to show current logo
 async function loadStoreSettings() {
   const res = await fetch("/settings/store", { credentials: "include" });
   const data = await res.json();
-  // console.log("data from store settings: ", data);
-  // console.log("data from api settings: ", data);
   if (res.ok) {
-    document.getElementById("store-name").value = data.storeName;
-    document.getElementById("store-address").value = data.storeAddress;
-    document.getElementById("store-phone").value = data.storePhone;
-    document.getElementById("store-email").value = data.storeEmail;
-    document.getElementById("tax-rate").value = data.taxRate;
-    document.getElementById("currency").value = data.currency;
+    // ... existing fields ...
+    if (data.logoUrl) {
+      document.getElementById("logo-preview").src = data.logoUrl;
+    }
   }
 }
 
+// Update store form submission to handle file upload
 document.getElementById("store-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const payload = {
-    name: document.getElementById("store-name").value,
-    address: document.getElementById("store-address").value,
-    phone: document.getElementById("store-phone").value,
-    email: document.getElementById("store-email").value,
-    taxRate: document.getElementById("tax-rate").value,
-    currency: document.getElementById("currency").value,
-  };
+
+  const formData = new FormData();
+  formData.append("name", document.getElementById("store-name").value);
+  formData.append("address", document.getElementById("store-address").value);
+  formData.append("phone", document.getElementById("store-phone").value);
+  formData.append("email", document.getElementById("store-email").value);
+  formData.append("taxRate", document.getElementById("tax-rate").value);
+  formData.append("currency", document.getElementById("currency").value);
+
+  const logoInput = document.getElementById("store-logo");
+  if (logoInput.files[0]) {
+    formData.append("logo", logoInput.files[0]);
+  }
+
   const res = await fetch("/settings/store", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(payload),
+    body: formData,
   });
   const data = await res.json();
   showToast(data.message, res.ok ? "success" : "error");
