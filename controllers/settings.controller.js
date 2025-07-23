@@ -1,5 +1,31 @@
 const Settings = require("../models/settings");
 const Users = require("../models/user");
+const multer = require("multer");
+const path = require("path");
+
+// Configure storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/logos/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `logo-${Date.now()}${path.extname(file.originalname)}`);
+  },
+});
+
+// Initialize logos
+const logos = multer({
+  storage,
+  limits: { fileSize: 1000000 }, // 1MB
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimetype = filetypes.test(file.mimetype);
+    mimetype && extname ? cb(null, true) : cb("Error: Images Only!");
+  },
+}).single("logo");
 
 // Get all settings for the current business
 exports.getSettings = async (req, res) => {
@@ -10,7 +36,20 @@ exports.getSettings = async (req, res) => {
       settings = new Settings({ business });
       await settings.save();
     }
-    res.json(settings);
+    res.json({
+      storeName: settings.storeName || "",
+      storeAddress: settings.storeAddress || "",
+      storePhone: settings.storePhone || "",
+      storeEmail: settings.storeEmail || "",
+      taxRate: settings.taxRate || 0,
+      currency: settings.currency || "USD",
+      showLogo: settings.showLogo,
+      showTax: settings.showTax,
+      includeContact: settings.includeContact,
+      printAuto: settings.printAuto,
+      footerText: settings.footerText || "",
+      logoUrl: settings.logoUrl || "",
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch settings", error: err });
   }
@@ -37,43 +76,42 @@ exports.updateSettings = async (req, res) => {
 // Save or update store settings (name, address, phone, email, tax, currency, logo)
 exports.saveStoreSettings = async (req, res) => {
   try {
-    const business = req.user.business;
-    let settings = await Settings.findOne({ business });
-    if (!settings) settings = new Settings({ business });
-    settings.storeName = req.body.name;
-    settings.storeAddress = req.body.address;
-    settings.storePhone = req.body.phone;
-    settings.storeEmail = req.body.email;
-    settings.taxRate = req.body.taxRate;
-    settings.currency = req.body.currency;
+    logos(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err,
+        });
+      }
 
-    // associate store setting with the business
-    settings.business = business;
+      const business = req.user.business;
+      let settings = await Settings.findOne({ business });
+      if (!settings) settings = new Settings({ business });
 
-    //do not change data if the value is not provided
-    if (
-      settings.storeName ||
-      settings.storeAddress ||
-      settings.storePhone ||
-      settings.storeEmail ||
-      settings.taxRate ||
-      settings.currency === undefined
-    ) {
-      settings.storeName = settings.storeName;
-      settings.storeAddress = settings.storeAddress;
-      settings.storePhone = settings.storePhone;
-      settings.storeEmail = settings.storeEmail;
-      settings.taxRate = settings.taxRate;
-      settings.currency = settings.currency;
-    }
+      settings.storeName = req.body.name;
+      settings.storeAddress = req.body.address;
+      settings.storePhone = req.body.phone;
+      settings.storeEmail = req.body.email;
+      settings.taxRate = req.body.taxRate;
+      settings.currency = req.body.currency;
 
-    await settings.save();
-    res.json({ success: true, message: "Store settings saved", settings });
+      // Handle logo logos
+      if (req.file) {
+        settings.logoUrl = `/logos/${req.file.filename}`;
+      }
+
+      await settings.save();
+      res.json({
+        success: true,
+        message: "Store settings saved",
+        settings,
+      });
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to save store settings",
-      error: err,
+      error: err.message,
     });
   }
 };

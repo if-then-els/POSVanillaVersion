@@ -346,24 +346,35 @@
                 </div>
 
                 <div class="space-y-2">
-                  <label
-                    for="store-logo"
-                    class="block text-sm font-medium text-gray-300"
-                    >Store Logo</label
-                  >
-                  <div class="flex items-center gap-4">
-                    <img
-                      src="./images/placeholder.png"
-                      alt="Store Logo"
-                      class="h-16 w-16 rounded-xl object-cover border border-gray-700"
-                    />
-                    <button
-                      type="button"
-                      class="px-4 py-2 text-sm font-medium glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
-                    >
-                      Upload Logo
-                    </button>
-                  </div>
+  <label for="store-logo" class="block text-sm font-medium text-gray-300"
+    >Store Logo</label
+  >
+  <div class="flex items-center gap-4">
+    <img
+      id="logo-preview"
+      src="./images/placeholder.png"
+      alt="Store Logo"
+      class="h-16 w-16 rounded-xl object-cover border border-gray-700"
+    />
+    <input 
+      type="file" 
+      id="store-logo" 
+      name="logo" 
+      accept="image/*" 
+      class="hidden"
+    >
+    <button
+      type="button"
+      id="upload-logo-btn"
+      class="px-4 py-2 text-sm font-medium glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
+    >
+      Upload Logo
+    </button>
+  </div>
+  <p class="text-xs text-gray-500">
+    Recommended size: 200x200 pixels
+  </p>
+</div>
                   <p class="text-xs text-gray-500">
                     Recommended size: 200x200 pixels
                   </p>

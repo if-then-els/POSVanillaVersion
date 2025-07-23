@@ -14,7 +14,7 @@ const settingsSchema = new mongoose.Schema({
   includeContact: { type: Boolean, default: true },
   printAuto: { type: Boolean, default: true },
   footerText: String,
-  logoUrl: String, // Optional: for logo uploads
+  logoUrl: String,
 });
 
 module.exports = mongoose.model("Settings", settingsSchema);

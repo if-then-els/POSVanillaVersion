@@ -11,6 +11,14 @@ router.put("/api/settings", verifyToken, settingsController.updateSettings);
 router.post(
   "/settings/store",
   verifyToken,
+  (req, res, next) => {
+    upload(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ message: err });
+      }
+      next();
+    });
+  },
   settingsController.saveStoreSettings
 );
 router.put(
