@@ -21,6 +21,11 @@ const saleSchema = new mongoose.Schema({
     ref: "BusinessDetails",
     required: true,
   },
+  // user: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "User",
+  //   required: true,
+  // },
 });
 
 module.exports = mongoose.model("Sale", saleSchema);

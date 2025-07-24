@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 exports.processSale = async (req, res) => {
   try {
     const business = req.user.business;
+    // const user = req.user.name;
     const { items, total, customerName, paymentMethod } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0 || !business) {
       return res
@@ -37,6 +38,7 @@ exports.processSale = async (req, res) => {
       customerName,
       paymentMethod,
       business,
+      //user: req.user._id, // Assuming user ID is available in req.user
     });
     await sale.save();
 
