@@ -60,6 +60,7 @@ const settingsRoutes = require("./routes/settings.routes");
 const businessRoutes = require("./routes/business.routes");
 const subscriptionMiddleware = require("./middleware/subscription.middleware");
 const subscriptionsRoutes = require("./routes/subscriptions.routes");
+const businessPaymentRoutes = require("./routes/businesPayment.routes");
 
 app.use("/", paymentsRoutes);
 app.use("/", settingsRoutes);
@@ -73,6 +74,7 @@ app.use("/api/business", businessRoutes);
 // public, must be before subscriptionMiddleware
 app.use(subscriptionMiddleware); // protected
 app.use("/", subscriptionsRoutes); // protected
+app.use("/api/payment-methods", businessPaymentRoutes);
 
 // Apply subscription middleware
 

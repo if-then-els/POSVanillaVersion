@@ -231,12 +231,7 @@
       subscriptionExpirySpan.textContent = userData.subscriptionExpiry || "N/A";
   }
 
-  /**
-   * Creates and appends the account icon and details panel to the document body.
-   * It also injects the necessary CSS and sets up event listeners.
-   */
   async function createAccountDetailsWidget() {
-    // --- Create Account Icon Element ---
     const accountIcon = document.createElement("div");
     accountIcon.id = "account-icon";
     accountIcon.innerHTML = `
@@ -253,14 +248,14 @@
     detailsPanel.innerHTML = `
             <div class="panel-header">Account Information</div>
             <div class="panel-content">
-                <div style="text-align: center; padding: 20px;">
+                <div style="text-align: center; padding: 10px;">
                     <div class="spinner"></div>
                     <p style="margin-top: 10px; color: #666;">Loading account details...</p>
                 </div>
             </div>
             <div class="panel-footer">
                 <button id="refresh-button" class="action-button">Refresh Details</button>
-                <button id="logout-button">Logout</button>
+               
             </div>
         `;
 
@@ -437,15 +432,14 @@
                 }
             }
         `;
-    document.head.appendChild(style); // Append the style element to the <head>
+    document.head.appendChild(style);
 
-    // --- Event Listeners ---
     let panelTimeout;
 
     const showPanel = () => {
       clearTimeout(panelTimeout);
       detailsPanel.classList.add("show");
-      // Always attempt to load/refresh when the panel is shown
+
       loadAccountDetails();
     };
 
@@ -482,25 +476,20 @@
       console.log("Logout button clicked!");
       alert("Logout functionality would be implemented here!");
       detailsPanel.classList.remove("show");
-      // Optionally, clear loaded data and force reload on next open
-      detailsPanel.dataset.loaded = "false"; // This will trigger a re-fetch next time
+
+      detailsPanel.dataset.loaded = "false";
     });
 
-    // Add event listener for the new Refresh button
     document.getElementById("refresh-button").addEventListener("click", () => {
       console.log("Refresh button clicked!");
-      loadAccountDetails(); // Trigger a re-fetch of data
+      loadAccountDetails();
     });
 
-    /**
-     * Loads account details from the backend and updates the UI.
-     */
     async function loadAccountDetails() {
-      const accountData = await fetchAllAccountDetails(); // Call the new combined fetch function
+      const accountData = await fetchAllAccountDetails();
       const panelContent = detailsPanel.querySelector(".panel-content");
 
       if (accountData) {
-        // Once data is fetched, replace the loading spinner with the actual content structure
         panelContent.innerHTML = `
                     <p><strong>Username:</strong> <span id="detail-username"></span></p>
                     <p><strong>Email:</strong> <span id="detail-email"></span></p>
@@ -510,19 +499,14 @@
                     <p><strong>Subscription Type:</strong> <span id="detail-subscription-type"></span></p>
                     <p><strong>Subscription Expiry:</strong> <span id="detail-subscription-expiry"></span></p>
                 `;
-        updateAccountDetailsUI(accountData); // Populate with fetched data
-        detailsPanel.dataset.loaded = "true"; // Mark as loaded
+        updateAccountDetailsUI(accountData);
+        detailsPanel.dataset.loaded = "true";
       } else {
-        // Error message is already handled by fetchAllAccountDetails
-        detailsPanel.dataset.loaded = "false"; // Keep as not loaded if error
+        detailsPanel.dataset.loaded = "false";
       }
     }
 
-    // --- Public Function to Update User Details (can be used for local updates or after initial fetch) ---
-    // This function can be called from your HTML or other scripts to update the displayed information.
-    // Example: window.updateAccountDetails({ username: 'Jane Doe', email: 'jane@example.com' });
     window.updateAccountDetails = function (userData) {
-      // Re-render the full structure if it's currently showing an error or loading
       const panelContent = detailsPanel.querySelector(".panel-content");
       if (
         !detailsPanel.dataset.loaded ||
@@ -540,11 +524,10 @@
                 `;
       }
       updateAccountDetailsUI(userData);
-      detailsPanel.dataset.loaded = "true"; // Mark as loaded if updated manually
+      detailsPanel.dataset.loaded = "true";
     };
   }
 
-  // --- Initialize the Widget When DOM is Ready ---
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", createAccountDetailsWidget);
   } else {
