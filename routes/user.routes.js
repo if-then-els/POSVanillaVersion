@@ -14,6 +14,7 @@ const {
   resetPassword,
   forgotPassword,
   verifyResetCode,
+  getUserById,
 } = require("../controllers/user.controller");
 
 router.post("/register", registerUser);
@@ -29,7 +30,9 @@ router.post("/verify-reset-code", verifyResetCode);
 
 //business user management
 router.get("/users", verifyToken, getAllUsers);
+router.get("/users/:id", verifyToken, getUserById);
 router.post("/users", verifyToken, createUser);
+router.get("/users/:id", verifyToken);
 router.put("/users/:id", verifyToken, updateUser);
 router.delete("/users/:id", verifyToken, deleteUser);
 router.post("/users/:id/reset-password", verifyToken, resetPassword);
