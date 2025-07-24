@@ -43,7 +43,7 @@ router.put(
 // User settings (user tab)
 router.get("/settings/user", verifyToken, settingsController.getUserSettings);
 router.put(
-  "/api/settings/user",
+  "/settings/user",
   verifyToken,
   settingsController.updateUserSettings
 );
