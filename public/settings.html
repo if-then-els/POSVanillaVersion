@@ -263,7 +263,7 @@
                     id="store-name"
                     name="storeName"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value="My POS Store"
+                    value=""
                   />
                 </div>
 
@@ -278,9 +278,7 @@
                     name="storeAddress"
                     rows="3"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  >
-123 Main Street, City, Country</textarea
-                  >
+                  ></textarea>
                 </div>
 
                 <div class="space-y-2">
@@ -293,7 +291,7 @@
                     id="store-phone"
                     name="storePhone"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value="+1 (555) 123-4567"
+                    value=""
                   />
                 </div>
 
@@ -308,7 +306,7 @@
                     name="storeEmail"
                     type="email"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value="contact@myposstore.com"
+                    value=""
                   />
                 </div>
 
@@ -326,7 +324,7 @@
                       step="0.01"
                       min="0"
                       class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      value="7.5"
+                      value=""
                     />
                   </div>
 
@@ -340,41 +338,39 @@
                       id="currency"
                       name="currency"
                       class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      value="USD"
+                      value=""
                     />
                   </div>
                 </div>
 
                 <div class="space-y-2">
-  <label for="store-logo" class="block text-sm font-medium text-gray-300"
-    >Store Logo</label
-  >
-  <div class="flex items-center gap-4">
-    <img
-      id="logo-preview"
-      src="./images/placeholder.png"
-      alt="Store Logo"
-      class="h-16 w-16 rounded-xl object-cover border border-gray-700"
-    />
-    <input 
-      type="file" 
-      id="store-logo" 
-      name="logo" 
-      accept="image/*" 
-      class="hidden"
-    >
-    <button
-      type="button"
-      id="upload-logo-btn"
-      class="px-4 py-2 text-sm font-medium glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
-    >
-      Upload Logo
-    </button>
-  </div>
-  <p class="text-xs text-gray-500">
-    Recommended size: 200x200 pixels
-  </p>
-</div>
+                  <label
+                    for="store-logo"
+                    class="block text-sm font-medium text-gray-300"
+                    >Store Logo</label
+                  >
+                  <div class="flex items-center gap-4">
+                    <img
+                      id="logo-preview"
+                      src="https://placehold.co/64x64/374151/F9FAFB?text=Logo"
+                      alt="Store Logo"
+                      class="h-16 w-16 rounded-xl object-cover border border-gray-700"
+                    />
+                    <input
+                      type="file"
+                      id="store-logo"
+                      name="logo"
+                      accept="image/*"
+                      class="hidden"
+                    />
+                    <button
+                      type="button"
+                      id="upload-logo-btn"
+                      class="px-4 py-2 text-sm font-medium glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
+                    >
+                      Upload Logo
+                    </button>
+                  </div>
                   <p class="text-xs text-gray-500">
                     Recommended size: 200x200 pixels
                   </p>
@@ -416,7 +412,6 @@
                       id="show-logo"
                       name="showLogo"
                       class="sr-only peer"
-                      checked
                     />
                     <div
                       class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"
@@ -443,7 +438,6 @@
                       id="show-tax"
                       name="showTaxDetails"
                       class="sr-only peer"
-                      checked
                     />
                     <div
                       class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"
@@ -470,7 +464,6 @@
                       id="include-contact"
                       name="includeContactInfo"
                       class="sr-only peer"
-                      checked
                     />
                     <div
                       class="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"
@@ -515,9 +508,7 @@
                     name="footerText"
                     rows="3"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  >
-Thank you for your purchase!</textarea
-                  >
+                  ></textarea>
                 </div>
 
                 <div class="pt-4">
@@ -539,15 +530,15 @@ Thank you for your purchase!</textarea
               <form id="user-settings-form" class="space-y-4">
                 <div class="space-y-2">
                   <label
-                    for="username"
+                    for="user-username"
                     class="block text-sm font-medium text-gray-300"
                     >Username</label
                   >
                   <input
-                    id="username"
+                    id="user-username"
                     name="username"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value="admin"
+                    value=""
                   />
                 </div>
 
@@ -562,7 +553,7 @@ Thank you for your purchase!</textarea
                     name="email"
                     type="email"
                     class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value="admin@pos.com"
+                    value=""
                   />
                 </div>
 
@@ -664,241 +655,10 @@ Thank you for your purchase!</textarea
         observer.observe(el);
       });
 
-      // Tab switching logic
-      document.querySelectorAll(".tab-button").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          // Remove active class from all buttons
-          document.querySelectorAll(".tab-button").forEach((b) => {
-            b.classList.remove("active", "text-white", "border-primary-500");
-            b.classList.add("text-gray-400");
-          });
-
-          // Add active class to clicked button
-          this.classList.add("active", "text-white", "border-primary-500");
-          this.classList.remove("text-gray-400");
-
-          // Hide all tab contents
-          document.querySelectorAll(".tab-content").forEach((content) => {
-            content.classList.add("hidden");
-          });
-
-          // Show the selected tab content
-          const tabId = this.id.replace("tab-", "") + "-content";
-          document.getElementById(tabId).classList.remove("hidden");
-        });
-      });
-
-      function showToast(message, type = "info") {
-        const toast = document.createElement("div");
-        const colors = {
-          success: "from-success-500 to-success-600",
-          error: "from-red-500 to-red-600",
-          warning: "from-yellow-500 to-yellow-600",
-          info: "from-primary-500 to-primary-600",
-        };
-
-        toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${
-          type === "success"
-            ? "success"
-            : type === "error"
-            ? "red"
-            : type === "warning"
-            ? "yellow"
-            : "primary"
-        }-500`;
-        toast.innerHTML = `
-          <div class="flex items-center space-x-3">
-            <i class="fas fa-${
-              type === "success"
-                ? "check-circle"
-                : type === "error"
-                ? "exclamation-circle"
-                : type === "warning"
-                ? "exclamation-triangle"
-                : "info-circle"
-            } text-${
-          type === "success"
-            ? "success"
-            : type === "error"
-            ? "red"
-            : type === "warning"
-            ? "yellow"
-            : "primary"
-        }-400"></i>
-            <span>${message}</span>
-          </div>
-        `;
-
-        document.getElementById("toast-container").appendChild(toast);
-
-        setTimeout(() => {
-          toast.style.transform = "translateX(100%)";
-          toast.style.opacity = "0";
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
-
-      // Show welcome toast
-      setTimeout(() => {
-        showToast("Settings page loaded successfully!", "success");
-      }, 1000);
-
-      // --- SETTINGS INTEGRATION ---
-
-      // Fetch and populate settings on page load
-      document.addEventListener("DOMContentLoaded", async function () {
-        // Store Settings
-        try {
-          const storeRes = await fetch("/api/settings");
-          if (storeRes.ok) {
-            const store = await storeRes.json();
-            document.getElementById("store-name").value = store.name || "";
-            document.getElementById("store-address").value =
-              store.address || "";
-            document.getElementById("store-phone").value = store.phone || "";
-            document.getElementById("store-email").value = store.email || "";
-            document.getElementById("tax-rate").value = store.taxRate || "";
-            document.getElementById("currency").value = store.currency || "";
-          }
-        } catch (e) {
-          showToast("Failed to load store settings", "error");
-          console.error("Error loading store settings:", e);
-        }
-
-        // Receipt Settings
-        try {
-          const receiptRes = await fetch("/settings/receipt");
-          if (receiptRes.ok) {
-            const receipt = await receiptRes.json();
-            document.getElementById("show-logo").checked = !!receipt.showLogo;
-            document.getElementById("show-tax").checked =
-              !!receipt.showTaxDetails;
-            document.getElementById("include-contact").checked =
-              !!receipt.includeContactInfo;
-            document.getElementById("print-auto").checked =
-              !!receipt.printAutomatically;
-            document.getElementById("footer-text").value =
-              receipt.footerText || "";
-          }
-        } catch (e) {
-          showToast("Failed to load receipt settings", "error");
-        }
-
-        // User Settings
-        try {
-          const userRes = await fetch("/settings/user");
-          if (userRes.ok) {
-            const user = await userRes.json();
-            document.getElementById("username").value = user.username || "";
-            document.getElementById("user-email").value = user.email || "";
-          }
-        } catch (e) {
-          showToast("Failed to load user settings user", "error");
-        }
-      });
-
-      // Store Settings Form Submit
-      document
-        .getElementById("store-settings-form")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const payload = {
-            name: document.getElementById("store-name").value,
-            address: document.getElementById("store-address").value,
-            phone: document.getElementById("store-phone").value,
-            email: document.getElementById("store-email").value,
-            taxRate: document.getElementById("tax-rate").value,
-            currency: document.getElementById("currency").value,
-          };
-          try {
-            const res = await fetch("/settings/store", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-            if (res.ok) showToast("Store settings saved!");
-            else showToast("Failed to save store settings", "error");
-          } catch {
-            showToast("Failed to save store settings, store", "error");
-          }
-        });
-
-      // Receipt Settings Form Submit
-      document
-        .getElementById("receipt-settings-form")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const payload = {
-            showLogo: document.getElementById("show-logo").checked,
-            showTaxDetails: document.getElementById("show-tax").checked,
-            includeContactInfo:
-              document.getElementById("include-contact").checked,
-            printAutomatically: document.getElementById("print-auto").checked,
-            footerText: document.getElementById("footer-text").value,
-          };
-          try {
-            const res = await fetch("/settings/receipt", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-            if (res.ok) showToast("Receipt settings saved!");
-            else showToast("Failed to save receipt settings", "error");
-          } catch {
-            showToast("Failed to save receipt settings receipt", "error");
-          }
-        });
-
-      // User Settings Form Submit (including password change)
-      document
-        .getElementById("user-settings-form")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-          const payload = {
-            username: document.getElementById("username").value,
-            email: document.getElementById("user-email").value,
-            currentPassword: document.getElementById("current-password").value,
-            newPassword: document.getElementById("new-password").value,
-            confirmPassword: document.getElementById("confirm-password").value,
-          };
-          // Simple password match check
-          if (
-            payload.newPassword &&
-            payload.newPassword !== payload.confirmPassword
-          ) {
-            document
-              .getElementById("password-error")
-              .classList.remove("hidden");
-            document.getElementById("password-error-message").innerText =
-              "Passwords do not match.";
-            return;
-          } else {
-            document.getElementById("password-error").classList.add("hidden");
-          }
-          try {
-            const res = await fetch("/api/settings/user", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-            if (res.ok) {
-              showToast("User settings saved!");
-              document.getElementById("current-password").value = "";
-              document.getElementById("new-password").value = "";
-              document.getElementById("confirm-password").value = "";
-            } else {
-              const data = await res.json();
-              document
-                .getElementById("password-error")
-                .classList.remove("hidden");
-              document.getElementById("password-error-message").innerText =
-                data.message || "Failed to save user settings";
-              showToast("Failed to save user settings fetch user", "error");
-            }
-          } catch {
-            showToast("Failed to save user settings", "error");
-          }
-        });
+      // Show welcome toast (this will be handled by settings.js now)
+      // setTimeout(() => {
+      //   showToast("Settings page loaded successfully!", "success");
+      // }, 1000);
     </script>
   </body>
 </html>

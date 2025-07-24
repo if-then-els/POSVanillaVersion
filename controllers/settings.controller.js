@@ -156,7 +156,7 @@ exports.getReceiptSettings = async (req, res) => {
       showTaxDetails: settings.showTax,
       includeContactInfo: settings.includeContact,
       printAutomatically: settings.printAuto,
-      footerText: settings.footerText,
+      footerText: settings.footerText || "",
     });
   } catch (err) {
     res
