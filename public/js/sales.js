@@ -20,49 +20,63 @@ function loadSidebar() {
   <ul class="space-y-2">
     <li>
       <a href="./dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("dashboard.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("dashboard.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-home w-5"></i><span>Dashboard</span>
       </a>
     </li>
     <li>
       <a href="./sales.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("sales.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("sales.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-shopping-cart w-5"></i><span>Sales</span>
       </a>
     </li>
     <li>
       <a href="./inventory.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("inventory.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("inventory.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-box w-5"></i><span>Inventory</span>
       </a>
     </li>
     <li>
       <a href="./reports.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("reports.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("reports.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
       </a>
     </li>
     <li>
       <a href="./manageSubscriptions.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("manageSubscriptions.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("manageSubscriptions.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fa-solid fa-bell w-5"></i><span>Subscriptions</span>
       </a>
     </li>
     <li>
       <a href="./users.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("users.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("users.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fa-solid fa-users w-5"></i><span>User management</span>
       </a>
     </li>
     <li>
       <a href="./settings.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
-        window.location.pathname.endsWith("settings.html") ? "bg-gray-700 text-white" : ""
+        window.location.pathname.endsWith("settings.html")
+          ? "bg-gray-700 text-white"
+          : ""
       }">
         <i class="fas fa-cog w-5"></i><span>Settings</span>
       </a>
@@ -225,7 +239,6 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
 }
 let cart = [];
 
-
 // Add product to cart
 function addToCart(product) {
   const existing = cart.find((item) => item._id === product._id);
@@ -326,9 +339,9 @@ function renderCart() {
   const total = subtotal + tax;
 
   if (document.getElementById("cart-subtotal")) {
-    document.getElementById("cart-subtotal").textContent = `KSH ${subtotal.toFixed(
-      2
-    )}`;
+    document.getElementById(
+      "cart-subtotal"
+    ).textContent = `KSH ${subtotal.toFixed(2)}`;
   }
   if (document.getElementById("cart-tax")) {
     document.getElementById("cart-tax").textContent = `KSH ${tax.toFixed(2)}`;
@@ -337,25 +350,29 @@ function renderCart() {
     cartTotalSpan.textContent = `KSH ${total.toFixed(2)}`;
   }
 
-
   // ✅ Update mobile cart totals
-if (document.getElementById("mobile-cart-subtotal")) {
-    document.getElementById("mobile-cart-subtotal").textContent = `KSH ${subtotal.toFixed(2)}`;
-}
-if (document.getElementById("mobile-cart-tax")) {
-    document.getElementById("mobile-cart-tax").textContent = `KSH ${tax.toFixed(2)}`;
-}
-if (document.getElementById("mobile-cart-total")) {
-    document.getElementById("mobile-cart-total").textContent = `KSH ${total.toFixed(2)}`;
-}
+  if (document.getElementById("mobile-cart-subtotal")) {
+    document.getElementById(
+      "mobile-cart-subtotal"
+    ).textContent = `KSH ${subtotal.toFixed(2)}`;
+  }
+  if (document.getElementById("mobile-cart-tax")) {
+    document.getElementById("mobile-cart-tax").textContent = `KSH ${tax.toFixed(
+      2
+    )}`;
+  }
+  if (document.getElementById("mobile-cart-total")) {
+    document.getElementById(
+      "mobile-cart-total"
+    ).textContent = `KSH ${total.toFixed(2)}`;
+  }
 
-// ✅ Enable/disable mobile buttons
-const mobileCheckoutBtn = document.getElementById("mobile-checkout-btn");
-const mobileClearCartBtn = document.getElementById("mobile-clear-cart-btn");
+  // ✅ Enable/disable mobile buttons
+  const mobileCheckoutBtn = document.getElementById("mobile-checkout-btn");
+  const mobileClearCartBtn = document.getElementById("mobile-clear-cart-btn");
 
-if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = cart.length === 0;
-if (mobileClearCartBtn) mobileClearCartBtn.disabled = cart.length === 0;
-
+  if (mobileCheckoutBtn) mobileCheckoutBtn.disabled = cart.length === 0;
+  if (mobileClearCartBtn) mobileClearCartBtn.disabled = cart.length === 0;
 
   // Enable/disable checkout and clear cart buttons
   if (checkoutBtn) checkoutBtn.disabled = cart.length === 0;
@@ -407,7 +424,7 @@ function clearCart() {
 function showCheckoutModal() {
   if (cart.length === 0) return;
 
-  renderCart();  // ✅ Ensure cart UI and totals are refreshed before showing modal
+  renderCart(); // ✅ Ensure cart UI and totals are refreshed before showing modal
 
   document.getElementById("checkout-modal").classList.remove("hidden");
 
@@ -417,12 +434,21 @@ function showCheckoutModal() {
 
   if (checkoutItemsDiv) {
     checkoutItemsDiv.innerHTML = cart
-      .map((item) =>
-        `<div class="flex justify-between"><span>${item.productName} x ${item.quantity}</span><span>$${(item.productPrice * item.quantity).toFixed(2)}</span></div>`
-      ).join("");
+      .map(
+        (item) =>
+          `<div class="flex justify-between"><span>${item.productName} x ${
+            item.quantity
+          }</span><span>$${(item.productPrice * item.quantity).toFixed(
+            2
+          )}</span></div>`
+      )
+      .join("");
   }
 
-  const total = cart.reduce((sum, item) => sum + item.quantity * item.productPrice, 0);
+  const total = cart.reduce(
+    (sum, item) => sum + item.quantity * item.productPrice,
+    0
+  );
   if (checkoutTotalSpan) checkoutTotalSpan.textContent = `$${total.toFixed(2)}`;
 }
 
@@ -462,52 +488,305 @@ async function showReceipt(sale) {
       <head>
         <title>Sales Receipt</title>
         <style>
-          body { font-family: Arial; padding: 20px; }
-          h2 { text-align: center; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          td, th { border-bottom: 1px solid #ddd; padding: 8px; }
-          .total { font-weight: bold; }
+          /* Base Styles */
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          }
+          
+          body {
+            background: #f8f9fa;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+          }
+          
+          .receipt-container {
+            max-width: 350px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+          }
+          
+          /* Decorative Elements */
+          .watermark {
+            position: absolute;
+            opacity: 0.03;
+            font-size: 120px;
+            font-weight: bold;
+            transform: rotate(-30deg);
+            top: 30%;
+            left: -50px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+          }
+          
+          .header::after {
+            content: "";
+            display: block;
+            height: 2px;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            margin: 20px 0;
+            border-radius: 2px;
+          }
+          
+          /* Header Styles */
+          .header {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+          }
+          
+          .logo {
+            max-width: 120px;
+            display: block;
+            margin: 0 auto 15px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+          }
+          
+          .store-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+          }
+          
+          .store-details {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 3px;
+          }
+          
+          /* Transaction Info */
+          .transaction-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+            font-size: 14px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+          }
+          
+          .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+          }
+          
+          /* Table Styles */
+          .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 14px;
+          }
+          
+          .items-table th {
+            text-align: left;
+            padding: 12px 5px;
+            border-bottom: 2px solid #3498db;
+            color: #2c3e50;
+            font-weight: 600;
+          }
+          
+          .items-table td {
+            padding: 10px 5px;
+            border-bottom: 1px solid #eee;
+          }
+          
+          .items-table tr:last-child td {
+            border-bottom: none;
+          }
+          
+          .text-right {
+            text-align: right;
+          }
+          
+          /* Total Styles */
+          .total-container {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            padding: 18px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+          }
+          
+          .total-label {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+          }
+          
+          .total-amount {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+          }
+          
+          /* Footer Styles */
+          .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #7f8c8d;
+            font-size: 13px;
+            line-height: 1.7;
+            position: relative;
+            z-index: 1;
+          }
+          
+          .thank-you {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+          }
+          
+          /* Print Button */
+          .print-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          }
+          
+          .print-btn:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+          }
+          
+          /* Print Styles */
+          @media print {
+            body {
+              background: white;
+              padding: 0;
+            }
+            
+            .receipt-container {
+              box-shadow: none;
+              padding: 15px;
+              max-width: 100%;
+            }
+            
+            .print-btn {
+              display: none;
+            }
+          }
         </style>
       </head>
       <body>
-        ${
-          settings.showLogo && settings.logoUrl
-            ? `<img src="${settings.logoUrl}" style="max-width:120px;display:block;margin:0 auto 10px auto;">`
-            : ""
-        }
-        <h2>${settings.storeName || "Store Name"}</h2>
-        <div>${settings.storeAddress || ""}</div>
-        ${
-          settings.includeContact
-            ? `<div>${settings.storePhone || ""}</div><div>${
-                settings.storeEmail || ""
-              }</div>`
-            : ""
-        }
-        <hr>
-        <div>Date: ${new Date(sale.createdAt).toLocaleString()}</div>
-        <div>Customer: ${sale.customerName || "-"}</div>
-        <div>Payment: ${sale.paymentMethod}</div>
-        <table>
-          <tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
-          ${sale.items
-            .map(
-              (item) =>
-                `<tr>
-                  <td>${item.productName}</td>
-                  <td>${item.quantity}</td>
-                  <td>${item.price.toFixed(2)}</td>
-                  <td>${(item.price * item.quantity).toFixed(2)}</td>
-                </tr>`
-            )
-            .join("")}
-        </table>
-        <div class="total">Total: ${
-          settings.currency || "Ksh"
-        }${sale.total.toFixed(2)}</div>
-        <hr>
-        <div>${settings.footerText || "Thank you for your purchase!"}</div>
-        <button onclick="window.print()">Print</button>
+        <div class="receipt-container">
+          <div class="watermark">${settings.storeName || "STORE"}</div>
+          
+          <div class="header">
+            ${
+              settings.showLogo && settings.logoUrl
+                ? `<img src="${settings.logoUrl}" class="logo" alt="Store Logo">`
+                : ""
+            }
+            <div class="store-name">${
+              settings.storeName || "Professional Store"
+            }</div>
+            <div class="store-details">${
+              settings.storeAddress || "123 Business Avenue"
+            }</div>
+            ${
+              settings.includeContact
+                ? `<div class="store-details">${
+                    settings.storePhone || "Phone: (123) 456-7890"
+                  }</div>
+                   <div class="store-details">${
+                     settings.storeEmail || "Email: info@store.com"
+                   }</div>`
+                : ""
+            }
+          </div>
+          
+          <div class="transaction-info">
+            <div class="info-label">Date:</div>
+            <div>${new Date(sale.createdAt).toLocaleString()}</div>
+            
+            <div class="info-label">Receipt #:</div>
+            <div>${sale.receiptNumber || "N/A"}</div>
+            
+            <div class="info-label">Customer:</div>
+            <div>${sale.customerName || "Walk-in Customer"}</div>
+            
+            <div class="info-label">Payment:</div>
+            <div>${sale.paymentMethod}</div>
+          </div>
+          
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sale.items
+                .map(
+                  (item) => `
+                  <tr>
+                    <td>${item.productName}</td>
+                    <td>${item.quantity}</td>
+                    <td class="text-right">${item.price.toFixed(2)}</td>
+                    <td class="text-right">${(
+                      item.price * item.quantity
+                    ).toFixed(2)}</td>
+                  </tr>`
+                )
+                .join("")}
+            </tbody>
+          </table>
+          
+          <div class="total-container">
+            <span class="total-label">TOTAL AMOUNT</span>
+            <div class="total-amount">${
+              settings.currency || "Ksh"
+            }${sale.total.toFixed(2)}</div>
+          </div>
+          
+          <div class="footer">
+            <div class="thank-you">Thank you for your business!</div>
+            <div>${
+              settings.footerText || "We appreciate your trust in us"
+            }</div>
+            <div>Have questions? ${
+              settings.storePhone || "Call: (123) 456-7890"
+            }</div>
+            <div>${
+              settings.returnPolicy ||
+              "Items can be exchanged within 14 days with receipt"
+            }</div>
+          </div>
+          
+          <button class="print-btn" onclick="window.print()">Print Receipt</button>
+        </div>
       </body>
     </html>
   `);

@@ -308,6 +308,28 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+//get specific user
+exports.getUserById = async (req, res) => {
+  try {
+    const businessId = req.user.business;
+    const userId = req.params.id;
+
+    // Find user in same business
+    const user = await Users.findOne({
+      _id: userId,
+      business: businessId,
+    }).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 // Delete user
 exports.deleteUser = async (req, res) => {
