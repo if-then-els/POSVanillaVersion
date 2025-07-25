@@ -47,7 +47,7 @@ function showToast(title, message, type = "info", duration = 3000) {
 }
 
 // Format currency
-function formatCurrency(amount, currencyCode = "USD") {
+function formatCurrency(amount, currencyCode = "KES") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currencyCode,
