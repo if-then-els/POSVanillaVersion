@@ -15,7 +15,13 @@ function loadSidebar() {
   sidebar.innerHTML = `
     <div class="flex h-16 items-center justify-between border-b px-4">
       <h1 class="text-xl font-bold">POS System</h1>
+
+      <button id="collapse-toggle" class="hidden md:block text-gray-400 hover:text-white">
+        <i id="collapse-icon" class="fas fa-chevron-left"></i>
+      </button>
     </div>
+
+    
     <nav class="p-4">
   <ul class="space-y-2">
     <li>
@@ -24,7 +30,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fas fa-home w-5"></i><span>Dashboard</span>
+        <i class="fas fa-home w-5"></i><span class="sidebar-text">Dashboard</span>
       </a>
     </li>
     <li>
@@ -33,7 +39,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fas fa-shopping-cart w-5"></i><span>Sales</span>
+        <i class="fas fa-shopping-cart w-5"></i><span class="sidebar-text">Sales</span>
       </a>
     </li>
     <li>
@@ -42,7 +48,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fas fa-box w-5"></i><span>Inventory</span>
+        <i class="fas fa-box w-5"></i><span class="sidebar-text">Inventory</span>
       </a>
     </li>
     <li>
@@ -51,7 +57,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fas fa-chart-bar w-5"></i><span>Reports</span>
+        <i class="fas fa-chart-bar w-5"></i><span class="sidebar-text">Reports</span>
       </a>
     </li>
     <li>
@@ -60,7 +66,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fa-solid fa-bell w-5"></i><span>Subscriptions</span>
+        <i class="fa-solid fa-bell w-5"></i><span class="sidebar-text">Subscriptions</span>
       </a>
     </li>
     <li>
@@ -69,7 +75,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fa-solid fa-users w-5"></i><span>User management</span>
+        <i class="fa-solid fa-users w-5"></i><span class="sidebar-text">User management</span>
       </a>
     </li>
     <li>
@@ -78,7 +84,7 @@ function loadSidebar() {
           ? "bg-gray-700 text-white"
           : ""
       }">
-        <i class="fas fa-cog w-5"></i><span>Settings</span>
+        <i class="fas fa-cog w-5"></i><span class="sidebar-text">Settings</span>
       </a>
     </li>
   </ul>
@@ -87,17 +93,29 @@ function loadSidebar() {
     <div class="border-t mt-auto p-4">
       <div class="flex items-center gap-3 rounded-md px-3 py-2">
         <i class="fas fa-user w-5"></i>
-        <div class="flex flex-col">
+        <div class="flex flex-col sidebar-text">
           <span class="text-sm font-medium" id="user-name">Admin User</span>
           <span class="text-xs text-gray-500" id="user-email">admin@pos.com</span>
         </div>
       </div>
       <button id="logout-btn" class="mt-2 w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50">
         <i class="fas fa-sign-out-alt w-5"></i>
-        <span>Logout</span>
+        <span class="sidebar-text">Logout</span>
       </button>
     </div>
   `;
+
+  // Add event listener for collapse toggle
+  const collapseToggle = document.getElementById("collapse-toggle");
+  if (collapseToggle) {
+    collapseToggle.addEventListener("click", toggleSidebarCollapse);
+  }
+
+  // Check localStorage for collapsed state
+  const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+  if (isCollapsed) {
+    collapseSidebar();
+  }
 
   // Update user info
   async function updateUserInfo() {
@@ -139,6 +157,46 @@ function loadSidebar() {
     logoutBtn.addEventListener("click", logout);
   }
 }
+
+// Toggle sidebar collapse state
+function toggleSidebarCollapse() {
+  const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+  if (isCollapsed) {
+    expandSidebar();
+  } else {
+    collapseSidebar();
+  }
+}
+
+// Collapse sidebar to show only icons
+function collapseSidebar() {
+  document.body.classList.add('sidebar-collapsed');
+  document.querySelectorAll('.sidebar-text').forEach(el => {
+    el.style.display = 'none';
+  });
+  const collapseIcon = document.getElementById("collapse-icon");
+  if (collapseIcon) {
+    collapseIcon.classList.remove('fa-chevron-left');
+    collapseIcon.classList.add('fa-chevron-right');
+  }
+  localStorage.setItem('sidebarCollapsed', 'true');
+}
+
+// Expand sidebar to show full menu
+function expandSidebar() {
+  document.body.classList.remove('sidebar-collapsed');
+  document.querySelectorAll('.sidebar-text').forEach(el => {
+    el.style.display = '';
+  });
+  const collapseIcon = document.getElementById("collapse-icon");
+  if (collapseIcon) {
+    collapseIcon.classList.remove('fa-chevron-right');
+    collapseIcon.classList.add('fa-chevron-left');
+  }
+  localStorage.setItem('sidebarCollapsed', 'false');
+}
+
+// ... rest of your existing code remains the same ...
 
 // Fetch products from backend and render them in the products grid
 async function loadProductsForSale() {
