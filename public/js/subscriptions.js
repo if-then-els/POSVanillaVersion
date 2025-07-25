@@ -42,10 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Floating Action Button
-  const fab = document.getElementById("fab");
-  fab.addEventListener("click", () => {
-    showToast("Quick action menu coming soon!", "info");
-  });
+  // const fab = document.getElementById("fab");
+  // fab.addEventListener("click", () => {
+  //   showToast("Quick action menu coming soon!", "info");
+  // });
 
   // --- Toast Notification Function ---
   function showToast(
