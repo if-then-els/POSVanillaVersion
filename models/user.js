@@ -28,9 +28,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Compound unique index for email + business
-userSchema.index({ email: 1, business: 1 }, { unique: true });
-
 // Password hash middleware
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

@@ -6,8 +6,8 @@ const sendResetCodeEmail = require("../utils/emailService");
 
 exports.registerUser = async (req, res) => {
   try {
-    const { email, password, role, phone, business } = req.body;
-    if (!email || !email || !role || !password || !phone || !business) {
+    const { name, email, password, role, phone, business } = req.body;
+    if (!name || !email || !role || !password || !phone || !business) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const existingUser = await Users.findOne({ email });
@@ -18,11 +18,11 @@ exports.registerUser = async (req, res) => {
     if (!businessExists) {
       return res.status(400).json({ message: "Business not found" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new Users({
-      userName,
+      name,
       email,
-      password: hashedPassword,
+      password,
       role,
       phone,
       business,
@@ -42,7 +42,7 @@ exports.registerUser = async (req, res) => {
       message: "User registered successfully",
       user: {
         id: newUser._id,
-        userName: newUser.UserName,
+        name: newUser.name, // FIX: Changed from userName to name
         email: newUser.email,
         role: newUser.role,
         phone: newUser.phone,
@@ -58,24 +58,30 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
-    // console.log("request received is  :", req.body);
     const { email, password, businessName } = req.body;
 
     if (!email || !password || !businessName) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
     const user = await Users.findOne({ email });
-    // console.log("user is :", user);
-    const business = await Business.findById(user.business);
-    // console.log("Business is  :", business);
-    if (!user && !business) {
-      return res
-        .status(400)
-        .json({ message: "User or business not found,check your credentials" });
+
+    // First check if user exists
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
     }
-    if (business.businessName !== businessName) {
+
+    // Now safely access user.business
+    const business = await Business.findById(user.business);
+
+    if (!business) {
+      return res.status(400).json({ message: "Business not found" });
+    }
+
+    if (business.businessName.toLowerCase() !== businessName.toLowerCase()) {
       return res.status(400).json({ message: "Business name does not match" });
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid email or password" });
@@ -162,16 +168,15 @@ exports.fetchUserDetails = async (req, res) => {
     res.status(200).json({
       user: {
         id: user._id,
-        userName: user.userName,
+        name: user.name, // Changed from userName to name
         email: user.email,
         role: user.role,
         phone: user.phone,
         business: {
           id: user.business._id,
           name: user.business.businessName,
-          address: user.business.address,
+          address: user.business.businessLocation, // Changed from address to businessLocation
         },
-        user,
       },
     });
   } catch (error) {
@@ -229,18 +234,10 @@ exports.createUser = async (req, res) => {
     const businessId = req.user.business;
     const { name, email, password, role, phone } = req.body;
 
-    // Check if email already exists in this business
-    const existingUser = await Users.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "Email already exists in this business" });
-    }
-
     const newUser = new Users({
       name,
       email,
-      password,
+      password, // FIX: Store hashed password
       role,
       phone,
       business: businessId,
