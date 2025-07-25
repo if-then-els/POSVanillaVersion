@@ -6,13 +6,13 @@ const chatForm = document.getElementById("chatForm");
 const chatBox = document.getElementById("chatBox");
 const chatInput = document.getElementById("chatInput");
 const openMessage = document.getElementById("openMessage");
+const welcomeBox = document.getElementById("welcomeBox");
+const statusBox = document.getElementById("statusBox");
 
-// Elements inside Send button
 const sendButton = document.getElementById("sendButton");
 const sendText = document.getElementById("sendText");
 const sendSpinner = document.getElementById("sendSpinner");
 const sendCheck = document.getElementById("sendCheck");
-
 
 // === Tab Navigation ===
 document.querySelectorAll(".tab-button").forEach(button => {
@@ -27,38 +27,55 @@ document.querySelectorAll(".tab-button").forEach(button => {
     // Show selected tab panel
     const selectedPanel = document.getElementById(`tab-${selectedTab}`);
     if (selectedPanel) selectedPanel.classList.remove("hidden");
+
+    // Restore Home tab defaults
+    if (selectedTab === "Home") {
+      welcomeBox?.classList.remove("hidden");
+      statusBox?.classList.remove("hidden");
+      openMessage?.parentElement.classList.remove("hidden");
+      chatForm?.classList.add("hidden");
+    }
   });
 });
 
-
-
-
-// === Set Today's Date in Status Section ===
+// === Set Today's Date ===
 document.getElementById("currentDate").textContent = new Date().toLocaleDateString();
 
-// === Modal Open/Close ===
+// === FAB Open ===
 fab?.addEventListener("click", () => {
-  feedbackModal.classList.toggle("hidden");
+  fab.classList.add("hidden");
+  feedbackModal.classList.remove("hidden");
+
+  // Animate chatbot in
+  feedbackModal.classList.add("opacity-0", "scale-90");
+  setTimeout(() => {
+    feedbackModal.classList.remove("opacity-0", "scale-90");
+  }, 10);
+
+  // Animate status block like a message (optional)
+  statusBox.classList.add("opacity-0", "translate-y-2");
+  setTimeout(() => {
+    statusBox.classList.remove("opacity-0", "translate-y-2");
+  }, 300);
 });
 
+// === Close Chatbot ===
 closeChat?.addEventListener("click", () => {
-  feedbackModal.classList.add("hidden");
+  feedbackModal.classList.add("scale-90", "opacity-0");
+  setTimeout(() => {
+    feedbackModal.classList.add("hidden");
+    fab.classList.remove("hidden");
+  }, 300);
 });
 
-// === Show Chat Input on "Send us a message" Click ===
+// === Send Message Flow ===
 openMessage?.addEventListener("click", () => {
-  // Show chat input
   chatForm.classList.remove("hidden");
+  openMessage?.parentElement.classList.add("hidden");
 
-  // Hide the "Send us a message" button
-  openMessage.parentElement.classList.add("hidden");
+  welcomeBox?.classList.add("hidden");
+  statusBox?.classList.add("hidden");
 
-  // Hide greeting and status containers
-  document.querySelectorAll("#tab-Home > .bg-gray-800").forEach(container => {
-    container.classList.add("hidden");
-  });
-
-  // Focus textarea
   chatInput.focus();
 });
 
@@ -68,21 +85,20 @@ chatInput?.addEventListener("input", () => {
   chatInput.style.height = chatInput.scrollHeight + "px";
 });
 
-// === Submit Chat Form ===
+// === Chat Submit ===
 chatForm?.addEventListener("submit", (e) => {
   e.preventDefault();
-
   const msg = chatInput.value.trim();
   if (!msg) return;
 
-  // === UI: Disable send, show spinner ===
+  // Send button loading state
   sendButton.disabled = true;
   sendText.classList.add("hidden");
   sendSpinner.classList.remove("hidden");
 
   const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // === Add User Message ===
+  // User message
   const userMsgWrapper = document.createElement("div");
   userMsgWrapper.className = "flex justify-end mb-1";
 
@@ -110,17 +126,17 @@ chatForm?.addEventListener("submit", (e) => {
   chatBox.appendChild(userMsgWrapper);
   chatBox.scrollTop = chatBox.scrollHeight;
 
-  // === Clear Input ===
+  // Clear textarea
   chatInput.value = "";
   chatInput.style.height = "auto";
 
-  // === Simulate Sending ===
+  // Simulate sending
   setTimeout(() => {
     sendSpinner.classList.add("hidden");
     sendCheck.classList.remove("hidden");
     ticks.innerHTML = `<i class="fa fa-check-double text-white"></i>`;
 
-    // Simulate Admin Reply
+    // Simulate admin reply
     setTimeout(() => {
       const adminTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -145,7 +161,7 @@ chatForm?.addEventListener("submit", (e) => {
       chatBox.scrollTop = chatBox.scrollHeight;
     }, 1000);
 
-    // Reset Send Button UI
+    // Reset send button
     setTimeout(() => {
       sendCheck.classList.add("hidden");
       sendText.classList.remove("hidden");
