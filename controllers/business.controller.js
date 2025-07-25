@@ -47,7 +47,6 @@ exports.registerBusiness = async (req, res) => {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new business
     const newBusiness = new BusinessDetails({
@@ -55,7 +54,7 @@ exports.registerBusiness = async (req, res) => {
       businessLocation,
       businessPhone,
       businessEmail,
-      password: hashedPassword,
+      password,
       identificationNumber,
       dateCreated: new Date(),
     });
@@ -63,13 +62,14 @@ exports.registerBusiness = async (req, res) => {
 
     // Create admin user
     const adminUser = new Users({
-      username: adminUsername,
+      name: adminUsername,
       email: adminEmail,
-      password: hashedPassword,
+      password: password,
       role: "admin",
       phone: adminPhone,
       business: newBusiness._id,
     });
+
     await adminUser.save();
 
     // Add admin to business users
@@ -109,7 +109,7 @@ exports.registerBusiness = async (req, res) => {
       },
       adminUser: {
         id: adminUser._id,
-        username: adminUser.username,
+        username: adminUser.name,
         email: adminUser.email,
       },
     });
