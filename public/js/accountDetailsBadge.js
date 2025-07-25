@@ -410,27 +410,31 @@
             }
 
             /* Responsive adjustments for smaller screens (e.g., mobile) */
-            @media (max-width: 768px) {
-                #account-icon {
-                    top: 15px;
-                    right: 15px;
-                    width: 40px;
-                    height: 40px;
-                }
-                #account-icon svg {
-                    width: 24px;
-                    height: 24px;
-                }
-                #account-details-panel {
-                    top: 65px;
-                    right: 15px;
-                    width: calc(100% - 30px);
-                    max-width: 350px;
-                }
-                .panel-footer {
-                    flex-direction: column; /* Stack buttons vertically on small screens */
-                }
-            }
+           @media (max-width: 768px) {
+    #account-icon {
+        top: auto;
+        bottom: 15px;
+        left: 15px;
+        right: auto;
+        width: 40px;
+        height: 40px;
+    }
+    #account-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+    #account-details-panel {
+        top: auto;
+        bottom: 65px;
+        left: 15px;
+        right: auto;
+        width: calc(100% - 30px);
+        max-width: 350px;
+    }
+    .panel-footer {
+        flex-direction: column;
+    }
+}
         `;
     document.head.appendChild(style);
 

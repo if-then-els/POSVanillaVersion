@@ -299,6 +299,38 @@
     overflow: hidden;
   }
 }
+
+/* Sidebar Collapse Styles */
+.sidebar-collapsed #sidebar {
+  width: 4rem; /* Adjust as needed */
+  overflow: hidden;
+}
+
+.sidebar-collapsed #sidebar .sidebar-text {
+  display: none;
+}
+
+.sidebar-collapsed #sidebar .flex.flex-col {
+  display: none;
+}
+
+.sidebar-collapsed #sidebar nav {
+  padding: 0.5rem;
+}
+
+.sidebar-collapsed #sidebar li a {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.sidebar-collapsed #sidebar h1 {
+  display: none;
+}
+
+.sidebar-collapsed #sidebar .border-b {
+  justify-content: center;
+  padding: 0.5rem;
+}
     </style>
   </head>
   <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
@@ -340,11 +372,11 @@
           POS 
         </h1>
       </div>
-     <button
+      <button
         id="toggle-sidebar"
         class="p-2 hover:bg-white/10 rounded-lg transition-colors"
       >
-        <i class="fas fa-bars text-xl"></i>
+        <i class="fas fa-bars text-xl text-white"></i>
       </button>
     </nav>
 

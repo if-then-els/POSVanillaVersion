@@ -438,7 +438,7 @@ function showCheckoutModal() {
         (item) =>
           `<div class="flex justify-between"><span>${item.productName} x ${
             item.quantity
-          }</span><span>$${(item.productPrice * item.quantity).toFixed(
+          }</span><span> KES ${(item.productPrice * item.quantity).toFixed(
             2
           )}</span></div>`
       )
@@ -449,7 +449,7 @@ function showCheckoutModal() {
     (sum, item) => sum + item.quantity * item.productPrice,
     0
   );
-  if (checkoutTotalSpan) checkoutTotalSpan.textContent = `$${total.toFixed(2)}`;
+  if (checkoutTotalSpan) checkoutTotalSpan.textContent = `KES ${total.toFixed(2)}`;
 }
 
 // Hide checkout modal
