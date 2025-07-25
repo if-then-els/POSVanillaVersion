@@ -230,7 +230,7 @@ exports.createUser = async (req, res) => {
     const { name, email, password, role, phone } = req.body;
 
     // Check if email already exists in this business
-    const existingUser = await Users.findOne({ email, business: businessId });
+    const existingUser = await Users.findOne({ email });
     if (existingUser) {
       return res
         .status(400)

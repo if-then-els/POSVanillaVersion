@@ -58,8 +58,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       })
       .catch((error) => {
-        // Only show error toast (not using the alert anymore)
-        showToast("Invalid credentials or business name", "error");
+        console.error("Login error:", error);
+        showToast("Invalid credentials or business name", error);
       });
   });
 
