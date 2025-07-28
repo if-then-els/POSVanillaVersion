@@ -409,28 +409,30 @@
                 100% { transform: rotate(360deg); }
             }
 
-            /* Responsive adjustments for smaller screens (e.g., mobile) */
-           @media (max-width: 768px) {
+      /* Responsive adjustments for smaller screens (e.g., mobile) */
+@media (max-width: 768px) {
     #account-icon {
-        top: auto;
-        bottom: 15px;
-        left: 15px;
-        right: auto;
+        top: 90px;           
+        left: 23rem;         
+        right: auto;        
         width: 40px;
         height: 40px;
     }
+    
     #account-icon svg {
         width: 24px;
         height: 24px;
     }
+    
     #account-details-panel {
-        top: auto;
-        bottom: 65px;
-        left: 15px;
-        right: auto;
+        top: 65px;          /* Position below the icon */
+        left: 15px;         /* Align with left edge */
+        right: auto;        /* Reset right positioning */
+        bottom: auto;       /* Reset bottom positioning */
         width: calc(100% - 30px);
         max-width: 350px;
     }
+    
     .panel-footer {
         flex-direction: column;
     }
