@@ -6,7 +6,7 @@ const inventorySchema = new mongoose.Schema({
   productQuantity: { type: Number, required: true },
   productDescription: { type: String, required: true },
   productCategory: { type: String, required: true },
-  productBatchNumber: { type: String, required: true, unique: true },
+  productBatchNumber: { type: String, required: true },
   business: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "BusinessDetails",

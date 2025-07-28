@@ -1,13 +1,7 @@
-// utils/emailService.js (or wherever you prefer to put it)
 const nodemailer = require("nodemailer");
 
-const sendResetCodeEmail = async (recipientEmail, resetCode) => {
+const sendResetLinkEmail = async (recipientEmail, resetLink) => {
   try {
-    // Create a Nodemailer transporter using Gmail SMTP
-    // IMPORTANT: For security, avoid hardcoding credentials directly in your code.
-    // Use environment variables (e.g., process.env.GMAIL_APP_PASSWORD, process.env.GMAIL_USER)
-    // You'll need to generate an "App password" for your Gmail account if you have 2-factor authentication enabled.
-    // See: https://support.google.com/accounts/answer/185833
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -19,21 +13,32 @@ const sendResetCodeEmail = async (recipientEmail, resetCode) => {
     const mailOptions = {
       from: process.env.GMAIL_USER,
       to: recipientEmail,
-      subject: "Password Reset Code for SwiftPOS",
+      subject: "Password Reset Link for SwiftPOS",
       html: `
-                <p>You requested a password reset. Your reset code is:</p>
-                <h3>${resetCode}</h3>
-                <p>This code is valid for a short period. Do not share it with anyone.</p>
-                <p>If you did not request a password reset, please ignore this email.</p>
-            `,
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Password Reset Request</h2>
+          <p>You requested a password reset. Click the button below to reset your password:</p>
+          <a href="${resetLink}" 
+             style="display: inline-block; padding: 12px 24px; background-color: #2563eb; 
+                    color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
+            Reset Password
+          </a>
+          <p>If you didn't request this, please ignore this email.</p>
+          <p><strong>Note:</strong> This link expires in 1 hour.</p>
+          <p style="font-size: 12px; color: #666; margin-top: 20px;">
+            Can't click the button? Copy and paste this URL into your browser:<br>
+            ${resetLink}
+          </p>
+        </div>
+      `,
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("Reset code email sent successfully!");
+    console.log("Reset link email sent successfully!");
   } catch (error) {
-    console.error("Error sending reset code email:", error);
-    throw new Error("Failed to send reset code email");
+    console.error("Error sending reset link email:", error);
+    throw new Error("Failed to send reset link email");
   }
 };
 
-module.exports = sendResetCodeEmail;
+module.exports = sendResetLinkEmail;

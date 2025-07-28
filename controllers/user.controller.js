@@ -2,7 +2,7 @@ const Users = require("../models/user");
 const Business = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const sendResetCodeEmail = require("../utils/emailService");
+const sendResetLinkEmail = require("../utils/emailService");
 
 exports.registerUser = async (req, res) => {
   try {
@@ -387,17 +387,18 @@ exports.forgotPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const resetCode = Math.floor(100000 + Math.random() * 900000);
+    // Generate reset token
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
-    user.resetCode = resetCode;
+    // Construct reset link
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password.html?token=${resetToken}`;
 
-    user.resetCodeExpires = Date.now() + 3600000;
-    await user.save();
+    // Send email with reset link
+    await sendResetLinkEmail(user.email, resetLink);
 
-    // Send code via email using Gmail service
-    await sendResetCodeEmail(user.email, resetCode);
-
-    res.status(200).json({ message: "Reset code sent to email" });
+    res.status(200).json({ message: "Reset link sent to email" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -405,18 +406,52 @@ exports.forgotPassword = async (req, res) => {
 };
 
 // POST /verify-reset-code
-exports.verifyResetCode = async (req, res) => {
-  const { email, code } = req.body;
-  const user = await Users.findOne({ email });
-  if (!user || !user.resetCode || !user.resetCodeExpires) {
-    return res.status(400).json({ message: "Invalid request" });
+exports.verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+      res.json({ valid: true, userId: decoded.id });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
-  if (user.resetCode !== Number(code) || user.resetCodeExpires < Date.now()) {
-    return res.status(400).json({ message: "Invalid or expired code" });
+};
+exports.publicResetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      try {
+        const user = await Users.findById(decoded.id);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Manually hash the password before saving
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: "Password reset successfully" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
-  // Optionally, clear the code after successful verification
-  user.resetCode = null;
-  user.resetCodeExpires = null;
-  await user.save();
-  res.json({ message: "Code verified" });
 };

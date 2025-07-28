@@ -47,6 +47,10 @@ exports.registerBusiness = async (req, res) => {
     }
 
     // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!hashedPassword) {
+      return res.status(500).json({ message: "Error hashing password" });
+    }
 
     // Create new business
     const newBusiness = new BusinessDetails({
@@ -54,7 +58,7 @@ exports.registerBusiness = async (req, res) => {
       businessLocation,
       businessPhone,
       businessEmail,
-      password,
+      password: hashedPassword,
       identificationNumber,
       dateCreated: new Date(),
     });
@@ -160,5 +164,14 @@ exports.getBusinessDetails = async (req, res) => {
       message: "Server error retrieving business details",
       error: error.message,
     });
+  }
+};
+
+exports.getAllBusinesses = async (res, req) => {
+  try {
+    const businesses = await BusinessDetails.find();
+    res.json({ businesses });
+  } catch (error) {
+    console.error("error on fetching all businesses: ", error);
   }
 };
