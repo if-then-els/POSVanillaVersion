@@ -291,25 +291,36 @@ async function updateUser(userId, userData) {
 }
 
 // Delete user
+// Remove the old deleteUser function and replace with:
 async function deleteUser(userId) {
-  if (!confirm("Are you sure you want to delete this user?")) return;
+  // Show the modal instead of using confirm()
+  document.getElementById("delete-confirmation-modal").classList.remove("hidden");
+  
+  // Set up the confirm button handler
+  const confirmBtn = document.getElementById("confirm-delete");
+  
+  // Remove any existing listeners to avoid duplicates
+  const newConfirmBtn = confirmBtn.cloneNode(true);
+  confirmBtn.replaceWith(newConfirmBtn);
+  
+  newConfirmBtn.onclick = async () => {
+    try {
+      const response = await fetch(`/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-  try {
-    const response = await fetch(`/users/${userId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+      if (!response.ok) throw new Error("Failed to delete user");
 
-    if (!response.ok) {
-      throw new Error("Failed to delete user");
+      showToast("User deleted successfully", "success");
+      loadUsers(currentPage);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      showToast("Failed to delete user", "error");
+    } finally {
+      document.getElementById("delete-confirmation-modal").classList.add("hidden");
     }
-
-    showToast("User deleted successfully", "success");
-    loadUsers(currentPage);
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    showToast("Failed to delete user", "error");
-  }
+  };
 }
 
 // Toast notification

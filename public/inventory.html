@@ -681,12 +681,141 @@
       </div>
     </div>
 
+    <!-- Feedback Modal -->
+<div
+  id="feedbackModal"
+  class="fixed bottom-28 left-4 sm:left-auto sm:right-4 w-80 max-h-[80vh] glass-dark rounded-2xl shadow-lg border border-gray-600 flex flex-col hidden z-50 bg-gray-900 text-white"
+>
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-4 rounded-t-2xl flex justify-between items-center">
+    <h2 class="text-lg font-semibold"></h2>
+    <button id="closeChat" class="text-white text-xl">&times;</button>
+  </div>
+
+  <!-- Body & Tabs -->
+  <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+    <!-- HOME TAB -->
+   <!-- HOME TAB -->
+<div id="tab-Home" class="tab-panel space-y-3">
+  <!-- Greeting -->
+  <div id="welcomeBox" class="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1">
+    <h3 class="text-base font-semibold">Hi Codecine 👋</h3>
+    <p class="text-sm text-gray-300">How can we help?</p>
+  </div>
+
+  <!-- Status -->
+  <div id="statusBox" class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm">
+    <p class="font-semibold">Status: <span class="text-green-400">All systems operational</span></p>
+    <p class="text-xs text-gray-400">Updated on: <span id="currentDate"></span></p>
+  </div>
+
+  <!-- Send Button -->
+  <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
+    <button
+      id="openMessage"
+      class="w-full flex items-center justify-between px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-sm font-medium transition"
+    >
+      <span>Send us a message</span>
+      <i class="fas fa-paper-plane ml-2"></i>
+    </button>
+  </div>
+
+  <!-- Hidden Chat Form -->
+  <form id="chatForm" class="hidden flex flex-col space-y-2 mt-2">
+    <textarea
+      id="chatInput"
+      rows="3"
+      placeholder="Type your feedback..."
+      class="w-full resize-none px-4 py-2 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-accent-400"
+      required
+    ></textarea>
+    <button
+      id="sendButton"
+      type="submit"
+      class="self-end px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium rounded-lg flex items-center gap-2"
+    >
+      <span id="sendText">Send</span>
+      <span id="sendSpinner" class="hidden animate-spin"><i class="fas fa-spinner"></i></span>
+      <span id="sendCheck" class="hidden"><i class="fas fa-check-double"></i></span>
+    </button>
+  </form>
+
+  <!-- Chat Output -->
+  <div id="chatBox" class="max-h-40 overflow-y-auto space-y-2 text-sm mt-2 break-words"></div>
+</div>
+
+    <!-- MESSAGES TAB -->
+    <div id="tab-Messages" class="tab-panel hidden flex flex-col space-y-2 h-full">
+      <div class="flex-1 overflow-y-auto space-y-2 bg-gray-800 p-2 rounded-lg max-h-40 text-sm" id="messagesArea"></div>
+
+      <div class="flex items-center gap-2">
+        <input
+          id="msgInput"
+          type="text"
+          placeholder="Type your message..."
+          class="flex-1 px-3 py-2 text-sm rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
+        />
+        <button id="msgSendBtn" class="px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-white">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+
+      <div class="mt-3 bg-gray-800 border border-gray-700 rounded-lg p-3 text-center">
+        <p class="text-xs text-gray-400 mb-2">Rate this conversation:</p>
+        <div class="flex justify-center gap-3 text-xl">
+          <button title="Terrible 😠" class="hover:scale-110 transition">😠</button>
+          <button title="Bad 😞" class="hover:scale-110 transition">😞</button>
+          <button title="Okay 😐" class="hover:scale-110 transition">😐</button>
+          <button title="Good 😊" class="hover:scale-110 transition">😊</button>
+          <button title="Excellent 😍" class="hover:scale-110 transition">😍</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TICKETS TAB -->
+    <div id="tab-Tickets" class="tab-panel hidden text-center text-sm text-gray-300">
+      <p>No tickets created yet.</p>
+    </div>
+  </div>
+
+  <!-- Footer Navigation (INSIDE MODAL) -->
+  <div class="border-t border-gray-700 bg-gray-800 p-2 flex justify-around text-sm text-gray-300">
+    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Home" id="tabHome">
+      <i class="fas fa-home text-lg"></i>
+      <span>Home</span>
+    </button>
+    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Messages" id="tabMessages">
+      <i class="fas fa-comment-dots text-lg"></i>
+      <span>Messages</span>
+    </button>
+    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Tickets" id="tabTickets">
+      <i class="fas fa-ticket-alt text-lg"></i>
+      <span>Tickets</span>
+    </button>
+  </div>
+</div>
+
+
+
+        <!-- Floating Action Button -->
+<button
+  id="fab"
+  class="fixed bottom-8 left-8 sm:left-auto sm:right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
+>
+  <i
+    class="fas fa-comment-dots text-white text-2xl group-hover:scale-110 transition-transform duration-300"
+  ></i>
+</button>
+
+
     <!-- Scripts -->
     <script src="./js/sidebar.js"></script>
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
     <script src="./js/inventory.js"></script>
+    <script src="./js/chat.js"></script>
 
     <script>
       // Initialize scroll reveal animations
