@@ -8,6 +8,7 @@ module.exports = async function (req, res, next) {
     "/payments/mpesa/c2b/confirmation",
     "/payments/mpesa/callback",
     "/mpesa/callback",
+    "/businesses",
   ];
 
   // Skip subscription check for public routes
