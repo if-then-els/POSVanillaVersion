@@ -34,14 +34,14 @@ exports.addStock = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingProduct = await Inventory.findOne({
-      productBatchNumber,
-      business, // Ensure the batch number is unique within the same business
-    });
+    // const existingProduct = await Inventory.findOne({
+    //   productBatchNumber,
+    //   business, // Ensure the batch number is unique within the same business
+    // });
 
-    if (existingProduct) {
-      return res.status(400).json({ message: "Product Batch already exists" });
-    }
+    // if (existingProduct) {
+    //   return res.status(400).json({ message: "Product Batch already exists" });
+    // }
 
     const newProduct = new Inventory({
       productName,
