@@ -22,10 +22,20 @@ function loadSidebar() {
         ${[
           { href: "dashboard.html", icon: "fa-home", text: "Dashboard" },
           { href: "sales.html", icon: "fa-shopping-cart", text: "Sales" },
-          { href: "inventory.html", icon: "fa-box", text: "Inventory" },
+          { href: "inventory.html", icon: "fa-box", text: "Add Products" },
           { href: "reports.html", icon: "fa-chart-bar", text: "Reports" },
-          { href: "manageSubscriptions.html", icon: "fa-bell", text: "Subscriptions", solid: true },
-          { href: "users.html", icon: "fa-users", text: "User management", solid: true },
+          {
+            href: "manageSubscriptions.html",
+            icon: "fa-bell",
+            text: "Subscriptions",
+            solid: true,
+          },
+          {
+            href: "users.html",
+            icon: "fa-users",
+            text: "User management",
+            solid: true,
+          },
           { href: "settings.html", icon: "fa-cog", text: "Settings" },
         ]
           .map(
