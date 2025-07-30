@@ -426,7 +426,7 @@ async function showReceipt(sale) {
           
           .store-details {
             color: #7f8c8d;
-            font-size: 14px;
+            font-size: 26px;
             margin-bottom: 3px;
           }
           
@@ -436,7 +436,8 @@ async function showReceipt(sale) {
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
             margin: 25px 0;
-            font-size: 14px;
+            font-size: 26px;
+            font-weight: 800;
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
@@ -444,7 +445,7 @@ async function showReceipt(sale) {
           }
           
           .info-label {
-            font-weight: 600;
+            font-weight: 700;
             color: #2c3e50;
           }
           
@@ -453,7 +454,8 @@ async function showReceipt(sale) {
             width: 100%;
             border-collapse: collapse;
             margin: 25px 0;
-            font-size: 14px;
+            font-size: 26px;
+            font-weight: 700;
           }
           
           .items-table th {
@@ -461,7 +463,8 @@ async function showReceipt(sale) {
             padding: 12px 5px;
             border-bottom: 2px solid #3498db;
             color: #2c3e50;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 28px;
           }
           
           .items-table td {
@@ -489,7 +492,7 @@ async function showReceipt(sale) {
           }
           
           .total-label {
-            font-size: 18px;
+            font-size: 26px;
             font-weight: 600;
             margin-bottom: 8px;
             display: block;
@@ -514,7 +517,7 @@ async function showReceipt(sale) {
           
           .thank-you {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 26px;
             color: #2c3e50;
             margin-bottom: 10px;
           }
@@ -568,7 +571,7 @@ async function showReceipt(sale) {
           <div class="header">
             ${
               settings.showLogo && settings.logoUrl
-                ? `<img src="${settings.logoUrl}" class="logo" alt="Store Logo">`
+                ? `<img src="${settings.logoUrl}" class="logo" alt="Store Logo" >`
                 : ""
             }
             <div class="store-name">${
@@ -636,18 +639,7 @@ async function showReceipt(sale) {
             }${sale.total.toFixed(2)}</div>
           </div>
           
-          <div class="footer">
-            <div class="thank-you">Thank you for your business!</div>
-            <div>${
-              settings.footerText || "We appreciate your trust in us"
-            }</div>
-            <div>Have questions? ${
-              settings.storePhone || "Call: (123) 456-7890"
-            }</div>
-            <div>${
-              settings.returnPolicy ||
-              "Items can be exchanged within 14 days with receipt"
-            }</div>
+          
           </div>
           
           <button class="print-btn" onclick="window.print()">Print Receipt</button>
