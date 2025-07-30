@@ -1,0 +1,22 @@
+name: Keep Render Alive
+
+on:
+  schedule:
+    # Runs every 5 minutes (cron syntax)
+    - cron: '*/5 * * * *'
+  workflow_dispatch:  # Optional: Allows manual triggering
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render server
+        run: |
+          # -s = silent, -o = output to /dev/null, -w = display status code
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://swift-pos.onrender.com/)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "❌ Ping failed (HTTP $STATUS)"
+            exit 1
+          else
+            echo "✅ Ping successful"
+          fi
