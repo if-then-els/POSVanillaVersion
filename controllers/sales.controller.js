@@ -70,32 +70,40 @@ exports.getReceipt = async (req, res) => {
     const sale = await Sale.findById(saleId).populate("items.productId");
     if (!sale) return res.status(404).json({ message: "Sale not found" });
 
-    //fetch store settings
-    const settings = await Settings.findOne();
+    const settings = await Settings.findOne({ business: req.user.business });
     if (!settings) {
       return res.status(404).json({ message: "Store settings not found" });
     }
 
+    // Calculate subtotal and taxes
+    const subtotal = sale.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const taxRate = settings.taxRate || 0;
+    const taxAmount = subtotal * (taxRate / 100);
+    const grandTotal = subtotal + taxAmount;
+
     res.json({
       sale: {
-        _id: sale._id,
+        ...sale.toObject(),
         items: sale.items.map((item) => ({
           productName: item.productId?.productName || "Unknown",
           quantity: item.quantity,
           price: item.price,
+          total: item.price * item.quantity,
         })),
-        total: sale.total,
-        customerName: sale.customerName,
-        paymentMethod: sale.paymentMethod,
-        createdAt: sale.createdAt,
+        subtotal,
+        taxRate,
+        taxAmount,
+        grandTotal,
       },
-      store: settings || {},
+      store: settings,
     });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch receipt" });
   }
 };
-
 exports.getTotalSalesAmount = async (req, res) => {
   try {
     const businessIdString = req.user.business;
