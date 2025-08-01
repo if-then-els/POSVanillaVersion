@@ -10,10 +10,7 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
-// Mock function to check authentication
 function checkAuth() {
-  // In a real app, this would check user credentials
-  // For demo purposes, we'll always return true
   return true;
 }
 
@@ -26,6 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load dashboard data
   loadDashboardData();
+  loadSalesData();
+  loadProductsData();
+  loadRecentTransactions();
 
   // Handle tab switching
   const tabButtons = document.querySelectorAll(".tab-button");
@@ -89,16 +89,13 @@ async function loadSalesData() {
       },
     });
     const data = await response.json();
-
-    // const sales = data.sales || [];
+    const sales = data.sales || [];
     // console.log("Sales data:", sales);
-
     document.getElementById("total-sales").textContent =
       "KES " + data.totalAmount;
     document.getElementById("total-sales-amount").textContent = formatCurrency(
       sales.reduce((sum, sale) => sum + sale.total, 0)
     );
-
     const salesTableBody = document.getElementById("sales-table-body");
     salesTableBody.innerHTML = ""; // Clear existing rows
     sales.forEach((sale) => {
@@ -108,7 +105,7 @@ async function loadSalesData() {
         <td>${sale.customerName || "Walk-in"}</td>
         <td>${formatCurrency(sale.total)}</td>
         <td>
-          <a href="/receipt/${
+          <a href="/receipt.html?saleId=${
             sale._id
           }" class="text-blue-500 hover:underline">View Receipt</a>
         </td>
@@ -118,19 +115,44 @@ async function loadSalesData() {
   } catch (error) {
     console.error("Error loading sales data:", error);
   }
+}
+
+//load products data
+async function loadProductsData() {
   try {
-    const response = await fetch("/getTotalOrders", {
+    const response = await fetch("/getInventory", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     });
     const data = await response.json();
-    document.getElementById("total-orders").textContent = data.totalOrders;
+    const products = data.products || [];
+
+    const productsTable = document.getElementById("products-table");
+    productsTable.innerHTML = "";
+
+    products.forEach((product) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td class="py-3 px-6">${product.productName}</td>
+        <td class="py-3 px-6">${product.productCode}</td>
+        <td class="py-3 px-6">${product.productCategory}</td>
+        <td class="py-3 px-6">${formatCurrency(product.productPrice)}</td>
+        <td class="py-3 px-6">${product.productQuantity}</td>
+        <td class="py-3 px-6">
+          <button class="bg-primary-500 text-white px-3 py-1 rounded-full text-xs hover:bg-primary-600 transition-colors">Edit</button>
+        </td>
+      `;
+      productsTable.appendChild(row);
+    });
   } catch (error) {
-    console.error("Error loading total orders:", error);
+    console.error("Error loading products data:", error);
   }
-  //recent transactions
+}
+
+//load recent transactions
+async function loadRecentTransactions() {
   try {
     const response = await fetch("/getSales", {
       method: "GET",
@@ -139,43 +161,40 @@ async function loadSalesData() {
       },
     });
     const data = await response.json();
-    console.log("Recent transactions data:", data);
     const recentTransactions = data.sales || [];
-    console.log("Recent transactions:", recentTransactions);
 
-    const recentTransactionsTableBody = document.getElementById(
-      "recent-transactions-table-body"
-    );
-    recentTransactionsTableBody.innerHTML = ""; // Clear existing rows
+    const transactionsTable = document.getElementById("transactions-table");
+    transactionsTable.innerHTML = "";
+
     recentTransactions.forEach((transaction) => {
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${new Date(transaction.createdAt).toLocaleDateString()}</td>
-        <td>${transaction.customerName || "Walk-in"}</td>
-        <td>${formatCurrency(transaction.total)}</td>
-        <td>
-          <a href="/receipt/${
-            transaction._id
-          }" class="text-blue-500 hover:underline">View Receipt</a>
+        <td class="py-3 px-6">${transaction._id.substring(0, 8)}</td>
+        <td class="py-3 px-6">${transaction.customerName || "Walk-in"}</td>
+        <td class="py-3 px-6">${formatCurrency(transaction.total)}</td>
+        <td class="py-3 px-6">${new Date(
+          transaction.createdAt
+        ).toLocaleDateString()}</td>
+        <td class="py-3 px-6">
+          <span class="px-2 py-1 rounded-full text-xs ${
+            transaction.paymentMethod === "Cash"
+              ? "bg-green-500/20 text-green-500"
+              : "bg-blue-500/20 text-blue-500"
+          }">
+            ${transaction.paymentMethod}
+          </span>
+        </td>
+        <td class="py-3 px-6">
+          <a href="/receipt.html?saleId=${transaction._id}" 
+             target="_blank"
+             class="text-primary-400 hover:text-primary-300 transition-colors">
+            <i class="fas fa-receipt mr-1"></i> View
+          </a>
         </td>
       `;
-      recentTransactionsTableBody.appendChild(row);
+      transactionsTable.appendChild(row);
     });
   } catch (error) {
     console.error("Error loading recent transactions:", error);
   }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Load sales data when the dashboard is ready
-  loadSalesData();
-
-  // Add event listener for the "View Sales" button
-  const viewSalesButton = document.getElementById("view-sales-button");
-  if (viewSalesButton) {
-    viewSalesButton.addEventListener("click", () => {
-      // Load sales data when the button is clicked
-      loadSalesData();
-    });
-  }
-});
