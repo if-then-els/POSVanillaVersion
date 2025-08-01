@@ -1,728 +1,305 @@
-(function () {
-  // Inject Tailwind CSS configuration and Font Awesome stylesheet
-  const head = document.head || document.getElementsByTagName("head")[0];
-
-  // Font Awesome stylesheet
-  const fontAwesomeLink = document.createElement("link");
-  fontAwesomeLink.rel = "stylesheet";
-  fontAwesomeLink.href =
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
-  head.appendChild(fontAwesomeLink);
-
-  // Tailwind CSS script
-  const tailwindScript = document.createElement("script");
-  tailwindScript.src = "https://cdn.tailwindcss.com";
-  head.appendChild(tailwindScript);
-
-  // Custom styles for animations and font
-  const style = document.createElement("style");
-  style.innerHTML = `
-    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
-    body {
-      font-family: "Inter", sans-serif;
-    }
-    .chat-container {
-      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5z' fill='%23a0a0a033' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
-    }
-    .pulse {
-      animation: pulse 6s infinite;
-    }
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(18, 140, 126, 0.7);
-      }
-      70% {
-        box-shadow: 0 0 0 15px rgba(18, 140, 126, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(18, 140, 126, 0);
-      }
-    }
-    .slide-in {
-      animation: slideIn 0.3s ease-out forwards;
-    }
-    .slide-out {
-      animation: slideOut 0.3s ease-in forwards;
-    }
-    @keyframes slideIn {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    @keyframes slideOut {
-      from {
-        transform: translateY(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-    }
-    .message-animation {
-      animation: messageAppear 0.3s ease-out;
-    }
-    @keyframes messageAppear {
-      from {
-        transform: translateY(10px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    .emoji-picker {
-      position: absolute;
-      bottom: 60px;
-      right: 0;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 10px;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 5px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 100;
-    }
-    .emoji-picker span {
-      cursor: pointer;
-      font-size: 20px;
-      padding: 5px;
-      border-radius: 4px;
-      transition: background-color 0.2s;
-    }
-    .emoji-picker span:hover {
-      background-color: #f0f0f0;
-    }
+document.addEventListener("DOMContentLoaded", function () {
+  const floatingIcon = document.createElement("div");
+  floatingIcon.id = "floating-chat-icon";
+  floatingIcon.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #4361ee;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 1001;
+    transition: transform 0.3s ease;
   `;
-  head.appendChild(style);
+  floatingIcon.innerHTML = "💬";
+  document.body.appendChild(floatingIcon);
 
-  document.addEventListener("DOMContentLoaded", function () {
-    // Create the floating button HTML
-    const chatButtonHTML = `
-      <button
-        id="chatButton"
-        class="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-whatsapp-green text-white flex items-center justify-center shadow-lg z-50 pulse hover:scale-110 transition-all duration-300"
-      >
-        <i class="fas fa-comment-alt text-2xl"></i>
-      </button>
+  // Create chat container
+  const chatContainer = document.createElement("div");
+  chatContainer.id = "chat-container";
+  chatContainer.style.cssText = `
+    position: fixed;
+    bottom: 90px; /* Position above the icon */
+    right: 20px;
+    width: 350px;
+    height: 450px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: none; /* Initially hidden */
+    flex-direction: column;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+    transform: scale(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  `;
+  // Create chat header
+  const chatHeader = document.createElement("div");
+  chatHeader.style.cssText = `
+    padding: 15px;
+    background-color: #4361ee;
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  `;
+  chatHeader.innerHTML = `
+    <h3 style="margin: 0;">Support Chat</h3>
+    <button id="close-btn" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">✕</button>
+  `;
+
+  // Create chat messages area
+  const chatMessages = document.createElement("div");
+  chatMessages.id = "chat-messages";
+  chatMessages.style.cssText = `
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+  `;
+
+  // Create message input area
+  const inputContainer = document.createElement("div");
+  inputContainer.style.cssText = `
+    display: flex;
+    padding: 10px;
+    background-color: #333; /* Dark background */
+    border-top: 1px solid #eee;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    align-items: center;
+  `;
+  const messageInput = document.createElement("textarea");
+  messageInput.id = "message-input";
+  messageInput.placeholder = "Type your message...";
+  messageInput.style.cssText = `
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 20px;
+    resize: none;
+    max-height: 100px;
+    outline: none;
+    font-family: inherit;
+    background-color: #444; /* Slightly lighter dark for textarea */
+    color: white; /* White text */
+  `;
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.id = "file-input";
+  fileInput.style.display = "none";
+  const fileButton = document.createElement("button");
+  fileButton.innerHTML = "📎";
+  fileButton.style.cssText = `
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    margin: 0 5px;
+    color: #fff; /* White icon for dark theme */
+  `;
+  const sendButton = document.createElement("button");
+  sendButton.innerHTML = "📤";
+  sendButton.style.cssText = `
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 5px;
+    color: #fff; /* White icon for dark theme */
+  `;
+
+  // Assemble components
+  inputContainer.appendChild(fileButton);
+  inputContainer.appendChild(messageInput);
+  inputContainer.appendChild(sendButton);
+  inputContainer.appendChild(fileInput);
+  chatContainer.appendChild(chatHeader);
+  chatContainer.appendChild(chatMessages);
+  chatContainer.appendChild(inputContainer);
+  document.body.appendChild(chatContainer);
+
+  // Add welcome message
+  addMessage("support", "Hello! How can I help you today?");
+
+  // Event listeners
+  floatingIcon.addEventListener("click", () => {
+    const isChatVisible = chatContainer.style.display === "flex";
+    if (isChatVisible) {
+      chatContainer.style.transform = "scale(0)";
+      chatContainer.addEventListener(
+        "transitionend",
+        () => {
+          chatContainer.style.display = "none";
+        },
+        { once: true }
+      );
+    } else {
+      chatContainer.style.display = "flex";
+      setTimeout(() => {
+        chatContainer.style.transform = "scale(1)";
+      }, 10);
+    }
+  });
+
+  document.getElementById("close-btn").addEventListener("click", () => {
+    chatContainer.style.transform = "scale(0)";
+    chatContainer.addEventListener(
+      "transitionend",
+      () => {
+        chatContainer.style.display = "none";
+      },
+      { once: true }
+    );
+  });
+
+  fileButton.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", handleFileUpload);
+  sendButton.addEventListener("click", sendMessage);
+  messageInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Functions
+  function sendMessage() {
+    const message = messageInput.value.trim();
+    if (message) {
+      addMessage("user", message);
+      messageInput.value = "";
+      // Simulate support response after delay
+      setTimeout(() => {
+        const responses = [
+          "Thanks for your message!",
+          "We're looking into your query...",
+          "Can you provide more details?",
+          "I'll transfer you to a specialist.",
+          "We've received your information.",
+        ];
+        addMessage(
+          "support",
+          responses[Math.floor(Math.random() * responses.length)]
+        );
+      }, 1000 + Math.random() * 2000);
+    }
+  }
+
+  function handleFileUpload(e) {
+    const files = e.target.files;
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        addFileMessage(file);
+        // Simulate support response for files
+        setTimeout(() => {
+          addMessage("support", `Received your file: ${file.name}`);
+        }, 1500);
+      }
+      fileInput.value = "";
+    }
+  }
+
+  function addMessage(sender, text) {
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message", sender + "-message");
+    messageElement.style.cssText = `
+      max-width: 80%;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      border-radius: 18px;
+      word-wrap: break-word;
+      animation: fadeIn 0.3s ease-in;
     `;
+    if (sender === "user") {
+      messageElement.style.backgroundColor = "#4361ee";
+      messageElement.style.color = "white";
+      messageElement.style.alignSelf = "flex-end";
+    } else {
+      messageElement.style.backgroundColor = "#e9ecef";
+      messageElement.style.color = "#333";
+      messageElement.style.alignSelf = "flex-start";
+    }
+    messageElement.textContent = text;
+    chatMessages.appendChild(messageElement);
+    scrollToBottom();
+  }
 
-    // Create the chat modal HTML
-    const chatModalHTML = `
-      <div
-        id="chatModal"
-        class="fixed bottom-28 right-8 w-full max-w-md h-[500px] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden z-50 hidden"
-      >
-        <!-- Chat Header -->
-        <div
-          class="bg-whatsapp-green text-white p-4 flex items-center justify-between"
-        >
-          <div class="flex items-center">
-            <div
-              class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3"
-            >
-              <i class="fas fa-headset"></i>
-            </div>
-            <div>
-              <h3 class="font-bold">Team Support</h3>
-              <p class="text-xs opacity-80">Typically replies in minutes</p>
-            </div>
-          </div>
-          <div class="flex space-x-2">
-            <button
-              id="minimizeChat"
-              class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20"
-            >
-              <i class="fas fa-minus"></i>
-            </button>
-            <button
-              id="closeChat"
-              class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20"
-            >
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Chat Messages -->
-        <div
-          id="chatMessages"
-          class="flex-1 overflow-y-auto p-4 bg-gray-100 chat-container"
-        >
-          <!-- Initial message -->
-          <div class="flex mb-4">
-            <div
-              class="w-8 h-8 rounded-full bg-whatsapp-green flex items-center justify-center text-white mr-2 flex-shrink-0"
-            >
-              <i class="fas fa-headset text-sm"></i>
-            </div>
-            <div class="bg-white p-3 rounded-xl max-w-[80%] message-animation">
-              <p class="text-gray-700">
-                Hi there! 👋 I'm here to help. What can I assist you with today?
-                You can report bugs, request features, or ask any questions about
-                our product.
-              </p>
-              <span class="text-xs text-gray-500 block mt-1">Just now</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Message Input -->
-        <div class="p-3 bg-gray-200 flex items-center relative">
-          <div class="flex-1 bg-white rounded-full flex items-center px-3 text-gray-600">
-            <input type="file" id="fileInput" class="hidden" />
-            <input
-              id="messageInput"
-              type="text"
-              placeholder="Type a message..."
-              class="flex-1 py-3 px-2 bg-transparent focus:outline-none"
-            />
-            <button
-              id="emojiButton"
-              class="text-gray-500 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
-            >
-              <i class="far fa-smile"></i>
-            </button>
-            <button
-              id="paperclipButton"
-              class="text-gray-500 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
-            >
-              <i class="fas fa-paperclip"></i>
-            </button>
-            <button
-            id="sendButton"
-            type="submit"
-            class="ml-2 w-12 h-12 rounded-full bg-whatsapp-green flex items-center justify-center text-white hover:bg-whatsapp-dark transition-colors"
-          >
-            <i class="fas fa-paper-plane"></i>
-          </button>
-          </div>
-          
-
-          <!-- Emoji Picker -->
-          <div id="emojiPicker" class="emoji-picker hidden"></div>
+  function addFileMessage(file) {
+    const fileElement = document.createElement("div");
+    fileElement.classList.add("message", "user-message", "file-message");
+    fileElement.style.cssText = `
+      max-width: 80%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 18px;
+      background-color: #4361ee;
+      color: white;
+      align-self: flex-end;
+      animation: fadeIn 0.3s ease-in;
+      cursor: pointer;
+    `;
+    fileElement.innerHTML = `
+      <div style="display: flex; align-items: center;">
+        <span style="margin-right: 8px;">📄</span>
+        <div>
+          <div style="font-weight: bold; font-size: 0.9em;">${file.name}</div>
+          <div style="font-size: 0.7em;">${formatFileSize(file.size)}</div>
         </div>
       </div>
-
-      <div id="overlay" class="fixed inset-0 bg-black/30 z-40 hidden"></div>
     `;
-
-    // Append the button and modal to the body
-    document.body.insertAdjacentHTML("beforeend", chatButtonHTML);
-    document.body.insertAdjacentHTML("beforeend", chatModalHTML);
-
-    const chatButton = document.getElementById("chatButton");
-    const chatModal = document.getElementById("chatModal");
-    const closeChat = document.getElementById("closeChat");
-    const minimizeChat = document.getElementById("minimizeChat");
-    const overlay = document.getElementById("overlay");
-    const messageInput = document.getElementById("messageInput");
-    const sendButton = document.getElementById("sendButton");
-    const chatMessages = document.getElementById("chatMessages");
-    const fileInput = document.getElementById("fileInput");
-    const emojiButton = document.getElementById("emojiButton");
-    const emojiPicker = document.getElementById("emojiPicker");
-    const paperclipButton = document.getElementById("paperclipButton");
-    attachEventListeners();
-
-    // Toggle chat modal
-    chatButton.addEventListener("click", function () {
-      chatModal.classList.remove("hidden");
-      chatModal.classList.add("slide-in");
-      overlay.classList.remove("hidden");
-      emojiPicker.classList.add("hidden"); // Hide emoji picker when opening chat
+    fileElement.addEventListener("click", () => {
+      // Create temporary download link
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
       setTimeout(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }, 100);
     });
+    chatMessages.appendChild(fileElement);
+    scrollToBottom();
+  }
 
-    // Close chat modal
-    function closeChatModal() {
-      chatModal.classList.add("slide-out");
-      setTimeout(() => {
-        chatModal.classList.add("hidden");
-        chatModal.classList.remove("slide-out");
-        overlay.classList.add("hidden");
-        emojiPicker.classList.add("hidden");
-      }, 300);
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + " bytes";
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    else return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  // Add animation style
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    closeChat.addEventListener("click", closeChatModal);
-    overlay.addEventListener("click", closeChatModal);
-
-    // Minimize chat modal
-    minimizeChat.addEventListener("click", function () {
-      closeChatModal();
-    });
-
-    // Handle file attachment
-    paperclipButton.addEventListener("click", function (e) {
-      e.stopPropagation(); // Prevent event bubbling
-      fileInput.click();
-    });
-
-    fileInput.addEventListener("change", function () {
-      if (fileInput.files.length > 0) {
-        const fileName = fileInput.files[0].name;
-        const userMessage = document.createElement("div");
-        userMessage.className = "flex justify-end mb-4";
-        userMessage.innerHTML = `
-          <div class="bg-whatsapp-light p-3 rounded-xl max-w-[80%] message-animation">
-            <p class="text-gray-700">Attached file: <strong>${fileName}</strong></p>
-            <span class="text-xs text-gray-500 block mt-1 text-right">Just now</span>
-          </div>
-          <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white ml-2 flex-shrink-0">
-            <i class="fas fa-user text-sm"></i>
-          </div>
-        `;
-        chatMessages.appendChild(userMessage);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        console.log("File attached:", fileName);
-        // In a real app, you would now handle the file upload
-      }
-    });
-
-    // Populate and toggle emoji picker
-    const emojis = [
-      "😀",
-      "😃",
-      "😄",
-      "😁",
-      "😆",
-      "😅",
-      "😂",
-      "🤣",
-      "😊",
-      "😇",
-      "🙂",
-      "🙃",
-      "😉",
-      "😌",
-      "😍",
-      "🥰",
-      "😘",
-      "😗",
-      "😙",
-      "😚",
-      "😋",
-      "😛",
-      "😜",
-      "🤪",
-      "😝",
-      "🤗",
-      "🤭",
-      "🤫",
-      "🤔",
-      "🤐",
-      "🤨",
-      "😐",
-      "😑",
-      "😶",
-      "😏",
-      "😒",
-      "🙄",
-      "😬",
-      "🤥",
-      "😌",
-      "😔",
-      "😪",
-      "🤤",
-      "😴",
-      "😷",
-      "🤒",
-      "🤕",
-      "🤢",
-      "🤮",
-      "🤧",
-      "🥵",
-      "🥶",
-      "🥴",
-      "😵",
-      "🤯",
-      "🤠",
-      "🥳",
-      "😎",
-      "🤓",
-      "🧐",
-      "😕",
-      "😟",
-      "🙁",
-      "☹️",
-      "😮",
-      "😯",
-      "😲",
-      "😳",
-      "🥺",
-      "😢",
-      "😭",
-      "😤",
-      "😠",
-      "😡",
-      "🤬",
-      "😈",
-      "👿",
-      "💀",
-      "💩",
-      "🤡",
-      "👹",
-      "👺",
-      "👻",
-      "👽",
-      "👾",
-      "🤖",
-      "😺",
-      "😸",
-      "😹",
-      "😻",
-      "😼",
-      "😽",
-      "😿",
-      "😾",
-      "👋",
-      "🤚",
-      "🖐️",
-      "✋",
-      "🖖",
-      "👌",
-      "🤏",
-      "✌️",
-      "🤞",
-      "🤟",
-      "🤘",
-      "🤙",
-      "👈",
-      "👉",
-      "👆",
-      "🖕",
-      "👇",
-      "☝️",
-      "👍",
-      "👎",
-      "👏",
-      "🙌",
-      "👐",
-      "🤲",
-      "🤝",
-      "🙏",
-      "✍️",
-      "💅",
-      "🤳",
-      "💪",
-      "🦾",
-      "🦵",
-      "🦶",
-      "👂",
-      "👃",
-      "🧠",
-      "🫀",
-      "🫁",
-      "🦷",
-      "🦴",
-      "👀",
-      "👁️",
-      "👅",
-      "👄",
-      "👶",
-      "👧",
-      "👦",
-      "🧒",
-      "👨",
-      "👩",
-      "🧑",
-      "👱‍♀️",
-      "👱",
-      "🧔",
-      "👴",
-      "👵",
-      "🧓",
-      "🙍‍♀️",
-      "🙍‍♂️",
-      "🙎‍♀️",
-      "🙎‍♂️",
-      "🙅‍♀️",
-      "🙅‍♂️",
-      "🙆‍♀️",
-      "🙆‍♂️",
-      "💁‍♀️",
-      "💁‍♂️",
-      "🙋‍♀️",
-      "🙋‍♂️",
-      "🧏‍♀️",
-      "🧏‍♂️",
-      "🙇‍♀️",
-      "🙇‍♂️",
-      "🤦‍♀️",
-      "🤦‍♂️",
-      "🤷‍♀️",
-      "🤷‍♂️",
-      "🧑‍⚕️",
-      "🧑‍🎓",
-      "🧑‍🏫",
-      "🧑‍⚖️",
-      "🧑‍🌾",
-      "🧑‍🍳",
-      "🧑‍🔧",
-      "🧑‍🏭",
-      "🧑‍💼",
-      "🧑‍🔬",
-      "🧑‍💻",
-      "🧑‍🎤",
-      "🧑‍🎨",
-      "🧑‍✈️",
-      "🧑‍🚀",
-      "🧑‍🚒",
-      "👮‍♀️",
-      "👮‍♂️",
-      "🕵️‍♀️",
-      "🕵️‍♂️",
-      "💂‍♀️",
-      "💂‍♂️",
-      "🥷",
-      "👷‍♀️",
-      "👷‍♂️",
-      "🤴",
-      "👸",
-      "👳‍♀️",
-      "👳‍♂️",
-      "👲",
-      "🧕",
-      "🤵‍♀️",
-      "🤵‍♂️",
-      "👰‍♀️",
-      "👰‍♂️",
-      "🤰",
-      "🤱",
-      "👩‍🍼",
-      "👨‍🍼",
-      "👼",
-      "🎅",
-      "🤶",
-      "🧑‍🎄",
-      "🦸‍♀️",
-      "🦸‍♂️",
-      "🦹‍♀️",
-      "🦹‍♂️",
-      "🧙‍♀️",
-      "🧙‍♂️",
-      "🧚‍♀️",
-      "🧚‍♂️",
-      "🧛‍♀️",
-      "🧛‍♂️",
-      "🧜‍♀️",
-      "🧜‍♂️",
-      "🧝‍♀️",
-      "🧝‍♂️",
-      "🧞‍♀️",
-      "🧞‍♂️",
-      "🧟‍♀️",
-      "🧟‍♂️",
-      "🧌",
-      "💆‍♀️",
-      "💆‍♂️",
-      "💇‍♀️",
-      "💇‍♂️",
-      "🚶‍♀️",
-      "🚶‍♂️",
-      "🧍‍♀️",
-      "🧍‍♂️",
-      "🧎‍♀️",
-      "🧎‍♂️",
-      "🧑‍🦯",
-      "🧑‍🦼",
-      "🧑‍🦽",
-      "🏃‍♀️",
-      "🏃‍♂️",
-      "💃",
-      "🕺",
-      "👯‍♀️",
-      "👯‍♂️",
-      "🧖‍♀️",
-      "🧖‍♂️",
-      "🧗‍♀️",
-      "🧗‍♂️",
-      "🤺",
-      "🏇",
-      "⛷️",
-      "🏂",
-      "🏌️‍♀️",
-      "🏌️‍♂️",
-      "🏄‍♀️",
-      "🏄‍♂️",
-      "🚣‍♀️",
-      "🚣‍♂️",
-      "🏊‍♀️",
-      "🏊‍♂️",
-      "⛹️‍♀️",
-      "⛹️‍♂️",
-      "🏋️‍♀️",
-      "🏋️‍♂️",
-      "🚴‍♀️",
-      "🚴‍♂️",
-      "🚵‍♀️",
-      "🚵‍♂️",
-      "🤸‍♀️",
-      "🤸‍♂️",
-      "🤽‍♀️",
-      "🤽‍♂️",
-      "🤾‍♀️",
-      "🤾‍♂️",
-      "🤹‍♀️",
-      "🤹‍♂️",
-      "🧘‍♀️",
-      "🧘‍♂️",
-      "🛀",
-      "🛌",
-      "🧑‍🤝‍🧑",
-      "👭",
-      "👫",
-      "👬",
-      "💏",
-      "💑",
-      "👪",
-      "👨‍👩‍👧",
-      "👨‍👩‍👧‍👦",
-      "👨‍👩‍👦‍👦",
-      "👨‍👩‍👧‍👧",
-      "👨‍👦",
-      "👨‍👦‍👦",
-      "👨‍👧",
-      "👨‍👧‍👦",
-      "👨‍👧‍👧",
-      "👩‍👦",
-      "👩‍👦‍👦",
-      "👩‍👧",
-      "👩‍👧‍👦",
-      "👩‍👧‍👧",
-      "🗣️",
-      "👤",
-      "👥",
-      "🫂",
-      "👣",
-      "🦰",
-      "🦱",
-      "🦳",
-      "🦲",
-    ];
-
-    emojis.forEach((emoji) => {
-      const span = document.createElement("span");
-      span.textContent = emoji;
-      span.addEventListener("click", (e) => {
-        e.stopPropagation(); // Prevent event from bubbling
-        messageInput.value += emoji;
-        messageInput.focus();
-      });
-      emojiPicker.appendChild(span);
-    });
-
-    // Toggle emoji picker
-    emojiButton.addEventListener("click", function (event) {
-      event.stopPropagation();
-      emojiPicker.classList.toggle("hidden");
-
-      // Scroll to bottom of picker when shown
-      if (!emojiPicker.classList.contains("hidden")) {
-        setTimeout(() => {
-          emojiPicker.scrollTop = emojiPicker.scrollHeight;
-        }, 10);
-      }
-    });
-
-    // Close picker when clicking outside
-    document.addEventListener("click", function (event) {
-      if (
-        !emojiPicker.contains(event.target) &&
-        event.target !== emojiButton &&
-        !emojiButton.contains(event.target)
-      ) {
-        emojiPicker.classList.add("hidden");
-      }
-    });
-
-    // Send message function
-    function sendMessage() {
-      const message = messageInput.value.trim();
-      console.log("Attempting to send message:", message); // Debugging
-
-      if (message) {
-        // Create user message element
-        const userMessage = document.createElement("div");
-        userMessage.className = "flex justify-end mb-4";
-        userMessage.innerHTML = `
-      <div class="bg-whatsapp-light p-3 rounded-xl max-w-[80%] message-animation">
-        <p class="text-gray-700">${message}</p>
-        <span class="text-xs text-gray-500 block mt-1 text-right">Just now</span>
-      </div>
-      <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white ml-2 flex-shrink-0">
-        <i class="fas fa-user text-sm"></i>
-      </div>
-    `;
-        chatMessages.appendChild(userMessage);
-
-        // Clear input
-        messageInput.value = "";
-        console.log("Message sent successfully"); // Debugging
-
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        // Simulate bot reply after a delay
-        setTimeout(() => {
-          const replyMessage = document.createElement("div");
-          replyMessage.className = "flex mb-4";
-          replyMessage.innerHTML = `
-        <div class="w-8 h-8 rounded-full bg-whatsapp-green flex items-center justify-center text-white mr-2 flex-shrink-0">
-          <i class="fas fa-headset text-sm"></i>
-        </div>
-        <div class="bg-white p-3 rounded-xl max-w-[80%] message-animation">
-          <p class="text-gray-700">Thanks for your message! We've received your feedback. Our team will review it and get back to you if needed.</p>
-          <span class="text-xs text-gray-500 block mt-1">Just now</span>
-        </div>
-      `;
-          chatMessages.appendChild(replyMessage);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 1500);
-      } else {
-        console.log("Message was empty, not sent"); // Debugging
-      }
+    .file-message:hover {
+      opacity: 0.9;
     }
-
-    // Attach event listeners for sending messages
-    // Fixed event listener attachment
-    function attachEventListeners() {
-      sendButton.addEventListener("click", sendMessage);
-      console.log("Send button event listener attached"); // Debugging
-
-      messageInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-          sendMessage();
-        }
-      });
-    }
-
-    // Call this after elements are created
-    // attachEventListeners();
-
-    messageInput.addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        sendMessage();
-      }
-    });
-
-    // Close modal when pressing Esc key
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !chatModal.classList.contains("hidden")) {
-        closeChatModal();
-      }
-    });
-  });
-})();
+  `;
+  document.head.appendChild(style);
+});
