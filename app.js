@@ -61,8 +61,8 @@ const businessRoutes = require("./routes/business.routes");
 const subscriptionMiddleware = require("./middleware/subscription.middleware");
 const subscriptionsRoutes = require("./routes/subscriptions.routes");
 
-const ticketsRoutes = require("./routes/tickets.routes");
 const businessPaymentRoutes = require("./routes/businesPayment.routes");
+const supportRoutes = require("./routes/support.routes");
 
 app.use("/", paymentsRoutes);
 app.use("/", settingsRoutes);
@@ -77,8 +77,8 @@ app.use("/api/business", businessRoutes);
 app.use(subscriptionMiddleware); // protected
 app.use("/", subscriptionsRoutes); // protected
 
-app.use("/api/tickets", ticketsRoutes);
 app.use("/api/payment-methods", businessPaymentRoutes);
+app.use("/", supportRoutes);
 
 // Apply subscription middleware
 

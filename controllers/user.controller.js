@@ -269,7 +269,7 @@ exports.updateUser = async (req, res) => {
   try {
     const businessId = req.user.business;
     const userId = req.params.id;
-    console.log("Updating user:", userId, "for business:", businessId);
+    // console.log("Updating user:", userId, "for business:", businessId);
     const { name, email, role, phone, status } = req.body;
 
     // Check if user exists and belongs to this business
@@ -340,7 +340,7 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    await user.remove();
+    await user.deleteOne();
 
     // Remove from business
     await Business.findByIdAndUpdate(businessId, { $pull: { users: userId } });
