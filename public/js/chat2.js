@@ -186,19 +186,52 @@ document.addEventListener("DOMContentLoaded", function () {
       // Simulate support response after delay
       setTimeout(() => {
         const responses = [
-          "Thanks for your message!",
-          "We're looking into your query...",
-          "Can you provide more details?",
-          "I'll transfer you to a specialist.",
-          "We've received your information.",
+          "Thank you for your message 😊, Our team will be contact you through this chat soon,",
         ];
         addMessage(
           "support",
           responses[Math.floor(Math.random() * responses.length)]
         );
       }, 1000 + Math.random() * 2000);
+      //send chat to server
+      fetch("/sendMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Message sent successfully:", data);
+        })
+        .catch((error) => {
+          console.error("Error sending message:", error);
+        });
     }
   }
+  // get message from server and display
+  function fetchChatMessages() {
+    fetch("/getMessages", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        chatMessages.innerHTML = ""; // Clear existing messages
+        data.forEach((msg) => {
+          const sender = msg.userId ? "user" : "support";
+          addMessage(sender, msg.message);
+        });
+        scrollToBottom();
+      })
+      .catch((error) => {
+        console.error("Error fetching messages:", error);
+      });
+  }
+  fetchChatMessages(); // Initial fetch
 
   function handleFileUpload(e) {
     const files = e.target.files;
