@@ -115,6 +115,18 @@ async function loadSalesData() {
   } catch (error) {
     console.error("Error loading sales data:", error);
   }
+  try {
+    const response = await fetch("/getTotalOrders", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    document.getElementById("total-orders").textContent = data.totalOrders;
+  } catch (error) {
+    console.error("Error loading total orders:", error);
+  }
 }
 
 //load products data

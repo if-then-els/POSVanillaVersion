@@ -32,7 +32,7 @@ exports.getChatMessages = async (req, res) => {
     const userId = req.user.id;
     const businessId = await Business.findOne({ users: userId }).select("-id");
 
-    console.log("Business ID from message fetch  :", businessId);
+    //nsole.log("Business ID from message fetch  :", businessId);
     const chatMessages = await ChatMessage.find({ businessId })
       .populate("userId", "name email")
       .sort({ createdAt: -1 });
