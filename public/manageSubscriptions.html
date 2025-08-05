@@ -257,9 +257,17 @@
         opacity: 1;
         transform: translateY(0);
       }
-      @media (max-width: 767px) {
+@media (max-width: 767px) {
   body.sidebar-open {
     overflow: hidden;
+  }
+  
+  #sidebar {
+    transform: translateX(-100%);
+  }
+  
+  #sidebar.translate-x-0 {
+    transform: translateX(0);
   }
 }
     </style>
@@ -301,7 +309,7 @@
         <h1
           class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
         >
-          POS Hub
+          POS 
         </h1>
       </div>
       <button
@@ -316,11 +324,11 @@
       class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10"
     >
       <!-- Sidebar -->
-      <div
-        id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
-      >
-        <div class="p-6">
+     <div
+  id="sidebar"
+  class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:!translate-x-0 transition-all duration-500 ease-out"
+></div>
+        <!-- <div class="p-6">
           <div class="flex items-center space-x-3 mb-8">
             <div
               class="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-slow"
@@ -331,7 +339,7 @@
               <h1
                 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
               >
-                POS Hub
+                POS 
               </h1>
               <p class="text-xs text-gray-400">Next-Gen Management</p>
             </div>
@@ -394,7 +402,7 @@
             </a>
           </nav>
         </div>
-      </div>
+      </div> -->
 
       <!-- Overlay -->
       <div
