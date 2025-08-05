@@ -294,9 +294,17 @@
       .cart-has-items #cart-expanded {
         display: block;
       }
-      @media (max-width: 767px) {
+@media (max-width: 767px) {
   body.sidebar-open {
     overflow: hidden;
+  }
+  
+  #sidebar {
+    transform: translateX(-100%);
+  }
+  
+  #sidebar.translate-x-0 {
+    transform: translateX(0);
   }
 }
 
@@ -383,9 +391,9 @@
     <div class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10">
       <!-- Sidebar - EMPTY DIV, CONTENT TO BE RENDERED BY sidebar.js -->
       <div
-        id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
-      ></div>
+  id="sidebar"
+  class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:!translate-x-0 transition-all duration-500 ease-out"
+></div>
 
       <!-- Overlay -->
       <div id="overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"></div>
@@ -488,90 +496,90 @@
             <!-- Shopping Cart -->
             <div class="lg:col-span-1">
               <!-- Mobile floating cart container -->
-              <div class="lg:hidden fixed bottom-4 right-4 z-30">
-                <!-- Floating cart button (always visible) -->
-                <div
-                  id="mobile-cart-button"
-                  class="bg-gradient-to-r from-primary-500 to-accent-500 rounded-full shadow-lg border border-white/20 cursor-pointer hover:shadow-xl transition-all duration-300 w-16 h-16 flex items-center justify-center relative animate-bounce-slow"
-                  onclick="toggleMobileCart()"
-                >
-                  <i class="fas fa-shopping-cart text-2xl text-white"></i>
-                  <span
-                    id="mobile-cart-badge"
-                    class="absolute -top-2 -right-2 bg-success-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
-                    >0</span
-                  >
-                </div>
+             <!-- Mobile floating cart container - UPDATED TO LEFT SIDE -->
+<div class="lg:hidden fixed bottom-4 left-4 z-30">
+  <!-- Floating cart button (always visible) -->
+  <div
+    id="mobile-cart-button"
+    class="bg-gradient-to-r from-primary-500 to-accent-500 rounded-full shadow-lg border border-white/20 cursor-pointer hover:shadow-xl transition-all duration-300 w-16 h-16 flex items-center justify-center relative animate-bounce-slow"
+    onclick="toggleMobileCart()"
+  >
+    <i class="fas fa-shopping-cart text-2xl text-white"></i>
+    <span
+      id="mobile-cart-badge"
+      class="absolute -top-2 -right-2 bg-success-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
+      >0</span
+    >
+  </div>
 
-                <!-- Expanded Cart Panel -->
-                <div
-                  id="mobile-cart-panel"
-                  class="hidden glass-dark rounded-3xl shadow-lg border border-white/20 w-[calc(100vw-2rem)] max-w-md transition-all duration-300 transform translate-y-2 animate-scale-in"
-                  style="max-height: 70vh;"
-                >
-                  <div class="p-4 border-b border-white/20 bg-black/10 flex justify-between items-center">
-                    <div>
-                      <h2 class="text-lg font-semibold text-white flex items-center">
-                        <i class="fas fa-shopping-cart mr-2 text-primary-400"></i>
-                        Cart
-                      </h2>
-                      <p id="mobile-cart-count" class="text-sm text-gray-400 mt-1">
-                        0 items in cart
-                      </p>
-                    </div>
-                    <button
-                      onclick="toggleMobileCart()"
-                      class="p-2 rounded-md hover:bg-white/10 text-gray-400"
-                    >
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
+  <!-- Expanded Cart Panel -->
+  <div
+    id="mobile-cart-panel"
+    class="hidden glass-dark rounded-3xl shadow-lg border border-white/20 w-[calc(100vw-2rem)] max-w-md transition-all duration-300 -translate-y-2 animate-scale-in"
+    style="max-height: 70vh; left: 1rem; right: auto;"
+  >
+    <div class="p-4 border-b border-white/20 bg-black/10 flex justify-between items-center">
+      <div>
+        <h2 class="text-lg font-semibold text-white flex items-center">
+          <i class="fas fa-shopping-cart mr-2 text-primary-400"></i>
+          Cart
+        </h2>
+        <p id="mobile-cart-count" class="text-sm text-gray-400 mt-1">
+          0 items in cart
+        </p>
+      </div>
+      <button
+        onclick="toggleMobileCart()"
+        class="p-2 rounded-md hover:bg-white/10 text-gray-400"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
 
-                  <div
-                    id="mobile-cart-items"
-                    class="p-4 space-y-4 overflow-y-auto"
-                    style="max-height: calc(70vh - 180px);"
-                  >
-                    <div class="text-center py-8 text-gray-600 flex flex-col items-center">
-                      <i class="fas fa-shopping-cart text-3xl mb-2"></i>
-                      <p>Your cart is empty</p>
-                      <p class="text-sm mt-1">Add products to get started</p>
-                    </div>
-                  </div>
+    <div
+      id="mobile-cart-items"
+      class="p-4 space-y-4 overflow-y-auto"
+      style="max-height: calc(70vh - 180px);"
+    >
+      <div class="text-center py-8 text-gray-600 flex flex-col items-center">
+        <i class="fas fa-shopping-cart text-3xl mb-2"></i>
+        <p>Your cart is empty</p>
+        <p class="text-sm mt-1">Add products to get started</p>
+      </div>
+    </div>
 
-                  <div class="p-4 border-t border-white/20 space-y-4 bg-black/10">
-                    <div class="space-y-2">
-                      <div class="flex justify-between">
-                        <span class="text-gray-400">Subtotal</span>
-                        <span id="mobile-cart-subtotal" class="font-medium text-white">KSH 0.00</span>
-                      </div>
-                      <div class="flex justify-between">
-                        <span class="text-gray-400">Tax (10%)</span>
-                        <span id="mobile-cart-tax" class="font-medium text-white">KSH 0.00</span>
-                      </div>
-                    </div>
-                    <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
-                      <span>Total:</span>
-                      <span id="mobile-cart-total" class="text-xl text-primary-400">KSH 0.00</span>
-                    </div>
-                    <button
-                      id="mobile-checkout-btn"
-                      class="w-full bg-gradient-to-r from-success-500 to-success-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                      disabled
-                    >
-                      <i class="fas fa-credit-card mr-2"></i> Checkout
-                    </button>
-                    <button
-                      id="mobile-clear-cart-btn"
-                      class="w-full glass-dark text-gray-300 py-2 px-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled
-                    >
-                      Clear Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
-
+    <div class="p-4 border-t border-white/20 space-y-4 bg-black/10">
+      <div class="space-y-2">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Subtotal</span>
+          <span id="mobile-cart-subtotal" class="font-medium text-white">KSH 0.00</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Tax (10%)</span>
+          <span id="mobile-cart-tax" class="font-medium text-white">KSH 0.00</span>
+        </div>
+      </div>
+      <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
+        <span>Total:</span>
+        <span id="mobile-cart-total" class="text-xl text-primary-400">KSH 0.00</span>
+      </div>
+      <button
+        id="mobile-checkout-btn"
+        class="w-full bg-gradient-to-r from-success-500 to-success-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+        disabled
+      >
+        <i class="fas fa-credit-card mr-2"></i> Checkout
+      </button>
+      <button
+        id="mobile-clear-cart-btn"
+        class="w-full glass-dark text-gray-300 py-2 px-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled
+      >
+        Clear Cart
+      </button>
+    </div>
+  </div>
+</div>
               <!-- Desktop cart (unchanged) -->
               <div class="hidden lg:block">
                 <!-- Collapsed Cart (shown when empty) -->
@@ -950,14 +958,14 @@
 
 
     <!-- Floating Action Button -->
-<button
+<!-- <button
   id="fab"
   class="fixed bottom-8 left-8 sm:left-auto sm:right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
 >
   <i
     class="fas fa-comment-dots text-white text-2xl group-hover:scale-110 transition-transform duration-300"
   ></i>
-</button>
+</button> -->
 
 
 
@@ -969,6 +977,6 @@
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
      <script src="./js/sales.js"></script>
-    <script src="./js/chat.js"></script>
+    <script src="./js/chat2.js"></script>
   </body>
 </html>
