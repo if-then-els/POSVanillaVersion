@@ -8,20 +8,24 @@ document.addEventListener("DOMContentLoaded", () => {
   //   icon.classList.toggle("fa-sun");
   // });
 
-  // Sidebar Toggle
-  const toggleSidebar = document.getElementById("toggle-sidebar");
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
+// Sidebar Toggle
+const toggleSidebar = document.getElementById("toggle-sidebar");
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
 
-  toggleSidebar.addEventListener("click", () => {
-    sidebar.classList.toggle("-translate-x-full");
-    overlay.classList.toggle("hidden");
-  });
+toggleSidebar.addEventListener("click", () => {
+  sidebar.classList.toggle("translate-x-0");
+  sidebar.classList.toggle("-translate-x-full");
+  overlay.classList.toggle("hidden");
+  document.body.classList.toggle("sidebar-open");
+});
 
-  overlay.addEventListener("click", () => {
-    sidebar.classList.add("-translate-x-full");
-    overlay.classList.add("hidden");
-  });
+overlay.addEventListener("click", () => {
+  sidebar.classList.add("-translate-x-full");
+  sidebar.classList.remove("translate-x-0");
+  overlay.classList.add("hidden");
+  document.body.classList.remove("sidebar-open");
+});
 
   // Scroll Reveal Animation
   const observerOptions = {
