@@ -268,6 +268,18 @@ document.addEventListener("DOMContentLoaded", function () {
       messageElement.style.color = "#333";
       messageElement.style.alignSelf = "flex-start";
     }
+    if (isAdmin) {
+      messageElement.style.backgroundColor = "#4F46E5";
+      messageElement.style.color = "white";
+      messageElement.style.alignSelf = "flex-start";
+      messageElement.innerHTML = `
+      <strong>Admin:</strong>
+      <p>${text}</p>
+      <div class="text-xs mt-1 text-blue-100">
+        ${new Date().toLocaleTimeString()}
+      </div>
+    `;
+    }
     messageElement.textContent = text;
     chatMessages.appendChild(messageElement);
     scrollToBottom();

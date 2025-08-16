@@ -130,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const planPricesNumeric = {
         trial: 0,
         basic: 3500,
-        Standard: 5500,
+        Standard: 4500,
         premium: 9500,
       };
 
