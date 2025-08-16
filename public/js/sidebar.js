@@ -7,6 +7,43 @@ function loadSidebar() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
 
+  // Define navigation items with a new 'requiresSubscription' property
+  const navItems = [
+    { href: "dashboard.html", icon: "fa-home", text: "Dashboard" },
+    {
+      href: "sales.html",
+      icon: "fa-shopping-cart",
+      text: "Sales",
+      requiresSubscription: true,
+    },
+    {
+      href: "inventory.html",
+      icon: "fa-box",
+      text: "Add Products",
+      requiresSubscription: true,
+    },
+    {
+      href: "reports.html",
+      icon: "fa-chart-bar",
+      text: "Reports",
+      requiresSubscription: true,
+    },
+    {
+      href: "manageSubscriptions.html",
+      icon: "fa-bell",
+      text: "Subscriptions",
+      solid: true,
+    },
+    {
+      href: "users.html",
+      icon: "fa-users",
+      text: "User management",
+      solid: true,
+      requiresSubscription: true,
+    },
+    { href: "settings.html", icon: "fa-cog", text: "Settings" },
+  ];
+
   sidebar.innerHTML = `
     <div class="flex h-16 items-center justify-between border-b border-gray-700 px-4">
       <div class="flex items-center gap-3">
@@ -19,33 +56,17 @@ function loadSidebar() {
 
     <nav class="p-4">
       <ul class="space-y-2">
-        ${[
-          { href: "dashboard.html", icon: "fa-home", text: "Dashboard" },
-          { href: "sales.html", icon: "fa-shopping-cart", text: "Sales" },
-          { href: "inventory.html", icon: "fa-box", text: "Add Products" },
-          { href: "reports.html", icon: "fa-chart-bar", text: "Reports" },
-          {
-            href: "manageSubscriptions.html",
-            icon: "fa-bell",
-            text: "Subscriptions",
-            solid: true,
-          },
-          {
-            href: "users.html",
-            icon: "fa-users",
-            text: "User management",
-            solid: true,
-          },
-          { href: "settings.html", icon: "fa-cog", text: "Settings" },
-        ]
+        ${navItems
           .map(
-            ({ href, icon, text, solid }) => `
+            ({ href, icon, text, solid, requiresSubscription }) => `
           <li>
             <a href="./${href}" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-700 hover:text-white ${
               window.location.pathname.endsWith(href)
                 ? "bg-gray-700 text-white"
                 : "text-gray-400"
-            }">
+            }" ${
+              requiresSubscription ? 'data-requires-subscription="true"' : ""
+            }>
               <i class="${solid ? "fa-solid" : "fas"} ${icon} w-5"></i>
               <span class="sidebar-text">${text}</span>
             </a>

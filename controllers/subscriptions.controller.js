@@ -1,7 +1,32 @@
 const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
-const SubscriptionLog = require("../models/subscriptionLog.model"); // Ensure this is correctly imported
+const SubscriptionLog = require("../models/subscriptionLog.model");
 const Plan = require("../models/plan.model");
+const axios = require("axios"); // For making HTTP requests to Paystack
+
+// Load environment variables (ensure PAYSTACK_SECRET_KEY is set in your .env)
+require("dotenv").config();
+
+// Placeholder for sendExpiryReminderEmail - YOU WILL NEED TO IMPLEMENT THIS
+async function sendExpiryReminderEmail(email, data) {
+  console.log(`Sending expiry reminder email to ${email}:`, data);
+  // Implement actual email sending logic here (e.g., using Nodemailer, SendGrid, etc.)
+  // Example:
+  /*
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({ ... });
+  await transporter.sendMail({
+    from: '"Your POS App" <no-reply@yourposapp.com>',
+    to: email,
+    subject: `Your Subscription is Expiring in ${data.daysLeft} Day(s)!`,
+    html: `<p>Dear customer,</p>
+           <p>Your subscription will expire on ${data.expiryDate.toLocaleDateString()}.</p>
+           <p>Please renew your subscription to avoid service interruption.</p>
+           <p>Thank you,</p>
+           <p>The POS App Team</p>`,
+  });
+  */
+}
 
 exports.upgradeSubscription = async (req, res) => {
   try {
@@ -170,7 +195,6 @@ exports.getSubscriptionPlans = async (req, res) => {
   }
 };
 
-// This function will now serve as the primary way to get historical subscriptions
 exports.getSubscriptionHistory = async (req, res) => {
   try {
     const businessId = req.user.business; // Assuming businessId is attached to req.user
@@ -190,5 +214,240 @@ exports.getSubscriptionHistory = async (req, res) => {
   } catch (error) {
     console.error("Error getting subscription history:", error);
     res.status(500).json({ message: "Server error", error });
+  }
+};
+
+exports.initiatePaystackPayment = async (req, res) => {
+  try {
+    const { businessId, planId, amount, email, reference } = req.body;
+    if (!businessId || !planId || !amount || !email || !reference) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Validate plan and get its details
+    const planDoc = await Plan.findById(planId);
+    if (!planDoc) {
+      return res.status(400).json({ message: "Invalid plan selected" });
+    }
+
+    // Create or update a pending subscription entry
+    let subscription = await Subscription.findOne({
+      business: businessId,
+      status: "pending",
+    });
+
+    if (subscription) {
+      // Update existing pending subscription
+      subscription.plan = planDoc._id;
+      subscription.price = amount;
+      subscription.paystackReference = reference; // Store Paystack reference
+      await subscription.save();
+    } else {
+      // Create a new pending subscription
+      subscription = await Subscription.create({
+        business: businessId,
+        plan: planDoc._id,
+        startDate: new Date(),
+        endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)), // Default to 1 month for now
+        status: "pending",
+        price: amount,
+        paymentMethod: "Paystack",
+        paystackReference: reference, // Store Paystack reference
+      });
+    }
+
+    // Paystack API call to initialize transaction
+    const paystackResponse = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        email: email,
+        amount: amount * 100, // Amount in kobo (or cents for other currencies)
+        reference: reference,
+        callback_url: `${process.env.FRONTEND_URL}/subscriptions?payment_status=success&reference=${reference}`, // Redirect URL after payment
+        metadata: {
+          businessId: businessId,
+          planId: planId,
+          subscriptionId: subscription._id, // Pass subscription ID for later update
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    res.status(200).json({
+      message: "Paystack initialization successful",
+      data: paystackResponse.data.data, // Contains authorization_url and access_code
+    });
+  } catch (error) {
+    console.error(
+      "Error initiating Paystack payment:",
+      error.response ? error.response.data : error.message
+    );
+    res.status(500).json({
+      message: "Server error initiating Paystack payment",
+      error: error.response ? error.response.data : error.message,
+    });
+  }
+};
+
+exports.verifyPaystackPayment = async (req, res) => {
+  const { reference } = req.query; // For frontend redirection success/failure
+  const { event, data } = req.body; // For webhook callbacks
+
+  try {
+    if (event === "charge.success" && data) {
+      const { reference: paystackReference, status, metadata } = data;
+      const { businessId, planId, subscriptionId } = metadata;
+
+      // Verify transaction with Paystack API
+      const paystackVerification = await axios.get(
+        `https://api.paystack.co/transaction/verify/${paystackReference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const verifiedData = paystackVerification.data.data;
+
+      if (verifiedData.status === "success") {
+        const subscription = await Subscription.findById(subscriptionId);
+
+        if (subscription) {
+          // Update the pending subscription to active
+          subscription.status = "active";
+          subscription.lastPaymentDate = new Date();
+          // Calculate endDate based on plan duration (e.g., 1 month from now)
+          subscription.endDate = new Date(
+            new Date().setMonth(new Date().getMonth() + 1)
+          ); // Example: 1 month
+          subscription.paystackTransactionId = verifiedData.id; // Store Paystack transaction ID
+          await subscription.save();
+
+          // Log the successful payment
+          await SubscriptionLog.create({
+            business: businessId,
+            plan: planId,
+            startDate: subscription.startDate,
+            endDate: subscription.endDate,
+            status: "active",
+            price: subscription.price,
+            paystackTransactionId: verifiedData.id,
+            action: "upgrade", // Or 'renew' if applicable
+          });
+
+          // Respond to Paystack webhook
+          return res.status(200).send("Webhook received and processed");
+        }
+      }
+    }
+    // For frontend verification (if direct polling is used)
+    if (reference) {
+      const paystackVerification = await axios.get(
+        `https://api.paystack.co/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const verifiedData = paystackVerification.data.data;
+
+      if (verifiedData.status === "success") {
+        const subscription = await Subscription.findOne({
+          paystackReference: reference,
+        }); // Find by reference
+        if (subscription) {
+          subscription.status = "active";
+          subscription.lastPaymentDate = new Date();
+          subscription.endDate = new Date(
+            new Date().setMonth(new Date().getMonth() + 1)
+          );
+          subscription.paystackTransactionId = verifiedData.id;
+          await subscription.save();
+
+          // Log the payment
+          await SubscriptionLog.create({
+            business: subscription.business,
+            plan: subscription.plan,
+            startDate: subscription.startDate,
+            endDate: subscription.endDate,
+            status: "active",
+            price: subscription.price,
+            paystackTransactionId: verifiedData.id,
+            action: "upgrade",
+          });
+        }
+        return res.status(200).json({
+          status: "success",
+          message: "Payment verified successfully",
+        });
+      } else {
+        return res
+          .status(200)
+          .json({ status: "failed", message: "Payment verification failed" });
+      }
+    }
+
+    res.status(400).send("Invalid request or unhandled event");
+  } catch (error) {
+    console.error(
+      "Error verifying Paystack payment:",
+      error.response ? error.response.data : error.message
+    );
+    res.status(500).send("Server error processing payment verification");
+  }
+};
+
+exports.checkSubscriptionStatus = async (req, res) => {
+  try {
+    const businessId = req.business.id; // Assuming you have business ID in the request
+
+    const subscription = await Subscription.findOne({
+      business: businessId,
+      status: "active",
+    }).sort({ endDate: -1 });
+
+    if (!subscription) {
+      return res.status(404).json({
+        status: "inactive",
+        message: "No active subscription found",
+      });
+    }
+
+    const now = new Date();
+    const expiryDate = new Date(subscription.endDate);
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate - now) / (1000 * 60 * 60 * 24)
+    );
+
+    // Send notification emails if within 7 days of expiry
+    if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+      // Send reminder email
+      await sendExpiryReminderEmail(req.business.email, {
+        daysLeft: daysUntilExpiry,
+        expiryDate: expiryDate,
+      });
+    }
+
+    res.json({
+      subscription: {
+        status: subscription.status,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        daysUntilExpiry,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking subscription status:", error);
+    res.status(500).json({ message: "Error checking subscription status" });
   }
 };

@@ -87,8 +87,8 @@ app.use("/api/payment-methods", businessPaymentRoutes);
 async function seedPlans() {
   const plans = [
     { name: "basic", price: 2000, description: "Basic Plan" },
-    { name: "Standard", price: 4500, description: "Standard Plan" },
-    { name: "premium", price: 9500, description: "Premium Plan" },
+    { name: "Standard", price: 3500, description: "Standard Plan" },
+    { name: "premium", price: 15000, description: "Premium Plan" },
   ];
   for (const plan of plans) {
     await Plan.updateOne({ name: plan.name }, { $set: plan }, { upsert: true });

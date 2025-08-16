@@ -3,9 +3,8 @@ const router = express.Router();
 const subscriptionsController = require("../controllers/subscriptions.controller");
 const subscriptionMiddleware = require("../middleware/subscription.middleware");
 const Plan = require("../models/plan.model");
-const Subscription = require("../models/subscription.model"); // <-- Import Subscription model
+const Subscription = require("../models/subscription.model");
 
-// Upgrade subscription
 router.post(
   "/subscriptions/upgrade",
   subscriptionMiddleware,
@@ -22,7 +21,7 @@ router.post(
 // Get subscription details
 router.get(
   "/subscriptions/details",
-  subscriptionMiddleware, // <-- this must be here
+  subscriptionMiddleware,
   subscriptionsController.getSubscriptionDetails
 );
 
@@ -53,6 +52,21 @@ router.get(
   "/subscriptions/history",
   subscriptionMiddleware,
   subscriptionsController.getSubscriptionHistory
+);
+
+router.post(
+  "/payments/paystack/initiate",
+  subscriptionsController.initiatePaystackPayment
+);
+
+router.post(
+  "/payments/paystack/verify",
+  subscriptionsController.verifyPaystackPayment
+);
+
+router.get(
+  "/payments/paystack/status/:reference",
+  subscriptionsController.verifyPaystackPayment
 );
 
 module.exports = router;

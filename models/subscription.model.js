@@ -7,7 +7,11 @@ const SubscriptionSchema = new mongoose.Schema(
       ref: "BusinessDetails",
       required: true,
     },
-    plan: { type: String, required: true },
+    plan: {
+      type: mongoose.Schema.Types.ObjectId, // Changed to ObjectId to reference Plan model directly
+      ref: "Plan",
+      required: true,
+    },
     startDate: { type: Date, required: true, default: Date.now },
     endDate: { type: Date },
     status: {
@@ -19,8 +23,11 @@ const SubscriptionSchema = new mongoose.Schema(
     paymentMethod: { type: String },
     lastPaymentDate: { type: Date },
     nextBillingDate: { type: Date },
-    mpesaCheckoutRequestID: { type: String, default: null }, // M-Pesa STK Push ID
-    mpesaTransactionId: { type: String, default: null }, // M-Pesa Receipt Number
+    mpesaCheckoutRequestID: { type: String, default: null },
+    mpesaTransactionId: { type: String, default: null },
+    paystackReference: { type: String, default: null }, // New: Paystack transaction reference
+    paystackTransactionId: { type: String, default: null }, // New: Paystack transaction ID
+    price: { type: Number, required: true }, // Added price to subscription model
   },
   { timestamps: true }
 );
