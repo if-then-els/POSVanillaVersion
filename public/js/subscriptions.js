@@ -628,12 +628,13 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          businessId: businessId, // Use the businessId variable
+          businessId: businessId,
           planId: planIdForPayment,
           amount: amountToPay,
           email: email,
           reference: reference,
-          action: appState.paymentAction, // Pass the action type (upgrade or updatePaymentMethod)
+          action: appState.paymentAction,
+          currency: "KES", // Add currency code
         }),
       });
 
@@ -642,38 +643,38 @@ document.addEventListener("DOMContentLoaded", () => {
       if (response.ok) {
         // Initialize Paystack payment
         const paystackHandler = PaystackPop.setup({
-          key: "pk_live_bdcc7613b63180912b0084c1b83a35d1226f265c", // Replace with your actual Paystack Public Key
+          key: "pk_live_bdcc7613b63180912b0084c1b83a35d1226f265c",
           email: email,
-          amount: amountToPay * 100, // Amount in kobo (or cents for other currencies)
-          ref: reference, // unique identifier
+          amount: amountToPay * 100, // Amount in cents
+          currency: "KES", // Add currency code
+          ref: reference,
           metadata: {
-            businessId: appState.currentBusiness.id,
-            planId: planIdForPayment, // Pass the correct planId in metadata
-            action: appState.paymentAction, // Pass the action type
+            businessId: businessId,
+            planId: planIdForPayment,
+            action: appState.paymentAction,
           },
-          callback: async (response) => {
-            // This is called when payment is successful or closed by user
-            document.getElementById("processingPopup").classList.add("hidden"); // Hide processing popup
+          onSuccess: function (response) {
+            // Changed from callback to onSuccess
+            document.getElementById("processingPopup").classList.add("hidden");
             if (response.status === "success") {
               showToast("Payment successful! Verifying...", "success");
-              // Redirect to a success page or verify on backend
               window.location.href = `/subscriptions?payment_status=success&reference=${response.reference}`;
             } else {
               showToast("Payment not completed or failed.", "error");
             }
             document
               .getElementById("payment-options-modal")
-              .classList.add("hidden"); // Close the payment modal
-            showStep("payment-step-1"); // Reset modal to step1
-            fetchSubscriptionDetails(); // Refresh details after attempting payment
+              .classList.add("hidden");
+            showStep("payment-step-1");
+            fetchSubscriptionDetails();
           },
-          onClose: () => {
+          onClose: function () {
             document.getElementById("processingPopup").classList.add("hidden");
             showToast("Payment window closed.", "info");
             document
               .getElementById("payment-options-modal")
-              .classList.add("hidden"); // Close the payment modal
-            showStep("payment-step-1"); // Reset modal to step1
+              .classList.add("hidden");
+            showStep("payment-step-1");
           },
         });
         paystackHandler.openIframe(); // Open Paystack payment popup

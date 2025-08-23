@@ -11,6 +11,14 @@ require("dotenv").config();
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
+// Add a conversion helper for KES to USD
+const convertKESToUSD = (kesAmount) => {
+  // IMPORTANT: Update this rate regularly or fetch from a reliable API
+  // Example rate: 1 USD = 130 KES (as of August 2025). Adjust this!
+  const rate = 130;
+  return Math.round(kesAmount / rate); // Convert KES to USD
+};
+
 // Placeholder for sendExpiryReminderEmail - YOU WILL NEED TO IMPLEMENT THIS
 async function sendExpiryReminderEmail(email, data) {
   console.log(`Sending expiry reminder email to ${email}:`, data);
@@ -34,16 +42,21 @@ async function sendExpiryReminderEmail(email, data) {
 // Controller to initiate Paystack payment
 exports.initiatePaystackPayment = async (req, res) => {
   try {
-    const { businessId, planId, amount, email, reference, action } = req.body;
+    const { businessId, planId, amount, email, action } = req.body; // Removed 'reference' from req.body as we will generate it here
 
-    // amount check is crucial here, Paystack won't process 0
+    // Generate a truly unique reference using a timestamp and a random string
+    // This makes it virtually impossible for duplicates.
+    const uniqueRef = `${businessId}_${planId}_${Date.now()}_${crypto
+      .randomBytes(8)
+      .toString("hex")}`; // Increased random bytes for even more uniqueness
+
+    // Validation checks
     if (
       !businessId ||
       !planId ||
       amount === undefined ||
       amount === null ||
       !email ||
-      !reference ||
       !action
     ) {
       console.error("Missing required fields for Paystack initiation:", {
@@ -51,7 +64,6 @@ exports.initiatePaystackPayment = async (req, res) => {
         planId,
         amount,
         email,
-        reference,
         action,
       });
       return res
@@ -63,8 +75,6 @@ exports.initiatePaystackPayment = async (req, res) => {
       console.warn(
         `Attempt to initiate Paystack payment for amount <= 0 (${amount}). Bypassing Paystack.`
       );
-      // For amounts 0 or less, we indicate success to the frontend
-      // The actual subscription update for free plans is handled by a direct /subscriptions/upgrade call
       return res.status(200).json({
         status: true,
         message: "Payment not required for free plan.",
@@ -72,20 +82,36 @@ exports.initiatePaystackPayment = async (req, res) => {
       });
     }
 
-    const metadata = {
-      businessId: businessId,
-      planId: planId,
-      action: action, // Pass the action type (upgrade or updatePaymentMethod)
-    };
+    // Convert KES to USD for Paystack
+    const amountInUSD = convertKESToUSD(amount);
+
+    // Ensure converted amount is still positive for Paystack
+    if (amountInUSD <= 0) {
+      console.error(
+        `Converted amount to USD is zero or negative (${amountInUSD}) for original KES amount (${amount}). Cannot process payment.`
+      );
+      // Returning a 400 with a specific message for this scenario
+      return res.status(400).json({
+        message:
+          "Converted amount is too low to process payment in USD. Please ensure your KES amount is sufficient after conversion.",
+      });
+    }
 
     const paystackResponse = await axios.post(
       `${PAYSTACK_BASE_URL}/transaction/initialize`,
       {
         email,
-        amount: amount * 100, // Amount in kobo
-        reference,
-        callback_url: `${req.protocol}://${req.get("host")}/subscriptions`, // Redirect back to subscriptions page
-        metadata: metadata,
+        amount: amountInUSD * 100, // Convert to cents (Paystack expects amount in smallest currency unit)
+        currency: "KES", // Explicitly set currency to USD
+        reference: uniqueRef, // Use the newly generated unique reference
+        callback_url: `${req.protocol}://${req.get("host")}/subscriptions`,
+        metadata: {
+          businessId,
+          planId,
+          action,
+          originalAmount: amount, // Store original KES amount
+          originalCurrency: "KES",
+        },
       },
       {
         headers: {
@@ -95,7 +121,14 @@ exports.initiatePaystackPayment = async (req, res) => {
       }
     );
 
-    res.status(200).json(paystackResponse.data);
+    res.status(200).json({
+      ...paystackResponse.data,
+      metadata: {
+        ...paystackResponse.data.metadata,
+        amountInKES: amount,
+        amountInUSD: amountInUSD,
+      },
+    });
   } catch (error) {
     console.error(
       "Error initiating Paystack payment:",
@@ -127,15 +160,19 @@ exports.verifyPaystackPayment = async (req, res) => {
   if (event.event === "charge.success" && event.data.status === "success") {
     try {
       const reference = event.data.reference;
-      const amount = event.data.amount / 100; // Convert kobo to actual amount
-      // const email = event.data.customer.email; // Email from Paystack, not always reliable for our business logic
       const metadata = event.data.metadata;
       const businessId = metadata.businessId;
-      const planId = metadata.planId; // This is the plan ID relevant to the transaction
-      const action = metadata.action; // Get the action from metadata
+      const planId = metadata.planId;
+      const action = metadata.action;
+      const originalAmountKES = metadata.originalAmount;
 
       console.log(
         `Paystack Webhook: Received successful charge for reference ${reference}, action: ${action}`
+      );
+      console.log(
+        `Original amount (KES): ${originalAmountKES}, Processed amount (USD): ${
+          event.data.amount / 100
+        }`
       );
 
       // Optional: Verify the transaction directly with Paystack API for double-checking
@@ -163,91 +200,66 @@ exports.verifyPaystackPayment = async (req, res) => {
           return res.status(404).json({ message: "Plan not found" });
         }
 
-        let subscription = await Subscription.findOne({ business: businessId }); // Find any subscription for the business
+        let subscription = await Subscription.findOne({ business: businessId });
+        const now = new Date();
+        const endDate = new Date(now);
+        endDate.setMonth(now.getMonth() + 1);
+
+        let actionType = "subscription_created";
         if (subscription && subscription.status === "active") {
-          // If active, update existing subscription to the new plan
-          console.log(
-            `Upgrading existing active subscription for business ${businessId} to plan ${plan.name}.`
-          );
-          subscription.plan = planId;
-          subscription.startDate = new Date(); // Start new period
-          subscription.endDate = new Date(subscription.startDate);
-          subscription.endDate.setMonth(subscription.startDate.getMonth() + 1); // Default to 1 month
-          subscription.status = "active";
-          subscription.price = plan.price;
-          subscription.paymentMethod = "paystack";
-          subscription.paystackReference = reference;
-          subscription.lastPaymentDate = new Date();
-          subscription.nextBillingDate = subscription.endDate;
-          await subscription.save();
-
-          await SubscriptionLog.create({
-            business: businessId,
-            plan: planId,
-            action: "subscription_upgraded",
-            date: new Date(),
-            paymentMethod: "paystack",
-            price: plan.price,
-            paystackReference: reference,
-            status: "completed",
-          });
+          actionType = "subscription_upgraded";
         } else if (subscription && subscription.status !== "active") {
-          // If exists but not active (e.g., expired or cancelled), reactivate it
-          console.log(
-            `Reactivating non-active subscription for business ${businessId} to plan ${plan.name}.`
-          );
+          actionType = "subscription_reactivated";
+        }
+
+        if (subscription) {
           subscription.plan = planId;
-          subscription.startDate = new Date();
-          subscription.endDate = new Date(subscription.startDate);
-          subscription.endDate.setMonth(subscription.startDate.getMonth() + 1);
+          subscription.startDate = now;
+          subscription.endDate = endDate;
           subscription.status = "active";
-          subscription.price = plan.price;
+          subscription.price = plan.price; // Store original plan price in KES
           subscription.paymentMethod = "paystack";
           subscription.paystackReference = reference;
-          subscription.lastPaymentDate = new Date();
-          subscription.nextBillingDate = subscription.endDate;
+          subscription.lastPaymentDate = now;
+          subscription.nextBillingDate = endDate;
           await subscription.save();
 
           await SubscriptionLog.create({
             business: businessId,
             plan: planId,
-            action: "subscription_reactivated",
-            date: new Date(),
+            action: actionType,
+            date: now,
             paymentMethod: "paystack",
-            price: plan.price,
+            price: plan.price, // Store original plan price in KES
             paystackReference: reference,
             status: "completed",
+            paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
           });
         } else {
-          // No subscription exists, create a new one
-          console.log(
-            `Creating new subscription for business ${businessId} with plan ${plan.name}.`
-          );
           subscription = await Subscription.create({
             business: businessId,
             plan: planId,
-            startDate: new Date(),
-            endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+            startDate: now,
+            endDate: endDate,
             status: "active",
             autoRenew: true,
-            price: plan.price,
+            price: plan.price, // Store original plan price in KES
             paymentMethod: "paystack",
-            lastPaymentDate: new Date(),
-            nextBillingDate: new Date(
-              new Date().setMonth(new Date().getMonth() + 1)
-            ),
+            lastPaymentDate: now,
+            nextBillingDate: endDate,
             paystackReference: reference,
           });
 
           await SubscriptionLog.create({
             business: businessId,
             plan: planId,
-            action: "subscription_created",
-            date: new Date(),
+            action: actionType,
+            date: now,
             paymentMethod: "paystack",
-            price: plan.price,
+            price: plan.price, // Store original plan price in KES
             paystackReference: reference,
             status: "completed",
+            paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
           });
         }
         console.log(
@@ -267,8 +279,6 @@ exports.verifyPaystackPayment = async (req, res) => {
             message: "No active subscription found for payment method update",
           });
         }
-        // Ensure the plan being updated is the same as the current active plan
-        // This check is more for logging/warning; the primary goal is to update the payment method details
         if (subscription.plan.toString() !== planId) {
           console.warn(
             `Paystack Webhook: Attempted to update payment method for a different plan than active. Expected ${subscription.plan}, got ${planId}. Proceeding with payment method update on existing subscription.`
@@ -277,19 +287,19 @@ exports.verifyPaystackPayment = async (req, res) => {
 
         subscription.paymentMethod = "paystack";
         subscription.paystackReference = reference;
-        subscription.lastPaymentDate = new Date(); // Update last payment date for this payment method update
-        // nextBillingDate is not changed for just a payment method update, it stays based on subscription cycle
+        subscription.lastPaymentDate = new Date();
         await subscription.save();
 
         await SubscriptionLog.create({
           business: businessId,
-          plan: subscription.plan, // Reference the existing plan
+          plan: subscription.plan,
           action: "payment_method_updated",
           date: new Date(),
           paymentMethod: "paystack",
-          price: amount, // Log the amount paid in this transaction for the update
+          price: originalAmountKES, // Log original KES amount here
           paystackReference: reference,
           status: "completed",
+          paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
         });
         console.log(
           `Paystack Webhook: Payment method updated for business ${businessId}.`
@@ -311,7 +321,6 @@ exports.verifyPaystackPayment = async (req, res) => {
       res.status(500).send("Error processing webhook");
     }
   } else {
-    // If it's not a successful charge event, just acknowledge
     console.log(
       `Paystack Webhook: Received non-'charge.success' event or non-successful status: ${event.event}, status: ${event.data.status}`
     );
@@ -333,7 +342,6 @@ exports.checkPaystackStatus = async (req, res) => {
     );
 
     if (response.data.data.status === "success") {
-      // Frontend can use this for immediate feedback, but the webhook is the source of truth for DB updates.
       return res
         .status(200)
         .json({ status: "success", message: "Payment verified" });
@@ -360,7 +368,6 @@ exports.upgradeSubscription = async (req, res) => {
     const businessId = req.user?.business || req.body.businessId;
     const { planId, paymentMethod } = req.body;
 
-    // Validate inputs
     if (!businessId || !planId) {
       console.error("Missing required fields:", { businessId, planId });
       return res.status(400).json({
@@ -368,8 +375,7 @@ exports.upgradeSubscription = async (req, res) => {
       });
     }
 
-    // Log the upgrade attempt
-    console.log("Upgrade attempt:", {
+    console.log("Upgrade attempt (Direct Call):", {
       businessId,
       planId,
       paymentMethod,
@@ -383,7 +389,7 @@ exports.upgradeSubscription = async (req, res) => {
     }
     console.log("Found plan:", plan.name, "with price:", plan.price);
 
-    let subscription = await Subscription.findOne({ business: businessId }); // Find any subscription for the business
+    let subscription = await Subscription.findOne({ business: businessId });
     console.log(
       "Existing subscription found:",
       subscription ? subscription._id : "None"
@@ -391,9 +397,8 @@ exports.upgradeSubscription = async (req, res) => {
 
     const now = new Date();
     const endDate = new Date(now);
-    endDate.setMonth(now.getMonth() + 1); // Default to 1 month subscription
+    endDate.setMonth(now.getMonth() + 1);
 
-    // Determine the action type for logging
     let actionType = "subscription_created";
     if (subscription && subscription.status === "active") {
       actionType = "subscription_upgraded";
@@ -449,7 +454,7 @@ exports.upgradeSubscription = async (req, res) => {
       await SubscriptionLog.create({
         business: businessId,
         plan: planId,
-        action: actionType, // will be 'subscription_created' here
+        action: actionType,
         date: now,
         paymentMethod: paymentMethod,
         price: plan.price,
@@ -470,8 +475,7 @@ exports.upgradeSubscription = async (req, res) => {
 
 exports.cancelSubscription = async (req, res) => {
   try {
-    const businessId = req.user.business; // Use from auth middleware
-
+    const businessId = req.user.business;
     const subscription = await Subscription.findOne({
       business: businessId,
       status: "active",
@@ -502,7 +506,7 @@ exports.cancelSubscription = async (req, res) => {
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
-    const businessId = req.user.business; // Correctly get businessId from auth middleware
+    const businessId = req.user.business;
     console.log("Fetching subscription details for businessId:", businessId);
 
     const subscription = await Subscription.findOne({ business: businessId })
@@ -525,7 +529,7 @@ exports.getSubscriptionDetails = async (req, res) => {
 
 exports.getSubscriptionHistory = async (req, res) => {
   try {
-    const businessId = req.user.business; // Correctly get businessId from auth middleware
+    const businessId = req.user.business;
 
     const history = await SubscriptionLog.find({ business: businessId })
       .populate("plan", "name")
@@ -546,10 +550,8 @@ exports.getSubscriptionHistory = async (req, res) => {
 };
 
 exports.updatePaymentMethod = async (req, res) => {
-  // This function's direct use from frontend will be minimal for Paystack flow.
-  // It's mainly called internally by verifyPaystackPayment now.
   try {
-    const businessId = req.user?.business || req.body.businessId; // Get businessId from middleware or body
+    const businessId = req.user?.business || req.body.businessId;
     const { paymentMethod, paymentDetails } = req.body;
 
     const subscription = await Subscription.findOne({
@@ -561,28 +563,23 @@ exports.updatePaymentMethod = async (req, res) => {
       return res.status(404).json({ message: "No active subscription found" });
     }
 
-    // Update payment method
     subscription.paymentMethod = paymentMethod;
-
-    // Store payment specific details
     if (paymentMethod === "paystack") {
       subscription.paystackReference = paymentDetails.reference;
     } else if (paymentMethod === "mpesa") {
       subscription.mpesaTransactionId = paymentDetails.transactionId;
     }
-    // Update last payment date
     subscription.lastPaymentDate = new Date();
 
     await subscription.save();
 
-    // Create log entry
     await SubscriptionLog.create({
       business: businessId,
       plan: subscription.plan,
       action: "payment_method_update_direct",
       date: new Date(),
       paymentMethod: paymentMethod,
-      status: "completed", // Assuming successful update
+      status: "completed",
     });
 
     res.status(200).json({

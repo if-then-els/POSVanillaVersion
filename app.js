@@ -86,7 +86,7 @@ app.use("/api/payment-methods", businessPaymentRoutes);
 
 async function seedPlans() {
   const plans = [
-    { name: "basic", price: 2000, description: "Basic Plan" },
+    { name: "basic", price: 2, description: "Basic Plan" },
     { name: "Standard", price: 3500, description: "Standard Plan" },
     { name: "premium", price: 15000, description: "Premium Plan" },
     { name: "trial", price: 0, description: "One month free Trial" },
