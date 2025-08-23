@@ -1,35 +1,48 @@
 const mongoose = require("mongoose");
 
-const SubscriptionSchema = new mongoose.Schema(
-  {
-    business: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "BusinessDetails",
-      required: true,
-    },
-    plan: {
-      type: mongoose.Schema.Types.ObjectId, // Changed to ObjectId to reference Plan model directly
-      ref: "Plan",
-      required: true,
-    },
-    startDate: { type: Date, required: true, default: Date.now },
-    endDate: { type: Date },
-    status: {
-      type: String,
-      enum: ["active", "inactive", "cancelled", "expired", "pending"],
-      default: "inactive",
-    },
-    autoRenew: { type: Boolean, default: false },
-    paymentMethod: { type: String },
-    lastPaymentDate: { type: Date },
-    nextBillingDate: { type: Date },
-    mpesaCheckoutRequestID: { type: String, default: null },
-    mpesaTransactionId: { type: String, default: null },
-    paystackReference: { type: String, default: null }, // New: Paystack transaction reference
-    paystackTransactionId: { type: String, default: null }, // New: Paystack transaction ID
-    price: { type: Number, required: true }, // Added price to subscription model
+const subscriptionSchema = mongoose.Schema({
+  business: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "BusinessDetails",
+    required: true,
   },
-  { timestamps: true }
-);
+  plan: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Plan",
+    required: true,
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "active", "expired", "cancelled"],
+    default: "pending",
+  },
+  autoRenew: {
+    type: Boolean,
+    default: false,
+  },
+  price: {
+    type: Number,
 
-module.exports = mongoose.model("Subscription", SubscriptionSchema);
+    required: true,
+  },
+  paymentMethod: {
+    type: String,
+    enum: ["mpesa", "paystack", "card"],
+    required: true,
+  },
+  lastPaymentDate: Date,
+  nextBillingDate: Date,
+  paystackReference: String,
+  paystackTransactionId: String,
+  mpesaTransactionId: String,
+});
+
+module.exports = mongoose.model("Subscription", subscriptionSchema);

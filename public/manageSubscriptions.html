@@ -441,49 +441,87 @@
             </div>
           </div>
 
-          <!-- Current Plan Section -->
-          <div
-            class="glass rounded-3xl p-8 mb-12 hover-lift scroll-reveal neon-border relative overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-full morphing-blob"
-            ></div>
+          <!-- Current Plan Details (New Section) -->
+          <div class="current-plan-details glass-dark rounded-xl p-6 mb-8">
+            <h2 class="text-xl font-bold text-white mb-4">
+              Current Subscription
+            </h2>
 
-            <div class="flex justify-between items-start mb-8 relative z-10">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <h2
-                  class="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                <p class="text-gray-400">Plan</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="current-plan-name"
                 >
-                  Your Current Plan
-                </h2>
-                <p class="text-gray-400">Active subscription</p>
+                  Loading...
+                </p>
               </div>
-              <div class="flex items-center space-x-2">
-                <div class="relative">
-                  <div
-                    class="w-16 h-16 rounded-full bg-gradient-to-r from-success-400 to-success-600 flex items-center justify-center animate-glow"
-                  >
-                    <i class="fas fa-check text-white text-xl"></i>
-                  </div>
-                  <div
-                    class="absolute -top-1 -right-1 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center"
-                  >
-                    <i class="fas fa-crown text-white text-xs"></i>
-                  </div>
-                </div>
-                <div>
-                  <span
-                    class="bg-gradient-to-r from-success-400 to-success-600 text-white text-sm font-bold px-3 py-1 rounded-full"
-                  >
-                    ACTIVE
-                  </span>
-                </div>
+
+              <div>
+                <p class="text-gray-400">Price</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="current-plan-price"
+                >
+                  Loading...
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">Status</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="subscription-status"
+                >
+                  Loading...
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">Expires On</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="subscription-expiry"
+                >
+                  Loading...
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">Payment Method</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="current-payment-method"
+                >
+                  Loading...
+                </p>
               </div>
             </div>
 
+            <div class="mt-6 flex gap-4">
+              <button
+                id="upgrade-plan-btn"
+                class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
+              >
+                <i class="fas fa-arrow-up mr-2"></i>Upgrade Plan
+              </button>
+              <button
+                id="update-payment-button"
+                class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-credit-card mr-2"></i>Update Payment
+              </button>
+            </div>
+          </div>
+
+          <!-- Current Plan Section (Old one - can be removed or repurposed) -->
+          <div
+            class="glass rounded-3xl p-8 mb-12 hover-lift scroll-reveal neon-border relative overflow-hidden"
+          >
             <div class="grid md:grid-cols-3 gap-8 relative z-10">
               <div class="space-y-4">
-                <div class="glass-dark rounded-2xl p-6">
+                <!-- <div class="glass-dark rounded-2xl p-6">
                   <h3
                     class="text-2xl font-bold text-primary-400 mb-2"
                     id="plan-name"
@@ -504,11 +542,11 @@
                     </div>
                     <span class="text-sm text-gray-400">75% utilized</span>
                   </div>
-                </div>
+                </div> -->
               </div>
 
               <div class="space-y-4">
-                <div class="glass-dark rounded-2xl p-6">
+                <!-- <div class="glass-dark rounded-2xl p-6">
                   <h4 class="text-lg font-semibold text-gray-300 mb-4">
                     Subscription Details
                   </h4>
@@ -556,7 +594,7 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
 
               <!-- Usage Stats
@@ -609,7 +647,7 @@
             </div>
 
             <div class="flex flex-wrap gap-4 mt-8 relative z-10">
-              <button
+              <!-- <button
                 class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
                 id="upgrade-plan-btn"
               >
@@ -622,7 +660,7 @@
               >
                 <i class="fas fa-credit-card mr-2"></i>
                 Update Payment
-              </button>
+              </button> -->
               <button
                 class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
                 id="cancel-subscription-button"
@@ -1300,28 +1338,31 @@
     </div>
     <!-- END CONFIRMATION MODAL -->
 
-    <!-- Modern Payment Modal (This modal can be repurposed or a new one created for Paystack) -->
-    <!-- Current M-Pesa Modal -->
+    <!-- Payment Options Modal (Replaced mpesa-modal) -->
     <div
-      id="mpesa-modal"
+      id="payment-options-modal"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] hidden flex items-center justify-center"
     >
       <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-        <!-- Step 1: Choose action -->
-        <div id="step1">
-          <h2 class="text-xl font-bold mb-4 text-white">
-            Upgrade Subscription
-          </h2>
+        <!-- Step 1: Choose action (Upgrade Plan / Update Payment Method) -->
+        <div id="payment-step-1" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">Choose Action</h2>
           <button
-            id="upgradeplanbtn"
+            id="modal-upgrade-plan-btn"
             class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition"
           >
             Upgrade Plan
           </button>
+          <button
+            id="modal-update-payment-method-btn"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+          >
+            Update Current Payment Method
+          </button>
         </div>
 
         <!-- Step 2: Select Plan -->
-        <div id="step2" class="hidden">
+        <div id="payment-step-2" class="hidden" data-step>
           <h2 class="text-xl font-bold mb-4 text-white">Select a Plan</h2>
           <div id="plans-list" class="space-y-4"></div>
           <button
@@ -1332,10 +1373,77 @@
           </button>
         </div>
 
-        <!-- Step 3: Enter Payment (This section will be updated for Paystack) -->
-        <div id="step3" class="hidden" data-step>
+        <!-- Step 3: Choose Payment Method (M-Pesa, Paystack, Card) -->
+        <div id="payment-step-3" class="hidden" data-step>
           <h2 class="text-xl font-bold mb-4 text-white">
-            Enter Payment Details (Paystack)
+            Choose Payment Method
+          </h2>
+          <button
+            id="selectMpesa"
+            class="w-full mb-3 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition"
+            data-payment-method="mpesa"
+          >
+            <i class="fas fa-mobile-alt mr-2"></i>Pay with M-Pesa
+          </button>
+          <button
+            id="selectPaystack"
+            class="w-full mb-3 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
+            data-payment-method="paystack"
+          >
+            <i class="fas fa-money-check-alt mr-2"></i>Pay with Paystack
+          </button>
+          <!-- You can add a card option here if you have a direct card integration -->
+          <button
+            data-step-action="prev-step"
+            class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+          >
+            Back
+          </button>
+        </div>
+
+        <!-- Step 4: Enter Payment Details (M-Pesa) -->
+        <div id="payment-step-4-mpesa" class="hidden" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">
+            Enter M-Pesa Details
+          </h2>
+          <label for="mpesa-phone-input" class="block mb-2 text-gray-300"
+            >Your M-Pesa Phone Number</label
+          >
+          <input
+            id="mpesa-phone-input"
+            type="text"
+            class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700"
+            placeholder="e.g., 0712345678"
+          />
+          <label for="mpesa-amount" class="block mb-2 text-gray-300"
+            >Amount</label
+          >
+          <input
+            id="mpesa-amount"
+            type="text"
+            class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700"
+            readonly
+          />
+          <div class="flex justify-between gap-4">
+            <button
+              data-step-action="prev-step"
+              class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+            >
+              Back
+            </button>
+            <button
+              id="payWithMpesa"
+              class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition"
+            >
+              Complete M-Pesa Payment
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 5: Enter Payment Details (Paystack) -->
+        <div id="payment-step-4-paystack" class="hidden" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">
+            Enter Paystack Details
           </h2>
           <label for="paystack-email-input" class="block mb-2 text-gray-300"
             >Your Email Address</label

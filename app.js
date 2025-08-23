@@ -89,6 +89,7 @@ async function seedPlans() {
     { name: "basic", price: 2000, description: "Basic Plan" },
     { name: "Standard", price: 3500, description: "Standard Plan" },
     { name: "premium", price: 15000, description: "Premium Plan" },
+    { name: "trial", price: 0, description: "One month free Trial" },
   ];
   for (const plan of plans) {
     await Plan.updateOne({ name: plan.name }, { $set: plan }, { upsert: true });
