@@ -1,57 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Theme Toggle
-  // const themeToggle = document.getElementById("theme-toggle");
-  // themeToggle.addEventListener("click", () => {
-  //   document.documentElement.classList.toggle("dark");
-  //   const icon = themeToggle.querySelector("i");
-  //   icon.classList.toggle("fa-moon");
-  //   icon.classList.toggle("fa-sun");
-  // });
-
-// Sidebar Toggle
-const toggleSidebar = document.getElementById("toggle-sidebar");
-const sidebar = document.getElementById("sidebar");
-const overlay = document.getElementById("overlay");
-
-toggleSidebar.addEventListener("click", () => {
-  sidebar.classList.toggle("translate-x-0");
-  sidebar.classList.toggle("-translate-x-full");
-  overlay.classList.toggle("hidden");
-  document.body.classList.toggle("sidebar-open");
-});
-
-overlay.addEventListener("click", () => {
-  sidebar.classList.add("-translate-x-full");
-  sidebar.classList.remove("translate-x-0");
-  overlay.classList.add("hidden");
-  document.body.classList.remove("sidebar-open");
-});
-
-  // Scroll Reveal Animation
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: "0px 0px -50px 0px",
+  // --- Global Application State ---
+  const appState = {
+    selectedPlan: null, // Stores { _id, name, price } of the plan chosen for upgrade
+    currentSubscription: null, // Stores { _id, plan, endDate, status, price, paymentMethod, ... }
+    currentBusiness: null, // Stores { _id, email, dateCreated, ... }
+    paymentAction: "upgrade", // 'upgrade' or 'updatePaymentMethod'
   };
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("revealed");
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll(".scroll-reveal").forEach((el) => {
-    observer.observe(el);
-  });
-
-  // Floating Action Button
-  // const fab = document.getElementById("fab");
-  // fab.addEventListener("click", () => {
-  //   showToast("Quick action menu coming soon!", "info");
-  // });
-
-  // --- Toast Notification Function ---
+  // Toast Notification Function (existing code)
   function showToast(
     message = "Action completed Successfully!",
     type = "success"
@@ -106,14 +62,195 @@ overlay.addEventListener("click", () => {
     }, 3000);
   }
 
-  // --- Global variables for selected plan and price ---
-  let selectedPlan = null;
-  let selectedPlanPrice = null;
-  let currentBusinessId = null;
-  let currentPlanPrice = null; // Added to store current plan price
+  // --- Function to check subscription status and calculate days until expiry ---
+  async function checkSubscriptionStatus() {
+    // This function will now use appState.currentSubscription
+    if (!appState.currentSubscription) {
+      return {
+        isActive: false,
+        daysUntilExpiry: 0,
+        isExpired: true,
+      };
+    }
 
-  // --- Fetch Subscription Details Function (updated) ---
+    const now = new Date();
+    const expiryDate = new Date(appState.currentSubscription.endDate);
+    const daysUntilExpiry = Math.ceil(
+      (expiryDate - now) / (1000 * 60 * 60 * 24)
+    );
+
+    return {
+      isActive: appState.currentSubscription.status === "active",
+      daysUntilExpiry: daysUntilExpiry,
+      isExpired: daysUntilExpiry <= 0,
+      expiryDate: expiryDate,
+    };
+  }
+
+  // --- Notification system to show expiry warnings ---
+  function showExpiryNotification(daysUntilExpiry) {
+    let message, type;
+    const existingBanner = document.getElementById("subscription-banner");
+    if (existingBanner) existingBanner.remove(); // Clear existing banners
+
+    if (daysUntilExpiry <= 0 && appState.currentSubscription) {
+      // Only show if there was a subscription that expired
+      message =
+        "Your subscription has expired. Services are now limited. Please renew to restore full access.";
+      type = "error";
+    } else if (
+      daysUntilExpiry <= 7 &&
+      daysUntilExpiry > 0 &&
+      appState.currentSubscription
+    ) {
+      message = `Your subscription will expire in ${daysUntilExpiry} day${
+        daysUntilExpiry === 1 ? "" : "s"
+      }. Please renew to avoid service interruption.`;
+      type = "warning";
+    }
+
+    if (message) {
+      showToast(message, type);
+
+      const bannerHtml = `
+        <div id="subscription-banner" class="fixed top-0 left-0 right-0 bg-gradient-to-r ${
+          type === "error"
+            ? "from-red-600 to-red-700"
+            : "from-yellow-600 to-yellow-700"
+        } text-white py-3 px-4 text-center z-50">
+          <p class="text-sm font-medium">${message}</p>
+          <a href="/manageSubscriptions.html" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-${
+            type === "error" ? "red" : "yellow"
+          }-700 bg-white hover:bg-gray-100">
+            Renew Now
+          </a>
+        </div>
+      `;
+      document.body.insertAdjacentHTML("afterbegin", bannerHtml);
+    }
+  }
+
+  // --- Feature locking/unlocking placeholder functions ---
+  function lockFeatures() {
+    console.log("Subscription expired: Locking features.");
+    const restrictedElements = document.querySelectorAll(
+      '[data-requires-subscription="true"]'
+    );
+    restrictedElements.forEach((element) => {
+      element.classList.add("opacity-50", "pointer-events-none", "grayscale");
+    });
+  }
+
+  function unlockFeatures() {
+    console.log("Subscription active: Unlocking features.");
+    const restrictedElements = document.querySelectorAll(
+      '[data-requires-subscription="true"]'
+    );
+    restrictedElements.forEach((element) => {
+      element.classList.remove(
+        "opacity-50",
+        "pointer-events-none",
+        "grayscale"
+      );
+    });
+  }
+
+  // --- Function to check and update subscription status periodically ---
+  async function monitorSubscriptionStatus() {
+    // Re-fetch details to ensure appState.currentSubscription is fresh
+    await fetchSubscriptionDetails();
+    const status = await checkSubscriptionStatus();
+
+    if (status.daysUntilExpiry <= 7) {
+      showExpiryNotification(status.daysUntilExpiry);
+    } else {
+      const existingBanner = document.getElementById("subscription-banner");
+      if (existingBanner) existingBanner.remove();
+    }
+
+    if (status.isExpired) {
+      lockFeatures();
+    } else {
+      unlockFeatures();
+    }
+
+    window.isSubscriptionActive = status.isActive && !status.isExpired;
+  }
+
+  // --- Fetch Business Details (critical first step) ---
+  async function fetchBusinessDetails() {
+    try {
+      const response = await fetch("/api/business/business/details", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch business details");
+      }
+      const data = await response.json();
+      // Map the id to _id for consistency
+      appState.currentBusiness = {
+        ...data.business,
+        _id: data.business.id, // Add this line to map id to _id
+      };
+      console.log("Business details fetched:", appState.currentBusiness); // Debug log
+
+      // Update validation check to use either id or _id
+      if (!appState.currentBusiness?.id && !appState.currentBusiness?._id) {
+        console.error("Business details missing ID:", appState.currentBusiness);
+        showToast("Invalid business details received", "error");
+        return;
+      }
+
+      // Verify business ID exists
+      if (!appState.currentBusiness?._id) {
+        console.error(
+          "Business details missing _id:",
+          appState.currentBusiness
+        );
+        showToast("Invalid business details received", "error");
+        return;
+      }
+
+      // Update months active and date created
+      if (appState.currentBusiness?.dateCreated) {
+        const startDate = new Date(appState.currentBusiness.dateCreated);
+        const currentDate = new Date();
+        const monthsActive = Math.floor(
+          (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30)
+        );
+        document.getElementById("months-active").textContent = monthsActive;
+        document.getElementById("date-created").textContent =
+          startDate.toLocaleDateString();
+      }
+    } catch (error) {
+      console.error("Error fetching business details:", error);
+      showToast("Failed to load business details.", "error");
+      // Set fallback values if business details cannot be fetched
+      appState.currentBusiness = {
+        _id: "unknown_business",
+        email: "fallback@example.com",
+      };
+      document.getElementById("months-active").textContent = "N/A";
+      document.getElementById("date-created").textContent = "N/A";
+    }
+  }
+
+  // --- Fetch Subscription Details Function ---
   async function fetchSubscriptionDetails() {
+    // Check if currentBusiness is available, if not, try fetching it.
+    if (!appState.currentBusiness || !appState.currentBusiness.id) {
+      console.warn(
+        "Business ID not available yet, attempting to fetch business details before subscription."
+      );
+      await fetchBusinessDetails(); // Try to get business details
+      if (!appState.currentBusiness || !appState.currentBusiness.id) {
+        console.error(
+          "Failed to retrieve Business ID. Cannot fetch subscription details."
+        );
+        return; // Exit if still no business ID
+      }
+    }
+
     try {
       const response = await fetch("/subscriptions/details", {
         method: "GET",
@@ -121,171 +258,156 @@ overlay.addEventListener("click", () => {
         credentials: "include",
       });
 
-      if (!response.ok) throw new Error("Failed to fetch subscription details");
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log("No active subscription found for this business.");
+          appState.currentSubscription = null; // Clear any old subscription data
+          // Update UI for 'No Active Plan' scenario
+          document.getElementById("current-plan-name").textContent =
+            "No Active Plan";
+          document.getElementById("current-plan-price").textContent = "N/A";
+          document.getElementById("subscription-status").textContent =
+            "Inactive";
+          document.getElementById("subscription-expiry").textContent = "N/A";
+          document.getElementById("current-payment-method").textContent = "N/A";
+          const tbody = document.querySelector("table tbody");
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center py-4 text-gray-400">No billing history available.</td>
+            </tr>
+          `;
+          return;
+        }
+        throw new Error(
+          `Failed to fetch subscription details: ${response.statusText}`
+        );
+      }
+
       const data = await response.json();
-      const sub = data.subscription;
+      appState.currentSubscription = data.subscription;
+      console.log(
+        "Subscription details fetched:",
+        appState.currentSubscription
+      );
 
-      if (!sub) {
-        // ... (existing empty state handling) ...
-        return;
+      // Update new fields for plan display using appState
+      document.getElementById("current-plan-name").textContent =
+        appState.currentSubscription.plan?.name || "N/A";
+      document.getElementById("current-plan-price").textContent =
+        appState.currentSubscription.price !== undefined &&
+        appState.currentSubscription.price !== null
+          ? `KES ${appState.currentSubscription.price.toLocaleString()}`
+          : "N/A";
+      document.getElementById("subscription-status").textContent = appState
+        .currentSubscription.status
+        ? appState.currentSubscription.status.charAt(0).toUpperCase() +
+          appState.currentSubscription.status.slice(1)
+        : "N/A";
+      document.getElementById("subscription-expiry").textContent = appState
+        .currentSubscription.endDate
+        ? new Date(appState.currentSubscription.endDate).toLocaleDateString()
+        : "N/A";
+      document.getElementById("current-payment-method").textContent = appState
+        .currentSubscription.paymentMethod
+        ? appState.currentSubscription.paymentMethod.charAt(0).toUpperCase() +
+          appState.currentSubscription.paymentMethod.slice(1)
+        : "N/A";
+
+      // Show/hide upgrade button based on status
+      const upgradeBtn = document.getElementById("upgrade-plan-btn");
+      if (upgradeBtn) {
+        upgradeBtn.disabled = appState.currentSubscription.status !== "active";
+        upgradeBtn.classList.toggle(
+          "opacity-50",
+          appState.currentSubscription.status !== "active"
+        );
+        upgradeBtn.classList.toggle(
+          "pointer-events-none",
+          appState.currentSubscription.status !== "active"
+        );
       }
 
-      // Set plan prices using backend data
-      const planPricesNumeric = {
-        trial: 0,
-        basic: 3500,
-        Standard: 5500,
-        premium: 9500,
-      };
-
-      const planPricesDisplay = {
-        trial: "KES 0 (Free Trial)",
-        basic: "KES 3,500",
-        Standard: "KES 5,500",
-        premium: "KES 9,500",
-      };
-
-      // Store current plan price numerically
-      currentPlanPrice = planPricesNumeric[sub.plan] ?? null;
-
-      // Update UI with subscription details
-      document.getElementById("plan-name").textContent = sub.plan
-        ? `${sub.plan} Plan`
-        : "N/A";
-      document.getElementById("plan-status").textContent = sub.status
-        ? sub.status.charAt(0).toUpperCase() + sub.status.slice(1)
-        : "N/A";
-      document.getElementById("plan-start").textContent = sub.startDate
-        ? new Date(sub.startDate).toLocaleDateString()
-        : "N/A";
-      document.getElementById("plan-end").textContent = sub.endDate
-        ? new Date(sub.endDate).toLocaleDateString()
-        : "N/A";
-
-      // Set display price
-      document.getElementById("plan-price").textContent =
-        planPricesDisplay[sub.plan] || "N/A";
-
-      // Update auto-renew status
-      const autoRenewStatus = document.getElementById("plan-autoRenew");
-      if (sub.autoRenew) {
-        autoRenewStatus.textContent = "On";
-        autoRenewStatus.classList.add("text-success-400");
-        autoRenewStatus.classList.remove("text-gray-400");
-        document.querySelector(".w-4.h-4").classList.add("right-1");
-        document.querySelector(".w-4.h-4").classList.remove("left-1");
-      } else {
-        autoRenewStatus.textContent = "Off";
-        autoRenewStatus.classList.add("text-gray-400");
-        autoRenewStatus.classList.remove("text-success-400");
-        document.querySelector(".w-4.h-4").classList.add("left-1");
-        document.querySelector(".w-4.h-4").classList.remove("right-1");
-      }
-
-      // Store current businessId
-      currentBusinessId = sub.business;
-
-      // Update usage stats
-      if (sub.usage) {
-        // Transactions
-        const txUsed = sub.usage.transactions?.used || 0;
-        const txLimit = sub.usage.transactions?.limit || 0;
-        const txPercent = txLimit ? Math.min(100, (txUsed / txLimit) * 100) : 0;
-        document.querySelector(
-          '[data-usage="transactions"]'
-        ).textContent = `${txUsed.toLocaleString()}/${txLimit.toLocaleString()}`;
-        document.querySelector(
-          ".bg-gradient-to-r.from-primary-500.to-primary-600"
-        ).style.width = `${txPercent}%`;
-
-        // Storage
-        const stUsed = sub.usage.storage?.used || 0;
-        const stLimit = sub.usage.storage?.limit || 0;
-        const stPercent = stLimit ? Math.min(100, (stUsed / stLimit) * 100) : 0;
-        document.querySelector(
-          '[data-usage="storage"]'
-        ).textContent = `${stUsed}GB/${stLimit}GB`;
-        document.querySelector(
-          ".bg-gradient-to-r.from-accent-500.to-accent-600"
-        ).style.width = `${stPercent}%`;
-
-        // API Calls
-        const apiUsed = sub.usage.apiCalls?.used || 0;
-        const apiLimit = sub.usage.apiCalls?.limit || 0;
-        const apiPercent = apiLimit
-          ? Math.min(100, (apiUsed / apiLimit) * 100)
-          : 0;
-        document.querySelector('[data-usage="api"]').textContent = `${(
-          apiUsed / 1000
-        ).toFixed(1)}K/${(apiLimit / 1000).toFixed(0)}K`;
-        document.querySelector(
-          ".bg-gradient-to-r.from-success-500.to-success-600"
-        ).style.width = `${apiPercent}%`;
-      }
-
-      // Update billing history
-      const tbody = document.querySelector("table tbody");
-      tbody.innerHTML = "";
-      (sub.billingHistory || []).forEach((entry) => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-white/5 transition-colors group";
-        tr.innerHTML = `
-          <td class="py-4 px-6 text-white font-medium">${new Date(
-            entry.date
-          ).toLocaleDateString()}</td>
-          <td class="py-4 px-6">
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                <i class="fas fa-crown text-white text-sm"></i>
-              </div>
-              <div>
-                <p class="text-white font-medium">${entry.description}</p>
-                <p class="text-gray-400 text-sm">${entry.cycle}</p>
-              </div> 
-            </div>
-          </td>
-          <td class="py-4 px-6 text-white font-bold">KES ${entry.amount.toLocaleString()}</td>
-          <td class="py-4 px-6">
-            <span class="bg-gradient-to-r from-success-500 to-success-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-              <i class="fas fa-check mr-1"></i>${entry.status}
-            </span>
-          </td>
-          <td class="py-4 px-6">
-            <button class="text-primary-400 hover:text-primary-300 font-medium transition-colors group-hover:scale-110">
-              <i class="fas fa-download mr-2"></i>Download
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+      // Fetch and update billing history from logs
+      const historyResponse = await fetch("/subscriptions/history", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
       });
 
-      // Get business creation date
-      try {
-        const businessRes = await fetch("/api/business/business/details");
-        if (!businessRes.ok)
-          throw new Error("Failed to fetch business details");
-        const businessData = await businessRes.json();
-        const dateCreated = businessData.business?.dateCreated;
+      if (!historyResponse.ok)
+        throw new Error("Failed to fetch billing history");
+      const historyData = await historyResponse.json();
+      const billingHistory = historyData.history;
 
-        if (dateCreated) {
-          const startDate = new Date(dateCreated);
-          const currentDate = new Date();
-          const monthsActive = Math.floor(
-            (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30)
-          );
-          console.log("Months active:", monthsActive);
-          document.getElementById("months-active").textContent = monthsActive;
-          document.getElementById("date-created").textContent =
-            startDate.toLocaleDateString();
-        }
-      } catch (error) {
-        console.error("Error fetching business details:", error);
+      const tbody = document.querySelector("table tbody");
+      tbody.innerHTML = "";
+      if (billingHistory && billingHistory.length > 0) {
+        billingHistory.forEach((entry) => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-white/5 transition-colors group";
+          tr.innerHTML = `
+            <td class="py-4 px-6 text-white font-medium">${new Date(
+              entry.date
+            ).toLocaleDateString()}</td>
+            <td class="py-4 px-6">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-crown text-white text-sm"></i>
+                </div>
+                <div>
+                  <p class="text-white font-medium">${
+                    entry.plan?.name || "N/A"
+                  } Subscription</p>
+                  <p class="text-gray-400 text-sm">${
+                    entry.action || "Payment"
+                  } (KES ${
+            entry.price ? entry.price.toLocaleString() : "N/A"
+          })</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-4 px-6 text-white font-bold">KES ${
+              entry.price ? entry.price.toLocaleString() : "N/A"
+            }</td>
+            <td class="py-4 px-6">
+              <span class="bg-gradient-to-r ${
+                entry.status === "active" || entry.status === "completed"
+                  ? "from-success-500 to-success-600"
+                  : "from-red-500 to-red-600"
+              } text-white text-xs font-bold px-3 py-1 rounded-full">
+                <i class="fas fa-${
+                  entry.status === "active" || entry.status === "completed"
+                    ? "check"
+                    : "times"
+                } mr-1"></i>${entry.status ? entry.status.toUpperCase() : "N/A"}
+              </span>
+            </td>
+            <td class="py-4 px-6">
+              <button class="text-primary-400 hover:text-primary-300 font-medium transition-colors group-hover:scale-110">
+                <i class="fas fa-download mr-2"></i>Download
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center py-4 text-gray-400">No billing history available.</td>
+          </tr>
+        `;
       }
+
+      // Check expiry status and show notification
+      const { daysUntilExpiry } = await checkSubscriptionStatus();
+      showExpiryNotification(daysUntilExpiry);
     } catch (error) {
       console.error("Error fetching subscription details:", error);
       showToast("Failed to load subscription data", "error");
+      appState.currentSubscription = null; // Ensure current subscription is null on error
     }
   }
+
   async function fetchAvailablePlans() {
     try {
       const response = await fetch("/plans", {
@@ -297,18 +419,12 @@ overlay.addEventListener("click", () => {
       if (!response.ok) throw new Error("Failed to fetch plans");
 
       const responseData = await response.json();
-
-      // 1. Check if response is directly an array
       let plansArray = [];
       if (Array.isArray(responseData)) {
         plansArray = responseData;
-      }
-      // 2. Check for common response structures
-      else if (responseData.plans && Array.isArray(responseData.plans)) {
+      } else if (responseData.plans && Array.isArray(responseData.plans)) {
         plansArray = responseData.plans;
-      }
-      // 3. Fallback to empty array
-      else {
+      } else {
         console.error("Unexpected plans response:", responseData);
         throw new Error("Invalid plans data format");
       }
@@ -316,7 +432,6 @@ overlay.addEventListener("click", () => {
       const plansList = document.getElementById("plans-list");
       plansList.innerHTML = "";
 
-      // Handle empty plans
       if (plansArray.length === 0) {
         plansList.innerHTML = `
         <div class="text-center py-4 text-gray-400">
@@ -327,40 +442,33 @@ overlay.addEventListener("click", () => {
         return;
       }
 
-      // Render plans
       plansArray.forEach((plan) => {
         const button = document.createElement("button");
         button.className =
           "w-full px-4 py-3 mb-2 bg-gray-800 rounded-lg text-left hover:bg-gray-700";
         button.innerHTML = `
         <div class="font-semibold">${plan.name} Plan</div>
-        <div class="text-sm text-gray-400">KES ${plan.price}</div>
+        <div class="text-sm text-gray-400">KES ${plan.price.toLocaleString()}</div>
       `;
         button.addEventListener("click", () => {
-          // Collapse other plans
-          document.querySelectorAll("#plans-list > button").forEach((btn) => {
-            if (btn !== button) {
-              btn.classList.add("hidden");
-            }
-          });
+          appState.selectedPlan = {
+            _id: plan._id,
+            name: plan.name,
+            price: plan.price,
+          };
 
-          selectedPlan = plan.name;
-          selectedPlanPrice = plan.price;
           document.getElementById(
             "confirm-plan-name"
           ).textContent = `${plan.name} subscription`;
           document
             .getElementById("confirmation-modal")
             .classList.remove("hidden");
-          document.getElementById("confirm-plan-change").dataset.plan =
-            plan.name;
         });
 
         plansList.appendChild(button);
       });
     } catch (error) {
       console.error("Error fetching plans:", error);
-
       const plansList = document.getElementById("plans-list");
       plansList.innerHTML = `
       <div class="text-center py-4 text-red-400">
@@ -368,98 +476,243 @@ overlay.addEventListener("click", () => {
         Failed to load plans: ${error.message}
       </div>
     `;
-
       showToast("Failed to load available plans", "error");
     }
   }
-  // --- Plan Upgrade Function ---
-  async function upgradePlan(plan) {
-    if (!currentBusinessId) {
-      showToast("Business ID not found", "error");
-      return;
-    }
 
-    // Show M-Pesa modal and set payment amount
-    document.getElementById(
-      "payment-amount"
-    ).value = `KES ${selectedPlanPrice}`;
-    showStep("step3");
-    document.getElementById("mpesa-modal").classList.remove("hidden");
+  // --- M-Pesa Payment Initiation Placeholder ---
+  async function initiateMpesaPayment() {
+    showToast("M-Pesa payment initiation is not yet implemented.", "info");
+    // TODO: Implement M-Pesa payment initiation by calling your backend endpoint
   }
 
-  // --- Payment Processing (fixed) ---
-  async function processPayment() {
-    // const phoneInput = document.getElementById("phone-input");
-    const phone = document.getElementById("phone-input").value.trim();
+  // --- Paystack Payment Initiation ---
+  async function initiatePaystackPayment() {
+    const email = document.getElementById("paystack-email-input").value.trim();
+    let amountToPay = 0;
+    let planIdForPayment = null;
 
-    const durationMonths = 1;
+    if (appState.paymentAction === "upgrade") {
+      // Ensure selectedPlan and its price exist and are valid numbers
+      if (
+        appState.selectedPlan &&
+        typeof appState.selectedPlan.price === "number" && // Ensure it's a number
+        appState.selectedPlan.price > 0 // Crucial: Only initiate payment if price is greater than 0
+      ) {
+        amountToPay = appState.selectedPlan.price;
+        planIdForPayment = appState.selectedPlan._id;
+      } else if (appState.selectedPlan && appState.selectedPlan.price === 0) {
+        // Handle free trial plan upgrade: bypass payment
+        showToast(
+          "Upgrading to a free plan. Bypassing payment gateway.",
+          "info"
+        );
+        console.log("Upgrading to a free plan (price 0). Bypassing Paystack.");
+        // Directly call the upgrade logic on the backend without Paystack
+        try {
+          const response = await fetch("/subscriptions/upgrade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              businessId: appState.currentBusiness.id,
+              planId: appState.selectedPlan._id,
+              paymentMethod: "N/A", // Or a specific identifier for free plans
+              // No amount or reference needed for free upgrade
+            }),
+          });
+          if (response.ok) {
+            showToast(
+              "Subscription upgraded successfully (free plan)!",
+              "success"
+            );
+            document
+              .getElementById("payment-options-modal")
+              .classList.add("hidden");
+            showStep("payment-step-1");
+            fetchSubscriptionDetails(); // Refresh details
+          } else {
+            const errorData = await response.json();
+            showToast(
+              errorData.message ||
+                "Failed to upgrade subscription (free plan).",
+              "error"
+            );
+          }
+        } catch (error) {
+          console.error("Error during free plan upgrade:", error);
+          showToast("Network error during free plan upgrade.", "error");
+        }
+        document.getElementById("processingPopup").classList.add("hidden");
+        return; // Exit as payment is bypassed
+      } else {
+        showToast(
+          "Selected plan or its price is invalid for upgrade.",
+          "error"
+        );
+        console.error(
+          "Upgrade: Invalid selected plan or price:",
+          appState.selectedPlan
+        );
+        document.getElementById("processingPopup").classList.add("hidden");
+        return;
+      }
+    } else if (appState.paymentAction === "updatePaymentMethod") {
+      // Ensure currentSubscription, its price, and its plan ID exist and price > 0
+      if (
+        appState.currentSubscription &&
+        typeof appState.currentSubscription.price === "number" && // Ensure it's a number
+        appState.currentSubscription.price > 0 && // Crucial: Only initiate payment if price is greater than 0
+        appState.currentSubscription.plan?._id
+      ) {
+        amountToPay = appState.currentSubscription.price;
+        planIdForPayment = appState.currentSubscription.plan._id;
+      } else {
+        showToast(
+          "Current subscription is free or invalid for payment method update. No payment required.",
+          "info"
+        );
+        console.warn(
+          "Update Payment Method: Current subscription is free (price 0) or invalid. Bypassing Paystack."
+        );
+        document.getElementById("processingPopup").classList.add("hidden");
+        document
+          .getElementById("payment-options-modal")
+          .classList.add("hidden");
+        showStep("payment-step-1");
+        // No payment needed, just update UI. Could theoretically call backend to log method change if desired.
+        fetchSubscriptionDetails();
+        return; // Exit as payment is bypassed
+      }
+    }
 
-    if (!phone) {
-      showToast("Please enter your M-Pesa phone number", "error");
+    // --- Added detailed logging ---
+    console.log("Current business state:", appState.currentBusiness); // Debug log
+
+    // Update validation check
+    if (
+      !email ||
+      !amountToPay ||
+      !planIdForPayment ||
+      !(appState.currentBusiness?.id || appState.currentBusiness?._id)
+    ) {
+      showToast(
+        "Missing payment or business information. Please try again.",
+        "error"
+      );
+      console.error("Missing critical info for Paystack init:", {
+        email,
+        amountToPay,
+        planIdForPayment,
+        businessId:
+          appState.currentBusiness?.id || appState.currentBusiness?._id,
+      });
+      document.getElementById("processingPopup").classList.add("hidden");
       return;
     }
 
-    if (!currentBusinessId || !selectedPlan || !selectedPlanPrice) {
-      showToast("Missing plan information", "error");
-      return;
-    }
+    // Use id instead of _id in request body
+    const businessId =
+      appState.currentBusiness.id || appState.currentBusiness._id;
 
-    // Show processing popup
-    document.getElementById("processingPopup").classList.remove("hidden");
+    // Generate a unique reference for Paystack
+    const reference = `sub_${
+      appState.currentBusiness.id
+    }_${planIdForPayment}_${Date.now()}`;
+
+    document.getElementById("processingPopup").classList.remove("hidden"); // Show processing popup
 
     try {
-      const response = await fetch("/payments/mpesa/stkpush", {
+      const response = await fetch("/payments/paystack/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
-          phone,
-          businessId: currentBusinessId,
-          plan: selectedPlan,
-          amount: selectedPlanPrice,
-          durationMonths: durationMonths, // Assuming 1 month duration for simplicity
+          businessId: businessId,
+          planId: planIdForPayment,
+          amount: amountToPay,
+          email: email,
+          reference: reference,
+          action: appState.paymentAction,
+          currency: "KES", // Add currency code
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        showToast("Payment request sent to your phone", "success");
-        pollPaymentStatus(data.transactionId);
+        // Initialize Paystack payment
+        const paystackHandler = PaystackPop.setup({
+          key: "pk_live_bdcc7613b63180912b0084c1b83a35d1226f265c",
+          email: email,
+          amount: amountToPay * 100, // Amount in cents
+          currency: "KES", // Add currency code
+          ref: reference,
+          metadata: {
+            businessId: businessId,
+            planId: planIdForPayment,
+            action: appState.paymentAction,
+          },
+          onSuccess: function (response) {
+            // Changed from callback to onSuccess
+            document.getElementById("processingPopup").classList.add("hidden");
+            if (response.status === "success") {
+              showToast("Payment successful! Verifying...", "success");
+              window.location.href = `/subscriptions?payment_status=success&reference=${response.reference}`;
+            } else {
+              showToast("Payment not completed or failed.", "error");
+            }
+            document
+              .getElementById("payment-options-modal")
+              .classList.add("hidden");
+            showStep("payment-step-1");
+            fetchSubscriptionDetails();
+          },
+          onClose: function () {
+            document.getElementById("processingPopup").classList.add("hidden");
+            showToast("Payment window closed.", "info");
+            document
+              .getElementById("payment-options-modal")
+              .classList.add("hidden");
+            showStep("payment-step-1");
+          },
+        });
+        paystackHandler.openIframe(); // Open Paystack payment popup
       } else {
         document.getElementById("processingPopup").classList.add("hidden");
-        showToast(data.message || "Payment failed", "error");
+        showToast(
+          data.message || "Failed to initiate Paystack payment",
+          "error"
+        );
       }
     } catch (error) {
       document.getElementById("processingPopup").classList.add("hidden");
-      showToast("Network error during payment", "error");
+      console.error("Error during Paystack initiation:", error);
+      showToast("Network error during payment initiation.", "error");
     }
   }
 
-  document.getElementById("payNow").addEventListener("click", (e) => {
-    e.preventDefault();
-    processPayment();
-  });
+  // --- Check for URL parameters after payment redirection ---
+  function checkPaymentStatusFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get("payment_status");
+    const reference = urlParams.get("reference");
 
-  async function pollPaymentStatus(transactionId) {
-    const checkStatus = async () => {
-      const res = await fetch(`/payments/status/${transactionId}`);
-      const { status } = await res.json();
-
-      if (status === "completed") {
-        showToast("Payment successful!", "success");
-        fetchSubscriptionDetails(); // Refresh data
-      } else if (status === "failed") {
-        showToast("Payment failed", "error");
-      } else {
-        setTimeout(checkStatus, 3000); // Keep polling
-      }
-    };
-    checkStatus();
+    if (paymentStatus === "success" && reference) {
+      history.replaceState({}, document.title, window.location.pathname); // Clear URL params
+      showToast("Payment successful! Updating subscription...", "success");
+      // The backend webhook is the primary source of truth,
+      // but this frontend check can provide immediate feedback.
+      // fetch(`/payments/paystack/status/${reference}`) // Removed as webhook handles this
+    } else if (paymentStatus === "failed") {
+      history.replaceState({}, document.title, window.location.pathname); // Clear URL params
+      showToast("Payment failed. Please try again.", "error");
+    }
   }
 
-  // --- Cancel Subscription (fixed with modal integration) ---
+  // --- Cancel Subscription ---
   async function cancelSubscription() {
-    if (!currentBusinessId) {
+    if (!appState.currentBusiness?._id) {
       showToast("Business ID not found", "error");
       return;
     }
@@ -468,12 +721,13 @@ overlay.addEventListener("click", () => {
       const response = await fetch("/subscriptions/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessId: currentBusinessId }),
+        credentials: "include",
+        body: JSON.stringify({ businessId: appState.currentBusiness.id }),
       });
 
       if (response.ok) {
         showToast("Subscription cancelled successfully", "success");
-        fetchSubscriptionDetails();
+        await fetchSubscriptionDetails(); // Refresh details
       } else {
         const error = await response.json();
         showToast(error.message || "Cancellation failed", "error");
@@ -485,22 +739,156 @@ overlay.addEventListener("click", () => {
 
   // --- Modal Step Management ---
   function showStep(stepId) {
-    // Hide all steps
-    document.querySelectorAll("[data-step]").forEach((step) => {
-      step.classList.add("hidden");
-    });
-
-    // Show requested step
-    document.getElementById(stepId).classList.remove("hidden");
+    document
+      .querySelectorAll("#payment-options-modal [data-step]")
+      .forEach((step) => {
+        step.classList.add("hidden");
+      });
+    document.getElementById(stepId)?.classList.remove("hidden");
   }
 
-  // --- UPDATED: Plan upgrade button handler ---
-  document.getElementById("upgradeplanbtn").addEventListener("click", () => {
-    showStep("step2");
-    fetchAvailablePlans(); // Fetch plans from backend
+  // --- Event Listeners ---
+
+  // Main "Upgrade Plan" button
+  document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
+    console.log("Upgrade button clicked");
+    console.log("Current state:", {
+      selectedPlan: appState.selectedPlan,
+      currentSubscription: appState.currentSubscription,
+      currentBusiness: appState.currentBusiness,
+    });
+    appState.paymentAction = "upgrade";
+    document.getElementById("payment-options-modal").classList.remove("hidden");
+    showStep("payment-step-1");
   });
 
-  // --- FIXED: Cancel subscription modal handlers ---
+  // "Upgrade Plan" button inside the modal (from step 1 to step 2)
+  document
+    .getElementById("modal-upgrade-plan-btn")
+    .addEventListener("click", () => {
+      showStep("payment-step-2");
+      fetchAvailablePlans(); // Load plans when modal opens
+    });
+
+  // "Update Payment" button from main page
+  document
+    .getElementById("update-payment-button")
+    .addEventListener("click", async () => {
+      appState.paymentAction = "updatePaymentMethod";
+      // Ensure business and subscription details are fresh
+      await fetchSubscriptionDetails();
+
+      if (!appState.currentBusiness || !appState.currentSubscription) {
+        showToast(
+          "Current subscription details not available. Please ensure you have an active subscription.",
+          "error"
+        );
+        console.error("Error: Missing details for update payment method:", {
+          business: appState.currentBusiness,
+          subscription: appState.currentSubscription,
+        });
+        return;
+      }
+      // Populate with current plan details
+      document.getElementById("paystack-email-input").value =
+        appState.currentBusiness.email || "";
+      // Only set amount if price is greater than 0
+      const currentPrice = appState.currentSubscription.price;
+      if (typeof currentPrice === "number" && currentPrice > 0) {
+        document.getElementById(
+          "paystack-amount"
+        ).value = `KES ${currentPrice.toLocaleString()}`;
+        document.getElementById(
+          "mpesa-amount"
+        ).value = `KES ${currentPrice.toLocaleString()}`;
+      } else {
+        document.getElementById("paystack-amount").value = `KES 0 (Trial/Free)`;
+        document.getElementById("mpesa-amount").value = `KES 0 (Trial/Free)`;
+        showToast(
+          "Current subscription is free. No payment required to update method.",
+          "info"
+        );
+      }
+
+      document
+        .getElementById("payment-options-modal")
+        .classList.remove("hidden");
+      showStep("payment-step-3"); // Go to choose payment method
+    });
+
+  // "Update Payment Method" button inside the modal (from step 1 to step 3)
+  document
+    .getElementById("modal-update-payment-method-btn")
+    .addEventListener("click", async () => {
+      appState.paymentAction = "updatePaymentMethod";
+      await fetchSubscriptionDetails();
+
+      if (!appState.currentBusiness || !appState.currentSubscription) {
+        showToast(
+          "Current subscription details not available for update. Please ensure you have an active subscription.",
+          "error"
+        );
+        console.error(
+          "Error: Missing details for update payment method from modal:",
+          {
+            business: appState.currentBusiness,
+            subscription: appState.currentSubscription,
+          }
+        );
+        return;
+      }
+      document.getElementById("paystack-email-input").value =
+        appState.currentBusiness.email || "";
+      // Only set amount if price is greater than 0
+      const currentPrice = appState.currentSubscription.price;
+      if (typeof currentPrice === "number" && currentPrice > 0) {
+        document.getElementById(
+          "paystack-amount"
+        ).value = `KES ${currentPrice.toLocaleString()}`;
+        document.getElementById(
+          "mpesa-amount"
+        ).value = `KES ${currentPrice.toLocaleString()}`;
+      } else {
+        document.getElementById("paystack-amount").value = `KES 0 (Trial/Free)`;
+        document.getElementById("mpesa-amount").value = `KES 0 (Trial/Free)`;
+        showToast(
+          "Current subscription is free. No payment required to update method.",
+          "info"
+        );
+      }
+
+      document
+        .getElementById("payment-options-modal")
+        .classList.remove("hidden");
+      showStep("payment-step-3");
+    });
+
+  // Listener for "Back" buttons in modal steps
+  document
+    .querySelectorAll('[data-step-action="prev-step"]')
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const currentStep = button.closest("[data-step]");
+        if (currentStep) {
+          if (currentStep.id === "payment-step-2") {
+            showStep("payment-step-1");
+          } else if (currentStep.id === "payment-step-3") {
+            if (appState.paymentAction === "upgrade") {
+              showStep("payment-step-2");
+            } else if (appState.paymentAction === "updatePaymentMethod") {
+              showStep("payment-step-1");
+            }
+          } else if (
+            currentStep.id === "payment-step-4-mpesa" ||
+            currentStep.id === "payment-step-4-paystack"
+          ) {
+            showStep("payment-step-3");
+          }
+        }
+      });
+    });
+
+  // Cancel subscription modal handlers
   document
     .getElementById("cancel-subscription-button")
     .addEventListener("click", () => {
@@ -522,27 +910,52 @@ overlay.addEventListener("click", () => {
     cancelSubscription();
   });
 
-  // --- Event Listeners ---
-
-  // Plan selection buttons
-  document.querySelectorAll("[data-plan]").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const plan = e.target.dataset.plan;
-      document.getElementById(
-        "confirm-plan-name"
-      ).textContent = `${plan} subscription`;
-      document.getElementById("confirmation-modal").classList.remove("hidden");
-      document.getElementById("confirm-plan-change").dataset.plan = plan;
-    });
-  });
-
-  // Confirm plan change
+  // Confirm plan change (modified to go to choose payment method)
   document
     .getElementById("confirm-plan-change")
-    .addEventListener("click", (e) => {
-      const plan = e.target.dataset.plan;
-      document.getElementById("confirmation-modal").classList.add("hidden");
-      upgradePlan(plan);
+    .addEventListener("click", async (e) => {
+      if (!appState.selectedPlan) {
+        showToast("Please select a plan first.", "error");
+        return;
+      }
+
+      console.log("Selected plan:", appState.selectedPlan);
+
+      // Add loading state
+      const button = e.target;
+      button.disabled = true;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      try {
+        // Hide confirmation modal and show payment options
+        document.getElementById("confirmation-modal").classList.add("hidden");
+        document
+          .getElementById("payment-options-modal")
+          .classList.remove("hidden");
+        showStep("payment-step-3"); // Go directly to payment method selection
+
+        // Pre-fill email if available
+        if (appState.currentBusiness?.email) {
+          document.getElementById("paystack-email-input").value =
+            appState.currentBusiness.email;
+        }
+
+        // Set amount in payment forms
+        if (appState.selectedPlan.price) {
+          document.getElementById(
+            "paystack-amount"
+          ).value = `KES ${appState.selectedPlan.price.toLocaleString()}`;
+          document.getElementById(
+            "mpesa-amount"
+          ).value = `KES ${appState.selectedPlan.price.toLocaleString()}`;
+        }
+      } catch (error) {
+        console.error("Upgrade failed:", error);
+        showToast("Failed to upgrade plan. Please try again.", "error");
+      } finally {
+        button.disabled = false;
+        button.innerHTML = "Confirm";
+      }
     });
 
   // Cancel plan change
@@ -553,81 +966,100 @@ overlay.addEventListener("click", () => {
     });
 
   // Close modals
-  // Close payment-modal when clicking outside modal content
-  document.getElementById("payment-modal").addEventListener("click", (e) => {
-    if (e.target.id === "payment-modal") {
-      document.getElementById("payment-modal").classList.add("hidden");
-      showStep("step1"); // reset to initial step
-    }
-  });
-
-  // Upgrade Plan button
-  document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
-    const mpesaModal = document.getElementById("mpesa-modal");
-    mpesaModal.classList.remove("hidden");
-    mpesaModal.classList.add("flex"); // ensure centering
-  });
-  document.getElementById("mpesa-modal").addEventListener("click", (e) => {
-    if (e.target.id === "mpesa-modal") {
-      e.currentTarget.classList.add("hidden");
-      showStep("step1"); // if you’re using step system
-    }
-  });
-
-  // Update Payment button - MODIFIED
   document
-    .getElementById("update-payment-button")
-    .addEventListener("click", () => {
-      // Set payment amount to current plan price
-      if (currentPlanPrice !== null) {
-        document.getElementById(
-          "payment-amount"
-        ).value = `KES ${currentPlanPrice.toLocaleString()}`;
-      } else {
-        document.getElementById("payment-amount").value = "KES 0";
-      }
-      document.getElementById("payment-modal").classList.remove("hidden");
-    });
-
-  // Show the modal on button click
-  document
-    .getElementById("cancel-subscription-button")
-    .addEventListener("click", () => {
-      const modal = document.getElementById("cancel-confirmation-modal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
-    });
-
-  // Close the modal when clicking outside (on the overlay)
-  document
-    .getElementById("cancel-confirmation-modal")
-    .addEventListener("click", () => {
-      const modal = document.getElementById("cancel-confirmation-modal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
-    });
-
-  // M-Pesa payment button
-  document.getElementById("send-stk").addEventListener("click", processPayment);
-
-  // Modal step navigation
-  document.querySelectorAll("[data-step-action]").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const action = e.target.dataset.stepAction;
-      if (action === "show-plans") {
-        showStep("step2");
-      } else if (action === "show-payment") {
-        showStep("step3");
-      } else if (action === "prev-step") {
-        const currentStep = document.querySelector(
-          "[data-step]:not(.hidden)"
-        ).id;
-        if (currentStep === "step3") showStep("step2");
-        if (currentStep === "step2") showStep("step1");
+    .getElementById("payment-options-modal")
+    .addEventListener("click", (e) => {
+      if (e.target.id === "payment-options-modal") {
+        e.currentTarget.classList.add("hidden");
+        showStep("payment-step-1"); // reset to initial step
       }
     });
+
+  // Payment method selection buttons
+  document.getElementById("selectMpesa").addEventListener("click", () => {
+    showStep("payment-step-4-mpesa");
+    document.getElementById("mpesa-phone-input").value = ""; // Clear for new input
+    // Amount based on action
+    const amount =
+      appState.paymentAction === "upgrade"
+        ? appState.selectedPlan?.price
+        : appState.currentSubscription?.price;
+    document.getElementById("mpesa-amount").value = `KES ${
+      amount ? amount.toLocaleString() : "N/A"
+    }`;
   });
 
-  // Initial data load
-  fetchSubscriptionDetails();
+  document.getElementById("selectPaystack").addEventListener("click", () => {
+    showStep("payment-step-4-paystack");
+    document.getElementById("paystack-email-input").value =
+      appState.currentBusiness?.email || "";
+    // Amount based on action
+    const amount =
+      appState.paymentAction === "upgrade"
+        ? appState.selectedPlan?.price
+        : appState.currentSubscription?.price;
+    document.getElementById("paystack-amount").value = `KES ${
+      amount ? amount.toLocaleString() : "N/A"
+    }`;
+  });
+
+  // Pay with M-Pesa button (placeholder)
+  document
+    .getElementById("payWithMpesa")
+    .addEventListener("click", initiateMpesaPayment);
+
+  // Pay with Paystack button
+  document
+    .getElementById("payWithPaystack")
+    .addEventListener("click", initiatePaystackPayment);
+
+  // Mobile sidebar toggle: This was missing!
+  document.getElementById("toggle-sidebar").addEventListener("click", () => {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    sidebar.classList.toggle("translate-x-0");
+    sidebar.classList.toggle("-translate-x-full"); // Assuming it starts hidden
+    overlay.classList.toggle("hidden");
+    document.body.classList.toggle("sidebar-open"); // To prevent body scroll
+  });
+
+  // Overlay click to close sidebar
+  document.getElementById("overlay").addEventListener("click", () => {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    sidebar.classList.add("-translate-x-full");
+    sidebar.classList.remove("translate-x-0");
+    overlay.classList.add("hidden");
+    document.body.classList.remove("sidebar-open");
+  });
+
+  // Initialize scroll reveal animations: This was also missing!
+  const scrollReveals = document.querySelectorAll(".scroll-reveal");
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("revealed");
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  scrollReveals.forEach((element) => {
+    observer.observe(element);
+  });
+
+  // Initial data load: Fetch business details FIRST, then subscription details
+  async function initialLoad() {
+    await fetchBusinessDetails();
+    await fetchSubscriptionDetails();
+    monitorSubscriptionStatus(); // This will re-check and set notifications
+  }
+
+  initialLoad();
+  checkPaymentStatusFromURL(); // Check for payment status on page load
+
+  // Check subscription status every hour
+  setInterval(monitorSubscriptionStatus, 60 * 60 * 1000);
 });

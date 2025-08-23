@@ -63,6 +63,7 @@ const subscriptionsRoutes = require("./routes/subscriptions.routes");
 
 const businessPaymentRoutes = require("./routes/businesPayment.routes");
 const supportRoutes = require("./routes/support.routes");
+//const superAdminRoutes = require("./routes/superAdmin.routes");
 
 app.use("/", paymentsRoutes);
 app.use("/", settingsRoutes);
@@ -78,15 +79,17 @@ app.use(subscriptionMiddleware); // protected
 app.use("/", subscriptionsRoutes); // protected
 
 app.use("/api/payment-methods", businessPaymentRoutes);
-app.use("/", supportRoutes);
+//app.use("/", supportRoutes);
+//app.use("/api/superadmin", superAdminRoutes);
 
 // Apply subscription middleware
 
 async function seedPlans() {
   const plans = [
-    { name: "basic", price: 1, description: "Basic Plan" },
-    { name: "Standard", price: 5500, description: "Standard Plan" },
-    { name: "premium", price: 9500, description: "Premium Plan" },
+    { name: "basic", price: 2, description: "Basic Plan" },
+    { name: "Standard", price: 3500, description: "Standard Plan" },
+    { name: "premium", price: 15000, description: "Premium Plan" },
+    { name: "trial", price: 0, description: "One month free Trial" },
   ];
   for (const plan of plans) {
     await Plan.updateOne({ name: plan.name }, { $set: plan }, { upsert: true });

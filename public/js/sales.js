@@ -172,24 +172,49 @@ function updateMobileCart(items) {
 // Global variable to store fetched products
 let allProducts = [];
 let cartItems = [];
+let isSubscriptionActive = false; // New global flag
 
 // Function to fetch products from backend and render them
 async function loadProductsForSale() {
+  if (!isSubscriptionActive) {
+    // If subscription is inactive, just visually update features without fetching
+    // This path should ideally be hit once initially if subscription is found inactive.
+    toggleSalesFeatures(false); // Make sure UI is disabled
+    renderProducts([]); // Render an empty grid or specific message
+    return;
+  }
+
   try {
     const response = await fetch("/getInventory", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // Important for sending cookies with token
     });
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        // Subscription inactive or expired
+        isSubscriptionActive = false; // Update flag
+        showSubscriptionInactiveModal();
+        toggleSalesFeatures(false); // Make sure UI is disabled
+        renderProducts([]); // Clear products, disable UI
+        return;
+      }
+      throw new Error(`Failed to load products: ${response.statusText}`);
+    }
+
     const data = await response.json();
     allProducts = data.products || []; // Store fetched products globally
-
     renderProducts(); // Render products after fetching
+    toggleSalesFeatures(true); // Ensure features are enabled after successful load
   } catch (error) {
     const productsGrid = document.getElementById("products-grid");
     if (productsGrid) {
-      productsGrid.innerHTML = `<div class="text-center p-8 text-red-500">Failed to load products.</div>`;
+      productsGrid.innerHTML = `<div class="text-center p-8 text-red-500">Failed to load products. ${error.message}</div>`;
     }
     console.error("Error loading products:", error);
+    showToast("Failed to load products. Please check your network.", "error");
+    toggleSalesFeatures(false); // Disable features if products cannot be loaded
   }
 }
 
@@ -201,15 +226,24 @@ function renderProducts() {
 
   if (allProducts.length === 0) {
     productsGrid.innerHTML = `<div class="text-center p-8 text-gray-500">No products found.</div>`;
-    return;
   }
 
   allProducts.forEach((product) => {
     const productCard = document.createElement("div");
     productCard.className =
       "glass-dark rounded-xl p-4 cursor-pointer hover-lift flex flex-col items-center text-center";
+
+    // Conditionally disable the 'Add' button based on subscription status
+    const addButtonHtml = isSubscriptionActive
+      ? `<button class="mt-3 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-300 w-full" 
+                onclick="addToCart('${product._id}')">
+          <i class="fas fa-plus mr-1"></i> Add
+        </button>`
+      : `<button class="mt-3 px-4 py-2 bg-gray-600 text-gray-400 rounded-lg text-sm font-medium w-full cursor-not-allowed" disabled>
+          <i class="fas fa-lock mr-1"></i> Add (Inactive Sub.)
+        </button>`;
+
     productCard.innerHTML = `
-        
         <h3 class="font-semibold text-white text-md mb-1">${
           product.productName
         }</h3>
@@ -222,17 +256,19 @@ function renderProducts() {
         <p class="text-xs text-gray-400 mb-2">Stock: ${
           product.productQuantity
         }</p>
-        <button class="mt-3 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg text-sm font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-300 w-full" 
-                onclick="addToCart('${product._id}')">
-          <i class="fas fa-plus mr-1"></i> Add
-        </button>
+        ${addButtonHtml}
       `;
     productsGrid.appendChild(productCard);
   });
+  // Removed the recursive call: toggleSalesFeatures(isSubscriptionActive);
 }
 
 // Function to add item to cart
 function addToCart(productId) {
+  if (!isSubscriptionActive) {
+    showSubscriptionInactiveModal();
+    return;
+  }
   const product = allProducts.find((p) => p._id === productId);
   if (product) {
     const existingItem = cartItems.find((item) => item._id === productId);
@@ -253,6 +289,10 @@ function addToCart(productId) {
 
 // Function to remove item from cart
 function removeFromCart(productId) {
+  if (!isSubscriptionActive) {
+    showSubscriptionInactiveModal(); // Should not happen if UI is disabled
+    return;
+  }
   cartItems = cartItems.filter((item) => item._id !== productId);
   renderCart();
   showToast("Item removed from cart.", "info");
@@ -260,6 +300,10 @@ function removeFromCart(productId) {
 
 // Function to update item quantity in cart
 function updateQuantity(productId, change) {
+  if (!isSubscriptionActive) {
+    showSubscriptionInactiveModal(); // Should not happen if UI is disabled
+    return;
+  }
   const item = cartItems.find((item) => item._id === productId);
   const product = allProducts.find((p) => p._id === productId);
   if (item && product) {
@@ -346,7 +390,9 @@ function renderCart() {
               <div class="flex items-center glass-dark rounded-md">
                 <button onclick="updateQuantity('${
                   item._id
-                }', -1)" class="px-2 py-1 text-gray-300 hover:bg-white/10 rounded-l-md">
+                }', -1)" class="px-2 py-1 text-gray-300 hover:bg-white/10 rounded-l-md" ${
+        !isSubscriptionActive ? "disabled" : ""
+      }>
                   <i class="fas fa-minus text-xs"></i>
                 </button>
                 <span class="text-white text-sm font-medium">${
@@ -354,13 +400,17 @@ function renderCart() {
                 }</span>
                 <button onclick="updateQuantity('${
                   item._id
-                }', 1)" class="px-2 py-1 text-gray-300 hover:bg-white/10 rounded-r-md">
+                }', 1)" class="px-2 py-1 text-gray-300 hover:bg-white/10 rounded-r-md" ${
+        !isSubscriptionActive ? "disabled" : ""
+      }>
                   <i class="fas fa-plus text-xs"></i>
                 </button>
               </div>
               <button onclick="removeFromCart('${
                 item._id
-              }')" class="text-red-400 hover:text-red-300 p-1">
+              }')" class="text-red-400 hover:text-red-300 p-1" ${
+        !isSubscriptionActive ? "disabled" : ""
+      }>
                 <i class="fas fa-trash-alt text-sm"></i>
               </button>
             </div>
@@ -388,8 +438,11 @@ function renderCart() {
 
   updateMobileCart(cartItems);
 
-  checkoutBtn.disabled = cartItems.length === 0;
-  clearCartBtn.disabled = cartItems.length === 0;
+  // Disable checkout and clear buttons if subscription is not active OR cart is empty
+  checkoutBtn.disabled = !isSubscriptionActive || cartItems.length === 0;
+  clearCartBtn.disabled = !isSubscriptionActive || cartItems.length === 0;
+  mobileCheckoutBtn.disabled = !isSubscriptionActive || cartItems.length === 0;
+  mobileClearCartBtn.disabled = !isSubscriptionActive || cartItems.length === 0;
 }
 
 // Checkout Modal Logic
@@ -416,6 +469,10 @@ document
   });
 
 function openCheckoutModal() {
+  if (!isSubscriptionActive) {
+    showSubscriptionInactiveModal();
+    return;
+  }
   console.log("Current cart items:", cartItems);
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -523,6 +580,10 @@ function renderCheckoutSummary() {
 
 // Function to process sale via API
 async function processSale(cartItems, total, customerName, paymentMethod) {
+  if (!isSubscriptionActive) {
+    showSubscriptionInactiveModal(); // Should not be reached if UI is disabled
+    return;
+  }
   const items = cartItems.map((item) => ({
     productId: item._id,
     quantity: item.quantity,
@@ -534,6 +595,7 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items, total, customerName, paymentMethod }),
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -924,10 +986,104 @@ document
     showToast("Cart cleared!", "info");
   });
 
+// Function to control sales UI elements based on subscription status
+function toggleSalesFeatures(enable) {
+  const productsSection = document.getElementById("products-section");
+  const checkoutBtn = document.getElementById("checkout-btn");
+  const clearCartBtn = document.getElementById("clear-cart-btn");
+  const mobileCheckoutBtn = document.getElementById("mobile-checkout-btn");
+  const mobileClearCartBtn = document.getElementById("mobile-clear-cart-btn");
+  const mobileCartButton = document.getElementById("mobile-cart-button");
+
+  if (enable) {
+    // Enable features
+    productsSection.classList.remove("opacity-50", "pointer-events-none");
+    checkoutBtn.disabled = cartItems.length === 0; // Re-evaluate based on cart content
+    clearCartBtn.disabled = cartItems.length === 0;
+    mobileCheckoutBtn.disabled = cartItems.length === 0;
+    mobileClearCartBtn.disabled = cartItems.length === 0;
+    mobileCartButton.classList.remove("opacity-50", "pointer-events-none");
+
+    // Re-render products to enable "Add" buttons - REMOVED RECURSIVE CALL
+    // renderProducts();
+  } else {
+    // Disable features and add overlay effect
+    productsSection.classList.add("opacity-50", "pointer-events-none");
+    checkoutBtn.disabled = true;
+    clearCartBtn.disabled = true;
+    mobileCheckoutBtn.disabled = true;
+    mobileClearCartBtn.disabled = true;
+    mobileCartButton.classList.add("opacity-50", "pointer-events-none");
+
+    // Explicitly disable product "Add" buttons
+    const addButtons = document.querySelectorAll("#products-grid button");
+    addButtons.forEach((button) => {
+      button.disabled = true;
+      button.textContent = "Add (Inactive Sub.)";
+      button.classList.remove(
+        "bg-gradient-to-r",
+        "from-primary-500",
+        "to-primary-600",
+        "hover:from-primary-600",
+        "hover:to-primary-700"
+      );
+      button.classList.add(
+        "bg-gray-600",
+        "text-gray-400",
+        "cursor-not-allowed"
+      );
+    });
+
+    cartItems = []; // Clear cart if subscription becomes inactive
+    renderCart(); // Re-render cart to update button states
+  }
+}
+
+// Function to show the subscription inactive modal
+function showSubscriptionInactiveModal() {
+  document
+    .getElementById("subscription-inactive-modal")
+    .classList.remove("hidden");
+}
+
 // Initial render on page load
-document.addEventListener("DOMContentLoaded", () => {
-  loadProductsForSale(); // Load products from API on page load
-  renderCart();
+document.addEventListener("DOMContentLoaded", async () => {
+  // First, check subscription status
+  try {
+    const response = await fetch("/subscriptions/details", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      isSubscriptionActive = data.subscription.status === "active";
+    } else if (response.status === 403 || response.status === 404) {
+      // No active subscription found, or unauthorized
+      isSubscriptionActive = false;
+      showSubscriptionInactiveModal();
+    } else {
+      console.error(
+        "Error checking subscription status:",
+        response.status,
+        response.statusText
+      );
+      showToast("Could not verify subscription status.", "error");
+      isSubscriptionActive = false; // Assume inactive on error
+    }
+  } catch (error) {
+    console.error("Network error checking subscription status:", error);
+    showToast(
+      "Network error checking subscription. Please try again.",
+      "error"
+    );
+    isSubscriptionActive = false; // Assume inactive on network error
+  }
+
+  // Load products and render UI based on subscription status
+  loadProductsForSale();
+  // renderCart(); // This call is now redundant here as renderProducts will call renderCart implicitly
 
   const cartButton = document.getElementById("mobile-cart-button");
   if (cartButton) {

@@ -2,6 +2,7 @@ const BusinessDetails = require("../models/businessDetails");
 const bcrypt = require("bcrypt");
 const Users = require("../models/user");
 const Subscription = require("../models/subscription.model");
+const Plan = require("../models/plan.model");
 const jwt = require("jsonwebtoken");
 
 exports.registerBusiness = async (req, res) => {
@@ -79,17 +80,23 @@ exports.registerBusiness = async (req, res) => {
     // Add admin to business users
     newBusiness.users.push(adminUser._id);
     await newBusiness.save();
+    const trialPlan = await Plan.findOne({ name: "trial" });
+    if (!trialPlan) {
+      console.error("Trial plan not found in the database");
+    }
 
     // Create trial subscription
     const trialEnd = new Date();
     trialEnd.setMonth(trialEnd.getMonth() + 1);
     await Subscription.create({
       business: newBusiness._id,
-      plan: "trial",
+      plan: trialPlan._id,
+      price: 0,
       startDate: new Date(),
       endDate: trialEnd,
       status: "active",
       autoRenew: false,
+      paymentMethod: "paystack",
     });
 
     // Generate JWT token

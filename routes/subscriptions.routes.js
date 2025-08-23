@@ -3,9 +3,9 @@ const router = express.Router();
 const subscriptionsController = require("../controllers/subscriptions.controller");
 const subscriptionMiddleware = require("../middleware/subscription.middleware");
 const Plan = require("../models/plan.model");
-const Subscription = require("../models/subscription.model"); // <-- Import Subscription model
+const Subscription = require("../models/subscription.model");
 
-// Upgrade subscription
+// Route to upgrade/create a subscription (triggered internally after payment verification)
 router.post(
   "/subscriptions/upgrade",
   subscriptionMiddleware,
@@ -22,7 +22,7 @@ router.post(
 // Get subscription details
 router.get(
   "/subscriptions/details",
-  subscriptionMiddleware, // <-- this must be here
+  subscriptionMiddleware,
   subscriptionsController.getSubscriptionDetails
 );
 
@@ -53,6 +53,31 @@ router.get(
   "/subscriptions/history",
   subscriptionMiddleware,
   subscriptionsController.getSubscriptionHistory
+);
+
+// Initiate Paystack Payment (frontend calls this)
+router.post(
+  "/payments/paystack/initiate",
+  subscriptionsController.initiatePaystackPayment
+);
+
+// Paystack Webhook endpoint (Paystack calls this for verification)
+router.post(
+  "/payments/paystack/webhook",
+  subscriptionsController.verifyPaystackPayment
+);
+
+// Route for frontend to check payment status (optional, webhook is more reliable)
+router.get(
+  "/payments/paystack/status/:reference",
+  subscriptionsController.checkPaystackStatus
+);
+
+// Route to update payment method (triggered internally after payment verification)
+router.post(
+  "/subscriptions/update-payment-method",
+  subscriptionMiddleware,
+  subscriptionsController.updatePaymentMethod
 );
 
 module.exports = router;

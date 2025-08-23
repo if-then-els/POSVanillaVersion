@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Subscription Hub - Modern POS System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -13,6 +14,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <!-- Paystack Standard Pop Integration -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <script>
       tailwind.config = {
         darkMode: "class",
@@ -110,10 +113,6 @@
       };
     </script>
     <style>
-
-
-
-
       body {
         font-family: "Inter", sans-serif;
       }
@@ -257,19 +256,19 @@
         opacity: 1;
         transform: translateY(0);
       }
-@media (max-width: 767px) {
-  body.sidebar-open {
-    overflow: hidden;
-  }
-  
-  #sidebar {
-    transform: translateX(-100%);
-  }
-  
-  #sidebar.translate-x-0 {
-    transform: translateX(0);
-  }
-}
+      @media (max-width: 767px) {
+        body.sidebar-open {
+          overflow: hidden;
+        }
+
+        #sidebar {
+          transform: translateX(-100%);
+        }
+
+        #sidebar.translate-x-0 {
+          transform: translateX(0);
+        }
+      }
     </style>
   </head>
 
@@ -309,7 +308,7 @@
         <h1
           class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
         >
-          POS 
+          POS
         </h1>
       </div>
       <button
@@ -324,11 +323,11 @@
       class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10"
     >
       <!-- Sidebar -->
-     <div
-  id="sidebar"
-  class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:!translate-x-0 transition-all duration-500 ease-out"
-></div>
-        <!-- <div class="p-6">
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:!translate-x-0 transition-all duration-500 ease-out"
+      ></div>
+      <!-- <div class="p-6">
           <div class="flex items-center space-x-3 mb-8">
             <div
               class="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-xl flex items-center justify-center animate-pulse-slow"
@@ -419,7 +418,7 @@
               <h1
                 class="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-success-400 bg-clip-text text-transparent animate-slide-in"
               >
-                Subscription 
+                Subscription
               </h1>
               <p class="text-xl text-gray-400 mb-6 typing-animation max-w-2xl">
                 Manage your POS subscription with style and intelligence
@@ -443,49 +442,87 @@
             </div>
           </div>
 
-          <!-- Current Plan Section -->
-          <div
-            class="glass rounded-3xl p-8 mb-12 hover-lift scroll-reveal neon-border relative overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-full morphing-blob"
-            ></div>
+          <!-- Current Plan Details (New Section) -->
+          <div class="current-plan-details glass-dark rounded-xl p-6 mb-8">
+            <h2 class="text-xl font-bold text-white mb-4">
+              Current Subscription
+            </h2>
 
-            <div class="flex justify-between items-start mb-8 relative z-10">
+            <div class="grid grid-cols-2 gap-4">
               <div>
-                <h2
-                  class="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                <p class="text-gray-400">Plan</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="current-plan-name"
                 >
-                  Your Current Plan
-                </h2>
-                <p class="text-gray-400">Active subscription</p>
+                  Loading...
+                </p>
               </div>
-              <div class="flex items-center space-x-2">
-                <div class="relative">
-                  <div
-                    class="w-16 h-16 rounded-full bg-gradient-to-r from-success-400 to-success-600 flex items-center justify-center animate-glow"
-                  >
-                    <i class="fas fa-check text-white text-xl"></i>
-                  </div>
-                  <div
-                    class="absolute -top-1 -right-1 w-6 h-6 bg-accent-500 rounded-full flex items-center justify-center"
-                  >
-                    <i class="fas fa-crown text-white text-xs"></i>
-                  </div>
-                </div>
-                <div>
-                  <span
-                    class="bg-gradient-to-r from-success-400 to-success-600 text-white text-sm font-bold px-3 py-1 rounded-full"
-                  >
-                    ACTIVE
-                  </span>
-                </div>
+
+              <div>
+                <p class="text-gray-400">Price</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="current-plan-price"
+                >
+                  Loading...
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">Status</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="subscription-status"
+                >
+                  Loading...
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">Expires On</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="subscription-expiry"
+                >
+                  Loading...
+                </p>
+              </div>
+
+              <div>
+                <p class="text-gray-400">Payment Method</p>
+                <p
+                  class="text-white text-lg font-semibold"
+                  id="current-payment-method"
+                >
+                  Loading...
+                </p>
               </div>
             </div>
 
+            <div class="mt-6 flex gap-4">
+              <button
+                id="upgrade-plan-btn"
+                class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
+              >
+                <i class="fas fa-arrow-up mr-2"></i>Upgrade Plan
+              </button>
+              <button
+                id="update-payment-button"
+                class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-credit-card mr-2"></i>Update Payment
+              </button>
+            </div>
+          </div>
+
+          <!-- Current Plan Section (Old one - can be removed or repurposed) -->
+          <div
+            class="glass rounded-3xl p-8 mb-12 hover-lift scroll-reveal neon-border relative overflow-hidden"
+          >
             <div class="grid md:grid-cols-3 gap-8 relative z-10">
               <div class="space-y-4">
-                <div class="glass-dark rounded-2xl p-6">
+                <!-- <div class="glass-dark rounded-2xl p-6">
                   <h3
                     class="text-2xl font-bold text-primary-400 mb-2"
                     id="plan-name"
@@ -506,11 +543,11 @@
                     </div>
                     <span class="text-sm text-gray-400">75% utilized</span>
                   </div>
-                </div>
+                </div> -->
               </div>
 
               <div class="space-y-4">
-                <div class="glass-dark rounded-2xl p-6">
+                <!-- <div class="glass-dark rounded-2xl p-6">
                   <h4 class="text-lg font-semibold text-gray-300 mb-4">
                     Subscription Details
                   </h4>
@@ -558,7 +595,7 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
               </div>
 
               <!-- Usage Stats
@@ -611,24 +648,24 @@
             </div>
 
             <div class="flex flex-wrap gap-4 mt-8 relative z-10">
-              <button
+              <!-- <button
                 class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary-500/25"
-               id="upgrade-plan-btn"
-                >
+                id="upgrade-plan-btn"
+              >
                 <i class="fas fa-arrow-up mr-2"></i>
                 Upgrade Plan
               </button>
-             <button
-  id="update-payment-button"
-  class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
->
-  <i class="fas fa-credit-card mr-2"></i>
-  Update Payment
-</button>
+              <button
+                id="update-payment-button"
+                class="px-6 py-3 glass-dark rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105"
+              >
+                <i class="fas fa-credit-card mr-2"></i>
+                Update Payment
+              </button> -->
               <button
                 class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 rounded-xl font-semibold hover:from-red-600 hover:to-red-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25"
                 id="cancel-subscription-button"
-                >
+              >
                 <i class="fas fa-times mr-2"></i>
                 Cancel Subscription
               </button>
@@ -662,12 +699,16 @@
                 >
                   <i class="fas fa-calendar text-white"></i>
                 </div>
-                <spa id="months-active" class="text-2xl font-bold text-white">8</span>
+                <span id="months-active" class="text-2xl font-bold text-white"
+                  >8</span
+                >
               </div>
               <p class="text-gray-400 text-sm">Months Active</p>
               <div class="mt-2 flex items-center space-x-2">
                 <i class="fas fa-clock text-yellow-400 text-xs"></i>
-                <span id="date-created" class="text-yellow-400 text-sm">Since Jan 2024</span>
+                <span id="date-created" class="text-yellow-400 text-sm"
+                  >Since Jan 2024</span
+                >
               </div>
             </div>
 
@@ -873,7 +914,7 @@
                   <i class="fas fa-chevron-left mr-2"></i>Previous
                 </button>
                 <button
-                  class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+                  class="px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
                 >
                   Next<i class="fas fa-chevron-right ml-2"></i>
                 </button>
@@ -881,249 +922,374 @@
             </div>
           </div>
 
-
-        <!-- plans -->
-         
-
-
+          <!-- plans -->
         </div>
         <section id="pricing" class="py-20 relative">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-16 scroll-reveal">
-      <h2 class="text-4xl md:text-5xl font-black mb-6">
-        <span class="text-gradient">Simple Pricing</span>
-      </h2>
-      <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
-        Choose the perfect plan for your business. Start free, scale as you grow.
-      </p>
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+              <h2 class="text-4xl md:text-5xl font-black mb-6">
+                <span class="text-gradient">Simple Pricing</span>
+              </h2>
+              <p class="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+                Choose the perfect plan for your business. Start free, scale as
+                you grow.
+              </p>
 
-      <!-- Billing Toggle -->
-      <div class="inline-flex glass rounded-2xl p-1 mb-12">
-        <button
-          class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-primary-500 to-accent-500 text-white"
-          id="monthly-btn"
-        >
-          Monthly
-        </button>
-        <!-- <button
+              <!-- Billing Toggle -->
+              <div class="inline-flex glass rounded-2xl p-1 mb-12">
+                <button
+                  class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 bg-gradient-to-r from-primary-500 to-accent-500 text-white"
+                  id="monthly-btn"
+                >
+                  Monthly
+                </button>
+                <!-- <button
           class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 text-gray-300 hover:text-white"
           id="yearly-btn"
         >
           Yearly <span class="text-success-400 text-sm ml-1">Save 20%</span>
         </button> -->
-      </div>
-    </div>
+              </div>
+            </div>
 
-    <!-- Pricing Cards Row -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-      <!-- Basic Plan -->
-      <div class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift">
-        <div class="text-center mb-8">
-          <h3 class="text-2xl font-bold text-white mb-2">Basic</h3>
-          <p class="text-gray-400 mb-6">Perfect for small businesses</p>
-          <div class="mb-6">
-            <span class="text-3xl font-black text-white">KSH 2,000</span>
-            <span class="text-gray-400">/month</span>
+            <!-- Pricing Cards Row -->
+            <div
+              class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+            >
+              <!-- Basic Plan -->
+              <div
+                class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift"
+              >
+                <div class="text-center mb-8">
+                  <h3 class="text-2xl font-bold text-white mb-2">Basic</h3>
+                  <p class="text-gray-400 mb-6">Perfect for small businesses</p>
+                  <div class="mb-6">
+                    <span class="text-3xl font-black text-white"
+                      >KSH 2,000</span
+                    >
+                    <span class="text-gray-400">/month</span>
+                  </div>
+                  <a
+                    href="#register"
+                    class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                  >
+                    Start Free Trial
+                  </a>
+                </div>
+                <ul class="space-y-4">
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>1
+                    AdminAccount and 1 User Account
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Up to 500
+                    products
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Basic
+                    reporting
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Email
+                    support
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Standard Plan -->
+              <div
+                class="pricing-card featured rounded-3xl p-8 scroll-reveal hover-lift relative"
+                style="animation-delay: 0.1s"
+              >
+                <div
+                  class="absolute -top-4 left-1/2 transform -translate-x-1/2"
+                >
+                  <span
+                    class="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-6 py-2 rounded-full text-sm font-bold"
+                  >
+                    Most Popular
+                  </span>
+                </div>
+                <div class="text-center mb-8">
+                  <h3 class="text-2xl font-bold text-white mb-2">Standard</h3>
+                  <p class="text-gray-400 mb-6">Best for growing businesses</p>
+                  <div class="mb-6">
+                    <span class="text-3xl font-black text-white"
+                      >KSH 4,500</span
+                    >
+                    <span class="text-gray-400">/month</span>
+                  </div>
+                  <a
+                    href="#register"
+                    class="block w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  >
+                    Start Free Trial
+                  </a>
+                </div>
+                <ul class="space-y-4">
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Everything
+                    in Starter and:
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Up to 10
+                    Accounts
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Unlimited
+                    products
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i
+                    >Online/Mobile Payments (M-Pesa)
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Advanced
+                    reporting
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>AI
+                    Analytics
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Priority
+                    support (Chat & Email)
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Premium Plan -->
+              <div
+                class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift"
+                style="animation-delay: 0.2s"
+              >
+                <div class="text-center mb-8">
+                  <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
+                  <p class="text-gray-400 mb-6">For large businesses</p>
+                  <div class="mb-6">
+                    <span class="text-3xl font-black text-white"
+                      >Contact Sales for Quote</span
+                    >
+                    <span class="text-gray-400">/month</span>
+                  </div>
+                  <a
+                    href="#register"
+                    class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                  >
+                    Contact Sales
+                  </a>
+                </div>
+                <ul class="space-y-4">
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Everything
+                    in Basic and:
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Unlimited
+                    registers
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Unlimited
+                    products
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Custom
+                    Online Payments (Mpesa, Banks, PayPal...)
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>Custom
+                    reporting
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i
+                    >Multi-location support
+                  </li>
+                  <li class="flex items-center">
+                    <i class="fas fa-check text-success-400 mr-3"></i>24/7
+                    dedicated support
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <a
-            href="#register"
-            class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
-          >
-            Start Free Trial
-          </a>
-        </div>
-        <ul class="space-y-4">
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>1 AdminAccount and 1 User Account</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Up to 500 products</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Basic reporting</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Email support</li>
-        </ul>
-      </div>
-
-      <!-- Standard Plan -->
-      <div class="pricing-card featured rounded-3xl p-8 scroll-reveal hover-lift relative" style="animation-delay: 0.1s">
-        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-          <span class="bg-gradient-to-r from-primary-500 to-accent-500 text-white px-6 py-2 rounded-full text-sm font-bold">
-            Most Popular
-          </span>
-        </div>
-        <div class="text-center mb-8">
-          <h3 class="text-2xl font-bold text-white mb-2">Standard</h3>
-          <p class="text-gray-400 mb-6">Best for growing businesses</p>
-          <div class="mb-6">
-            <span class="text-3xl font-black text-white">KSH 4,500</span>
-            <span class="text-gray-400">/month</span>
-          </div>
-          <a
-            href="#register"
-            class="block w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
-          >
-            Start Free Trial
-          </a>
-        </div>
-        <ul class="space-y-4">
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Everything in Starter and:</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Up to 10 Accounts</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Unlimited products</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Online/Mobile Payments (M-Pesa)</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Advanced reporting</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>AI Analytics</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Priority support (Chat & Email)</li>
-        </ul>
-      </div>
-
-      <!-- Premium Plan -->
-      <div class="pricing-card rounded-3xl p-8 scroll-reveal hover-lift" style="animation-delay: 0.2s">
-        <div class="text-center mb-8">
-          <h3 class="text-2xl font-bold text-white mb-2">Premium</h3>
-          <p class="text-gray-400 mb-6">For large businesses</p>
-          <div class="mb-6">
-            <span class="text-3xl font-black text-white">Contact Sales for Quote</span>
-            <span class="text-gray-400">/month</span>
-          </div>
-          <a
-            href="#register"
-            class="block w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
-          >
-            Contact Sales
-          </a>
-        </div>
-        <ul class="space-y-4">
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Everything in Basic and:</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Unlimited registers</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Unlimited products</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Custom Online Payments (Mpesa, Banks, PayPal...)</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Custom reporting</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>Multi-location support</li>
-          <li class="flex items-center"><i class="fas fa-check text-success-400 mr-3"></i>24/7 dedicated support</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-
+        </section>
       </main>
     </div>
 
     <!-- Feedback Modal -->
-<div
-  id="feedbackModal"
-  class="fixed bottom-28 left-4 sm:left-auto sm:right-4 w-80 max-h-[80vh] glass-dark rounded-2xl shadow-lg border border-gray-600 flex flex-col hidden z-50 bg-gray-900 text-white"
->
-  <!-- Header -->
-  <div class="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-4 rounded-t-2xl flex justify-between items-center">
-    <h2 class="text-lg font-semibold"></h2>
-    <button id="closeChat" class="text-white text-xl">&times;</button>
-  </div>
-
-  <!-- Body & Tabs -->
-  <div class="flex-1 overflow-y-auto p-4 space-y-4">
-
-    <!-- HOME TAB -->
-   <!-- HOME TAB -->
-<div id="tab-Home" class="tab-panel space-y-3">
-  <!-- Greeting -->
-  <div id="welcomeBox" class="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1">
-    <h3 class="text-base font-semibold">Hi Codecine 👋</h3>
-    <p class="text-sm text-gray-300">How can we help?</p>
-  </div>
-
-  <!-- Status -->
-  <div id="statusBox" class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm">
-    <p class="font-semibold">Status: <span class="text-green-400">All systems operational</span></p>
-    <p class="text-xs text-gray-400">Updated on: <span id="currentDate"></span></p>
-  </div>
-
-  <!-- Send Button -->
-  <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
-    <button
-      id="openMessage"
-      class="w-full flex items-center justify-between px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-sm font-medium transition"
+    <div
+      id="feedbackModal"
+      class="fixed bottom-28 left-4 sm:left-auto sm:right-4 w-80 max-h-[80vh] glass-dark rounded-2xl shadow-lg border border-gray-600 flex flex-col hidden z-50 bg-gray-900 text-white"
     >
-      <span>Send us a message</span>
-      <i class="fas fa-paper-plane ml-2"></i>
-    </button>
-  </div>
-
-  <!-- Hidden Chat Form -->
-  <form id="chatForm" class="hidden flex flex-col space-y-2 mt-2">
-    <textarea
-      id="chatInput"
-      rows="3"
-      placeholder="Type your feedback..."
-      class="w-full resize-none px-4 py-2 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-accent-400"
-      required
-    ></textarea>
-    <button
-      id="sendButton"
-      type="submit"
-      class="self-end px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium rounded-lg flex items-center gap-2"
-    >
-      <span id="sendText">Send</span>
-      <span id="sendSpinner" class="hidden animate-spin"><i class="fas fa-spinner"></i></span>
-      <span id="sendCheck" class="hidden"><i class="fas fa-check-double"></i></span>
-    </button>
-  </form>
-
-  <!-- Chat Output -->
-  <div id="chatBox" class="max-h-40 overflow-y-auto space-y-2 text-sm mt-2 break-words"></div>
-</div>
-
-    <!-- MESSAGES TAB -->
-    <div id="tab-Messages" class="tab-panel hidden flex flex-col space-y-2 h-full">
-      <div class="flex-1 overflow-y-auto space-y-2 bg-gray-800 p-2 rounded-lg max-h-40 text-sm" id="messagesArea"></div>
-
-      <div class="flex items-center gap-2">
-        <input
-          id="msgInput"
-          type="text"
-          placeholder="Type your message..."
-          class="flex-1 px-3 py-2 text-sm rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
-        />
-        <button id="msgSendBtn" class="px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-white">
-          <i class="fas fa-paper-plane"></i>
-        </button>
+      <!-- Header -->
+      <div
+        class="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-4 rounded-t-2xl flex justify-between items-center"
+      >
+        <h2 class="text-lg font-semibold"></h2>
+        <button id="closeChat" class="text-white text-xl">&times;</button>
       </div>
 
-      <div class="mt-3 bg-gray-800 border border-gray-700 rounded-lg p-3 text-center">
-        <p class="text-xs text-gray-400 mb-2">Rate this conversation:</p>
-        <div class="flex justify-center gap-3 text-xl">
-          <button title="Terrible 😠" class="hover:scale-110 transition">😠</button>
-          <button title="Bad 😞" class="hover:scale-110 transition">😞</button>
-          <button title="Okay 😐" class="hover:scale-110 transition">😐</button>
-          <button title="Good 😊" class="hover:scale-110 transition">😊</button>
-          <button title="Excellent 😍" class="hover:scale-110 transition">😍</button>
+      <!-- Body & Tabs -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- HOME TAB -->
+        <!-- HOME TAB -->
+        <div id="tab-Home" class="tab-panel space-y-3">
+          <!-- Greeting -->
+          <div
+            id="welcomeBox"
+            class="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1"
+          >
+            <h3 class="text-base font-semibold">Hi Codecine 👋</h3>
+            <p class="text-sm text-gray-300">How can we help?</p>
+          </div>
+
+          <!-- Status -->
+          <div
+            id="statusBox"
+            class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
+          >
+            <p class="font-semibold">
+              Status:
+              <span class="text-green-400">All systems operational</span>
+            </p>
+            <p class="text-xs text-gray-400">
+              Updated on: <span id="currentDate"></span>
+            </p>
+          </div>
+
+          <!-- Send Button -->
+          <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
+            <button
+              id="openMessage"
+              class="w-full flex items-center justify-between px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-sm font-medium transition"
+            >
+              <span>Send us a message</span>
+              <i class="fas fa-paper-plane ml-2"></i>
+            </button>
+          </div>
+
+          <!-- Hidden Chat Form -->
+          <form id="chatForm" class="hidden flex flex-col space-y-2 mt-2">
+            <textarea
+              id="chatInput"
+              rows="3"
+              placeholder="Type your feedback..."
+              class="w-full resize-none px-4 py-2 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-accent-400"
+              required
+            ></textarea>
+            <button
+              id="sendButton"
+              type="submit"
+              class="self-end px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium rounded-lg flex items-center gap-2"
+            >
+              <span id="sendText">Send</span>
+              <span id="sendSpinner" class="hidden animate-spin"
+                ><i class="fas fa-spinner"></i
+              ></span>
+              <span id="sendCheck" class="hidden"
+                ><i class="fas fa-check-double"></i
+              ></span>
+            </button>
+          </form>
+
+          <!-- Chat Output -->
+          <div
+            id="chatBox"
+            class="max-h-40 overflow-y-auto space-y-2 text-sm mt-2 break-words"
+          ></div>
+        </div>
+
+        <!-- MESSAGES TAB -->
+        <div
+          id="tab-Messages"
+          class="tab-panel hidden flex flex-col space-y-2 h-full"
+        >
+          <div
+            class="flex-1 overflow-y-auto space-y-2 bg-gray-800 p-2 rounded-lg max-h-40 text-sm"
+            id="messagesArea"
+          ></div>
+
+          <div class="flex items-center gap-2">
+            <input
+              id="msgInput"
+              type="text"
+              placeholder="Type your message..."
+              class="flex-1 px-3 py-2 text-sm rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
+            />
+            <button
+              id="msgSendBtn"
+              class="px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-white"
+            >
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+
+          <div
+            class="mt-3 bg-gray-800 border border-gray-700 rounded-lg p-3 text-center"
+          >
+            <p class="text-xs text-gray-400 mb-2">Rate this conversation:</p>
+            <div class="flex justify-center gap-3 text-xl">
+              <button title="Terrible 😠" class="hover:scale-110 transition">
+                😠
+              </button>
+              <button title="Bad 😞" class="hover:scale-110 transition">
+                😞
+              </button>
+              <button title="Okay 😐" class="hover:scale-110 transition">
+                😐
+              </button>
+              <button title="Good 😊" class="hover:scale-110 transition">
+                😊
+              </button>
+              <button title="Excellent 😍" class="hover:scale-110 transition">
+                😍
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TICKETS TAB -->
+        <div
+          id="tab-Tickets"
+          class="tab-panel hidden text-center text-sm text-gray-300"
+        >
+          <p>No tickets created yet.</p>
         </div>
       </div>
+
+      <!-- Footer Navigation (INSIDE MODAL) -->
+      <div
+        class="border-t border-gray-700 bg-gray-800 p-2 flex justify-around text-sm text-gray-300"
+      >
+        <button
+          class="tab-button flex flex-col items-center hover:text-white"
+          data-tab="Home"
+          id="tabHome"
+        >
+          <i class="fas fa-home text-lg"></i>
+          <span>Home</span>
+        </button>
+        <button
+          class="tab-button flex flex-col items-center hover:text-white"
+          data-tab="Messages"
+          id="tabMessages"
+        >
+          <i class="fas fa-comment-dots text-lg"></i>
+          <span>Messages</span>
+        </button>
+        <button
+          class="tab-button flex flex-col items-center hover:text-white"
+          data-tab="Tickets"
+          id="tabTickets"
+        >
+          <i class="fas fa-ticket-alt text-lg"></i>
+          <span>Tickets</span>
+        </button>
+      </div>
     </div>
-
-    <!-- TICKETS TAB -->
-    <div id="tab-Tickets" class="tab-panel hidden text-center text-sm text-gray-300">
-      <p>No tickets created yet.</p>
-    </div>
-  </div>
-
-  <!-- Footer Navigation (INSIDE MODAL) -->
-  <div class="border-t border-gray-700 bg-gray-800 p-2 flex justify-around text-sm text-gray-300">
-    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Home" id="tabHome">
-      <i class="fas fa-home text-lg"></i>
-      <span>Home</span>
-    </button>
-    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Messages" id="tabMessages">
-      <i class="fas fa-comment-dots text-lg"></i>
-      <span>Messages</span>
-    </button>
-    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Tickets" id="tabTickets">
-      <i class="fas fa-ticket-alt text-lg"></i>
-      <span>Tickets</span>
-    </button>
-  </div>
-</div>
-
 
     <!-- Floating Action Button -->
-<!-- <button
+    <!-- <button
   id="fab"
   class="fixed bottom-8 left-8 sm:left-auto sm:right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
 >
@@ -1132,172 +1298,258 @@
   ></i>
 </button> -->
 
-
-
-
     <!-- Toast Container -->
     <div
       id="toast-container"
       class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"
     ></div>
 
-    <!-- Modern Payment Modal -->
+    <!-- CONFIRMATION MODAL (Missing from previous version) -->
     <div
-      id="payment-modal"
-      class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-[1000] hidden"
+      id="confirmation-modal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] hidden flex items-center justify-center"
     >
-      <div
-        class="glass-dark rounded-3xl w-full max-w-md mx-auto p-8 transform transition-all animate-scale-in"
-      >
-        <div class="text-center mb-8">
-          <div
-            class="w-20 h-20 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-slow"
-          >
-            <i class="fas fa-mobile-alt text-white text-2xl"></i>
-          </div>
-          <h3 class="text-2xl font-bold text-white mb-2">M-Pesa Payment</h3>
-          <p class="text-gray-400">Complete your subscription payment</p>
-        </div>
-
-        <div class="space-y-6">
-          <div>
-            <label class="block text-gray-300 text-sm font-semibold mb-2"
-              >Phone Number</label
-            >
-            <input
-              type="tel"
-              placeholder="254712345678"
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
-              id="payment-phone"
-            />
-          </div>
-          <div>
-            <label class="block text-gray-300 text-sm font-semibold mb-2"
-              >Amount</label
-            >
-            <input
-              type="text"
-              id="payment-amount"
-              placeholder="KES 5,999"
-              readonly
-              class="w-full px-4 py-3 bg-gray-800/50 border border-gray-600 rounded-xl text-white font-bold"
-            />
-          </div>
+      <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
+        <h2 class="text-xl font-bold mb-4 text-white">
+          Confirm Plan Selection
+        </h2>
+        <p class="text-gray-300 mb-6">
+          You are about to subscribe to the
+          <span
+            id="confirm-plan-name"
+            class="font-semibold text-primary-400"
+          ></span
+          >. Do you want to proceed?
+        </p>
+        <div class="flex justify-end gap-4">
           <button
-            class="w-full py-4 bg-gradient-to-r from-success-500 to-success-600 rounded-xl font-bold text-white hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25"
-            id="send-stk"
+            id="cancel-plan-change"
+            class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
           >
-            <i class="fas fa-mobile-alt mr-2"></i>
-            Pay via M-Pesa
+            Cancel
+          </button>
+          <button
+            id="confirm-plan-change"
+            class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- END CONFIRMATION MODAL -->
+
+    <!-- Payment Options Modal (Replaced mpesa-modal) -->
+    <div
+      id="payment-options-modal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] hidden flex items-center justify-center"
+    >
+      <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
+        <!-- Step 1: Choose action (Upgrade Plan / Update Payment Method) -->
+        <div id="payment-step-1" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">Choose Action</h2>
+          <button
+            id="modal-upgrade-plan-btn"
+            class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition"
+          >
+            Upgrade Plan
+          </button>
+          <button
+            id="modal-update-payment-method-btn"
+            class="w-full px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+          >
+            Update Current Payment Method
           </button>
         </div>
 
-        <!-- <button
-          id="close-payment-modal"
-          class="absolute top-4 right-4 w-10 h-10 glass rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
-        > -->
-          <!-- <i class="fas fa-times text-gray-400"></i> -->
-        <!-- </button> -->
+        <!-- Step 2: Select Plan -->
+        <div id="payment-step-2" class="hidden" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">Select a Plan</h2>
+          <div id="plans-list" class="space-y-4"></div>
+          <button
+            data-step-action="prev-step"
+            class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+          >
+            Back
+          </button>
+        </div>
+
+        <!-- Step 3: Choose Payment Method (M-Pesa, Paystack, Card) -->
+        <div id="payment-step-3" class="hidden" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">
+            Choose Payment Method
+          </h2>
+          <button
+            id="selectMpesa"
+            class="w-full mb-3 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition"
+            data-payment-method="mpesa"
+          >
+            <i class="fas fa-mobile-alt mr-2"></i>Pay with M-Pesa
+          </button>
+          <button
+            id="selectPaystack"
+            class="w-full mb-3 px-4 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
+            data-payment-method="paystack"
+          >
+            <i class="fas fa-money-check-alt mr-2"></i>Pay with Paystack
+          </button>
+          <!-- You can add a card option here if you have a direct card integration -->
+          <button
+            data-step-action="prev-step"
+            class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+          >
+            Back
+          </button>
+        </div>
+
+        <!-- Step 4: Enter Payment Details (M-Pesa) -->
+        <div id="payment-step-4-mpesa" class="hidden" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">
+            Enter M-Pesa Details
+          </h2>
+          <label for="mpesa-phone-input" class="block mb-2 text-gray-300"
+            >Your M-Pesa Phone Number</label
+          >
+          <input
+            id="mpesa-phone-input"
+            type="text"
+            class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700"
+            placeholder="e.g., 0712345678"
+          />
+          <label for="mpesa-amount" class="block mb-2 text-gray-300"
+            >Amount</label
+          >
+          <input
+            id="mpesa-amount"
+            type="text"
+            class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700"
+            readonly
+          />
+          <div class="flex justify-between gap-4">
+            <button
+              data-step-action="prev-step"
+              class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+            >
+              Back
+            </button>
+            <button
+              id="payWithMpesa"
+              class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition"
+            >
+              Complete M-Pesa Payment
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 5: Enter Payment Details (Paystack) -->
+        <div id="payment-step-4-paystack" class="hidden" data-step>
+          <h2 class="text-xl font-bold mb-4 text-white">
+            Enter Paystack Details
+          </h2>
+          <label for="paystack-email-input" class="block mb-2 text-gray-300"
+            >Your Email Address</label
+          >
+          <input
+            id="paystack-email-input"
+            type="email"
+            class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700"
+            placeholder="e.g. your.email@example.com"
+          />
+          <label for="paystack-amount" class="block mb-2 text-gray-300"
+            >Amount</label
+          >
+          <input
+            id="paystack-amount"
+            type="text"
+            class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700"
+            readonly
+          />
+          <div class="flex justify-between gap-4">
+            <button
+              data-step-action="prev-step"
+              class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition"
+            >
+              Back
+            </button>
+            <button
+              id="payWithPaystack"
+              class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition"
+            >
+              Pay with Paystack
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-<!-- Confirmation Modal for Plan Upgrade/Cancel -->
-<div id="confirmation-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center">
-  <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-    <h2 class="text-2xl font-bold mb-4 text-white">Confirm Action</h2>
-    <p class="mb-6 text-gray-300">
-      Are you sure you want to <span id="confirm-plan-name" class="font-semibold text-primary-400"></span>?
-    </p>
-    <div class="flex justify-end gap-4">
-      <button id="cancel-plan-change" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Cancel</button>
-      <button id="confirm-plan-change" class="px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition" data-plan="">Confirm</button>
-    </div>
-  </div>
-</div>
 
-<!-- M-Pesa Modal for Payment/Upgrade -->
-<div id="mpesa-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] hidden flex items-center justify-center">
-  <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative">
-    <!-- Step 1: Choose action -->
-    <div id="step1">
-      <h2 class="text-xl font-bold mb-4 text-white">Upgrade Subscription</h2>
-      <button id="upgradeplanbtn" class="w-full mb-3 px-4 py-2 rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition">Upgrade Plan</button>
-    </div>
-
-    <!-- Step 2: Select Plan -->
-    <div id="step2" class="hidden">
-      <h2 class="text-xl font-bold mb-4 text-white">Select a Plan</h2>
-      <div id="plans-list" class="space-y-4"></div>
-      <button onclick="backToStep1()" class="mt-4 px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
-    </div>
-
-    <!-- Step 3: Enter Payment -->
-    <div id="step3" class="hidden" data-step>
-      <h2 class="text-xl font-bold mb-4 text-white">Enter Payment Details</h2>
-      <label for="phone-input" class="block mb-2 text-gray-300">M-Pesa Phone Number</label>
-      <input id="phone-input" type="tel" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" placeholder="e.g. 07XXXXXXXX" />
-      <label for="paymentAmount" class="block mb-2 text-gray-300">Amount</label>
-      <input id="paymentAmount" type="text" class="w-full mb-4 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700" readonly />
-      <div class="flex justify-between gap-4">
-        <button data-step-action="prev-step" class="px-4 py-2 rounded-lg bg-gray-700 text-gray-200 hover:bg-gray-600 transition">Back</button>
-        <button id="payNow" class="px-4 py-2 rounded-lg bg-success-500 text-white hover:bg-success-600 transition">Pay Now</button>
+    <!-- Processing Popup -->
+    <div
+      id="processingPopup"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center"
+    >
+      <div
+        class="bg-gray-900 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center"
+      >
+        <i class="fas fa-spinner fa-spin text-3xl text-primary-400 mb-4"></i>
+        <p class="text-white text-lg mb-2">Processing Payment...</p>
+        <p class="text-gray-400 text-sm">
+          Please wait while your payment is processed.
+        </p>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Processing Popup -->
-<div id="processingPopup" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center">
-  <div class="bg-gray-900 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center">
-    <i class="fas fa-spinner fa-spin text-3xl text-primary-400 mb-4"></i>
-    <p class="text-white text-lg mb-2">Processing Payment...</p>
-    <p class="text-gray-400 text-sm">Please complete the payment on your phone.</p>
-  </div>
-</div>
+    <!-- Approved Popup -->
+    <div
+      id="approvedPopup"
+      class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center"
+    >
+      <div
+        class="bg-gray-900 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center"
+      >
+        <i class="fas fa-check-circle text-4xl text-success-500 mb-4"></i>
+        <p class="text-white text-lg mb-2">Payment Approved!</p>
+        <p class="text-gray-400 text-sm">Your subscription is now active.</p>
+      </div>
+    </div>
 
+    <!-- Cancel Subscription Confirmation Modal -->
+    <div
+      id="cancel-confirmation-modal"
+      class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center"
+    >
+      <div
+        class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative animate-scale-in"
+        onclick="event.stopPropagation();"
+      >
+        <!-- Title -->
+        <h2 class="text-2xl font-bold mb-4 text-white">Cancel Subscription</h2>
 
-<!-- Approved Popup -->
-<div id="approvedPopup" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center">
-  <div class="bg-gray-900 rounded-2xl p-8 max-w-sm w-full flex flex-col items-center">
-    <i class="fas fa-check-circle text-4xl text-success-500 mb-4"></i>
-    <p class="text-white text-lg mb-2">Payment Approved!</p>
-    <p class="text-gray-400 text-sm">Your subscription is now active.</p>
-  </div>
-</div>
-
-<!-- Cancel Subscription Confirmation Modal -->
-<div id="cancel-confirmation-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center">
-  <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative animate-scale-in" onclick="event.stopPropagation();">
-    
-    <!-- Title -->
-    <h2 class="text-2xl font-bold mb-4 text-white">
-      Cancel Subscription
-    </h2>
-    
-    <!-- Message -->
-    <p class="text-gray-300 mb-2">
-      Are you sure you want to cancel your subscription? This action cannot be undone.
-    </p>
-    <!-- <p class="text-red-400 text-sm mb-6">
+        <!-- Message -->
+        <p class="text-gray-300 mb-2">
+          Are you sure you want to cancel your subscription? This action cannot
+          be undone.
+        </p>
+        <!-- <p class="text-red-400 text-sm mb-6">
       
     </p> -->
-    
-    <!-- Action Buttons -->
-    <div class="flex justify-end gap-4">
-      <button id="cancel-cancel"
-        class="px-4 py-2 rounded-lg bg-green-700 text-gray-200 hover:bg-gray-600 transition">
-        No
-      </button>
-      <button id="confirm-cancel"
-        class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-primary-600 transition">
-        Yes
-      </button>
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-4">
+          <button
+            id="cancel-cancel"
+            class="px-4 py-2 rounded-lg bg-green-700 text-gray-200 hover:bg-gray-600 transition"
+          >
+            No
+          </button>
+          <button
+            id="confirm-cancel"
+            class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-primary-600 transition"
+          >
+            Yes
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-
-
-   
     <script src="./js/sidebar.js"></script>
     <script src="./js/subscriptions.js"></script>
     <script src="./js/accountDetailsBadge.js"></script>

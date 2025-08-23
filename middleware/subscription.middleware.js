@@ -40,9 +40,9 @@ module.exports = async function (req, res, next) {
     req.user = user;
 
     if (!req.user || !req.user.business) {
-      return res
-        .status(403)
-        .json({ message: "Business ID not found in token. Invalid user." });
+      return res.status(403).json({
+        message: "Business ID not found in token. Invalid user.",
+      });
     }
 
     const businessId = req.user.business;

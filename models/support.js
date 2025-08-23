@@ -17,6 +17,11 @@ const supportSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  isAdminReply: { type: Boolean, default: false },
+  adminId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  createdAt: { type: Date, default: Date.now },
+  businessName: String,
+  userName: String,
 });
 const ChatMessage = mongoose.model("ChatMessage", supportSchema);
 module.exports = ChatMessage;
