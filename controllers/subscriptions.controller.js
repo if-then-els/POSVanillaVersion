@@ -507,7 +507,7 @@ exports.cancelSubscription = async (req, res) => {
 exports.getSubscriptionDetails = async (req, res) => {
   try {
     const businessId = req.user.business;
-    console.log("Fetching subscription details for businessId:", businessId);
+    //console.log("Fetching subscription details for businessId:", businessId);
 
     const subscription = await Subscription.findOne({ business: businessId })
       .populate("plan")
