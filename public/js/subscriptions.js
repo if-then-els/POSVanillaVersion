@@ -976,18 +976,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Payment method selection buttons
-  document.getElementById("selectMpesa").addEventListener("click", () => {
-    showStep("payment-step-4-mpesa");
-    document.getElementById("mpesa-phone-input").value = ""; // Clear for new input
-    // Amount based on action
-    const amount =
-      appState.paymentAction === "upgrade"
-        ? appState.selectedPlan?.price
-        : appState.currentSubscription?.price;
-    document.getElementById("mpesa-amount").value = `KES ${
-      amount ? amount.toLocaleString() : "N/A"
-    }`;
-  });
+  // document.getElementById("selectMpesa").addEventListener("click", () => {
+  //   showStep("payment-step-4-mpesa");
+  //   document.getElementById("mpesa-phone-input").value = ""; // Clear for new input
+  //   // Amount based on action
+  //   const amount =
+  //     appState.paymentAction === "upgrade"
+  //       ? appState.selectedPlan?.price
+  //       : appState.currentSubscription?.price;
+  //   document.getElementById("mpesa-amount").value = `KES ${
+  //     amount ? amount.toLocaleString() : "N/A"
+  //   }`;
+  // });
 
   document.getElementById("selectPaystack").addEventListener("click", () => {
     showStep("payment-step-4-paystack");
