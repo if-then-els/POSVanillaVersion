@@ -22,7 +22,7 @@ router.post(
 // Get subscription details
 router.get(
   "/subscriptions/details",
-  subscriptionMiddleware,
+
   subscriptionsController.getSubscriptionDetails
 );
 
