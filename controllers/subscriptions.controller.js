@@ -514,12 +514,12 @@ exports.getSubscriptionDetails = async (req, res) => {
       .lean();
 
     if (!subscription) {
-      console.log("No subscription found for businessId:", businessId);
+      // console.log("No subscription found for businessId:", businessId);
       return res
         .status(404)
         .json({ message: "No active subscription found for this business." });
     }
-    console.log("Subscription details found:", subscription);
+    // console.log("Subscription details found:", subscription);
     res.status(200).json({ subscription });
   } catch (error) {
     console.error("Error in getSubscriptionDetails:", error);

@@ -3,6 +3,79 @@
  */
 
 // Load sidebar content
+function loadSidebarContent() {
+  const sidebar = document.getElementById("sidebar");
+  if (!sidebar) return;
+
+  // Add a container for subscription warnings at the top of the sidebar
+  const warningContainer = document.createElement("div");
+  warningContainer.id = "sidebar-subscription-warning";
+  warningContainer.className = "px-4 py-2";
+  sidebar.insertBefore(warningContainer, sidebar.firstChild);
+
+  // Check subscription status
+  checkSubscriptionStatus();
+}
+
+// Add function to check subscription status
+async function checkSubscriptionStatus() {
+  try {
+    const response = await fetch("/api/subscriptions/details");
+    const data = await response.json();
+
+    if (data.subscription) {
+      const endDate = new Date(data.subscription.endDate);
+      const now = new Date();
+      const daysUntilExpiry = Math.ceil(
+        (endDate - now) / (1000 * 60 * 60 * 24)
+      );
+
+      updateSubscriptionWarning(daysUntilExpiry);
+    }
+  } catch (error) {
+    console.error("Error checking subscription status:", error);
+  }
+}
+
+// Add function to update subscription warning
+function updateSubscriptionWarning(daysUntilExpiry) {
+  const warningContainer = document.getElementById(
+    "sidebar-subscription-warning"
+  );
+  if (!warningContainer) return;
+
+  warningContainer.innerHTML = ""; // Clear existing warnings
+
+  if (daysUntilExpiry <= 0) {
+    warningContainer.innerHTML = `
+      <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-3 mb-4">
+        <p class="text-xs text-red-400 font-medium">
+          <i class="fas fa-exclamation-circle mr-1"></i>
+          Subscription Expired
+        </p>
+        <a href="/manageSubscriptions.html" 
+           class="text-xs text-red-400 hover:text-red-300 underline mt-1 inline-block">
+          Renew Now
+        </a>
+      </div>
+    `;
+  } else if (daysUntilExpiry <= 7) {
+    warningContainer.innerHTML = `
+      <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-3 mb-4">
+        <p class="text-xs text-yellow-400 font-medium">
+          <i class="fas fa-clock mr-1"></i>
+          Expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"}
+        </p>
+        <a href="/manageSubscriptions.html" 
+           class="text-xs text-yellow-400 hover:text-yellow-300 underline mt-1 inline-block">
+          Renew Now
+        </a>
+      </div>
+    `;
+  }
+}
+
+// Load sidebar content
 function loadSidebar() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
@@ -178,6 +251,11 @@ function loadSidebar() {
         alert("Logout failed. Please try again.");
       });
   });
+
+  loadSidebarContent();
+
+  // Check subscription status periodically (every hour)
+  setInterval(checkSubscriptionStatus, 60 * 60 * 1000);
 }
 
 // Initialize sidebar functionality
