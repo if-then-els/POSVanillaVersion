@@ -20,7 +20,7 @@ function loadSidebarContent() {
 // Add function to check subscription status
 async function checkSubscriptionStatus() {
   try {
-    const response = await fetch("/api/subscriptions/details");
+    const response = await fetch("/subscriptions/details");
     const data = await response.json();
 
     if (data.subscription) {

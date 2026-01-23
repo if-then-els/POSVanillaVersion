@@ -2,21 +2,30 @@ const BusinessDetails = require("../models/businessDetails");
 const Subscription = require("../models/subscription.model");
 const SubscriptionLog = require("../models/subscriptionLog.model");
 const Plan = require("../models/plan.model");
-const axios = require("axios"); // For making HTTP requests to Paystack
-const crypto = require("crypto"); // For verifying Paystack webhooks
-
-// Load environment variables (ensure PAYSTACK_SECRET_KEY is set in your .env)
+const axios = require("axios");
+const crypto = require("crypto");
+const auth = require("../middleware/auth.middleware");
 require("dotenv").config();
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
 // Add a conversion helper for KES to USD
-const convertKESToUSD = (kesAmount) => {
-  // IMPORTANT: Update this rate regularly or fetch from a reliable API
-  // Example rate: 1 USD = 130 KES (as of August 2025). Adjust this!
-  const rate = 130;
-  return Math.round(kesAmount / rate); // Convert KES to USD
+const convertKESToUSD = async (kesAmount) => {
+  // Fetch dynamic exchange rate
+  const getExchangeRate = async () => {
+    try {
+      const exchangeRate = await axios.get(
+        "https://api.exchangerate-api.com/v4/latest/USD",
+      );
+      return exchangeRate.data.rates.KES;
+    } catch (error) {
+      console.error("Error fetching exchange rate:", error);
+      return 130; // Fallback to a default rate
+    }
+  };
+  const exchangeRate = await getExchangeRate();
+  return Math.round(kesAmount / exchangeRate); // Convert KES to USD
 };
 
 // Placeholder for sendExpiryReminderEmail - YOU WILL NEED TO IMPLEMENT THIS
@@ -73,7 +82,7 @@ exports.initiatePaystackPayment = async (req, res) => {
 
     if (amount <= 0) {
       console.warn(
-        `Attempt to initiate Paystack payment for amount <= 0 (${amount}). Bypassing Paystack.`
+        `Attempt to initiate Paystack payment for amount <= 0 (${amount}). Bypassing Paystack.`,
       );
       return res.status(200).json({
         status: true,
@@ -83,12 +92,12 @@ exports.initiatePaystackPayment = async (req, res) => {
     }
 
     // Convert KES to USD for Paystack
-    const amountInUSD = convertKESToUSD(amount);
+    const amountInUSD = await convertKESToUSD(amount);
 
     // Ensure converted amount is still positive for Paystack
     if (amountInUSD <= 0) {
       console.error(
-        `Converted amount to USD is zero or negative (${amountInUSD}) for original KES amount (${amount}). Cannot process payment.`
+        `Converted amount to USD is zero or negative (${amountInUSD}) for original KES amount (${amount}). Cannot process payment.`,
       );
       // Returning a 400 with a specific message for this scenario
       return res.status(400).json({
@@ -101,7 +110,7 @@ exports.initiatePaystackPayment = async (req, res) => {
       `${PAYSTACK_BASE_URL}/transaction/initialize`,
       {
         email,
-        amount: amountInUSD * 100, // Convert to cents (Paystack expects amount in smallest currency unit)
+        amount: Math.round(amountInUSD * 100), // Ensure integer, no decimals
         currency: "KES", // Explicitly set currency to USD
         reference: uniqueRef, // Use the newly generated unique reference
         callback_url: `${req.protocol}://${req.get("host")}/subscriptions`,
@@ -118,7 +127,7 @@ exports.initiatePaystackPayment = async (req, res) => {
           Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     res.status(200).json({
@@ -132,7 +141,7 @@ exports.initiatePaystackPayment = async (req, res) => {
   } catch (error) {
     console.error(
       "Error initiating Paystack payment:",
-      error.response ? error.response.data : error.message
+      error.response ? error.response.data : error.message,
     );
     res.status(500).json({
       message: "Error initiating Paystack payment",
@@ -167,12 +176,12 @@ exports.verifyPaystackPayment = async (req, res) => {
       const originalAmountKES = metadata.originalAmount;
 
       console.log(
-        `Paystack Webhook: Received successful charge for reference ${reference}, action: ${action}`
+        `Paystack Webhook: Received successful charge for reference ${reference}, action: ${action}`,
       );
       console.log(
         `Original amount (KES): ${originalAmountKES}, Processed amount (USD): ${
           event.data.amount / 100
-        }`
+        }`,
       );
 
       // Optional: Verify the transaction directly with Paystack API for double-checking
@@ -180,11 +189,11 @@ exports.verifyPaystackPayment = async (req, res) => {
         `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
         {
           headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
-        }
+        },
       );
       if (verificationResponse.data.data.status !== "success") {
         console.error(
-          `Paystack Webhook: Transaction verification failed for reference ${reference}`
+          `Paystack Webhook: Transaction verification failed for reference ${reference}`,
         );
         return res
           .status(400)
@@ -195,7 +204,7 @@ exports.verifyPaystackPayment = async (req, res) => {
         const plan = await Plan.findById(planId);
         if (!plan) {
           console.error(
-            `Paystack Webhook: Plan not found for ID ${planId} during upgrade action.`
+            `Paystack Webhook: Plan not found for ID ${planId} during upgrade action.`,
           );
           return res.status(404).json({ message: "Plan not found" });
         }
@@ -263,7 +272,7 @@ exports.verifyPaystackPayment = async (req, res) => {
           });
         }
         console.log(
-          `Paystack Webhook: Subscription action 'upgrade' processed successfully for business ${businessId}.`
+          `Paystack Webhook: Subscription action 'upgrade' processed successfully for business ${businessId}.`,
         );
       } else if (action === "updatePaymentMethod") {
         let subscription = await Subscription.findOne({
@@ -273,7 +282,7 @@ exports.verifyPaystackPayment = async (req, res) => {
 
         if (!subscription) {
           console.error(
-            `Paystack Webhook: No active subscription found for business ${businessId} to update payment method.`
+            `Paystack Webhook: No active subscription found for business ${businessId} to update payment method.`,
           );
           return res.status(404).json({
             message: "No active subscription found for payment method update",
@@ -281,7 +290,7 @@ exports.verifyPaystackPayment = async (req, res) => {
         }
         if (subscription.plan.toString() !== planId) {
           console.warn(
-            `Paystack Webhook: Attempted to update payment method for a different plan than active. Expected ${subscription.plan}, got ${planId}. Proceeding with payment method update on existing subscription.`
+            `Paystack Webhook: Attempted to update payment method for a different plan than active. Expected ${subscription.plan}, got ${planId}. Proceeding with payment method update on existing subscription.`,
           );
         }
 
@@ -302,11 +311,11 @@ exports.verifyPaystackPayment = async (req, res) => {
           paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
         });
         console.log(
-          `Paystack Webhook: Payment method updated for business ${businessId}.`
+          `Paystack Webhook: Payment method updated for business ${businessId}.`,
         );
       } else {
         console.warn(
-          `Paystack Webhook: Unknown action type received: ${action} for reference ${reference}.`
+          `Paystack Webhook: Unknown action type received: ${action} for reference ${reference}.`,
         );
       }
 
@@ -316,13 +325,13 @@ exports.verifyPaystackPayment = async (req, res) => {
         "Error processing Paystack webhook for event:",
         event,
         "Error:",
-        error
+        error,
       );
       res.status(500).send("Error processing webhook");
     }
   } else {
     console.log(
-      `Paystack Webhook: Received non-'charge.success' event or non-successful status: ${event.event}, status: ${event.data.status}`
+      `Paystack Webhook: Received non-'charge.success' event or non-successful status: ${event.event}, status: ${event.data.status}`,
     );
     res.status(200).send("Webhook received (not a successful charge)");
   }
@@ -338,7 +347,7 @@ exports.checkPaystackStatus = async (req, res) => {
         headers: {
           Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
         },
-      }
+      },
     );
 
     if (response.data.data.status === "success") {
@@ -354,7 +363,7 @@ exports.checkPaystackStatus = async (req, res) => {
   } catch (error) {
     console.error(
       "Error checking Paystack status:",
-      error.response ? error.response.data : error.message
+      error.response ? error.response.data : error.message,
     );
     res.status(500).json({
       message: "Error checking payment status",
@@ -392,7 +401,7 @@ exports.upgradeSubscription = async (req, res) => {
     let subscription = await Subscription.findOne({ business: businessId });
     console.log(
       "Existing subscription found:",
-      subscription ? subscription._id : "None"
+      subscription ? subscription._id : "None",
     );
 
     const now = new Date();
@@ -506,20 +515,26 @@ exports.cancelSubscription = async (req, res) => {
 
 exports.getSubscriptionDetails = async (req, res) => {
   try {
+    if (!req.user || !req.user.business) {
+      console.error(
+        "getSubscriptionDetails: req.user or req.user.business is undefined",
+      );
+      return res.status(401).json({
+        message: "Unauthorized: Business ID not found in user context.",
+      });
+    }
     const businessId = req.user.business;
-    //console.log("Fetching subscription details for businessId:", businessId);
+    // console.log("Fetching subscription details for businessId:", businessId);
 
     const subscription = await Subscription.findOne({ business: businessId })
       .populate("plan")
       .lean();
 
     if (!subscription) {
-      // console.log("No subscription found for businessId:", businessId);
       return res
         .status(404)
         .json({ message: "No active subscription found for this business." });
     }
-    // console.log("Subscription details found:", subscription);
     res.status(200).json({ subscription });
   } catch (error) {
     console.error("Error in getSubscriptionDetails:", error);

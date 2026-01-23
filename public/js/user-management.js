@@ -294,15 +294,17 @@ async function updateUser(userId, userData) {
 // Remove the old deleteUser function and replace with:
 async function deleteUser(userId) {
   // Show the modal instead of using confirm()
-  document.getElementById("delete-confirmation-modal").classList.remove("hidden");
-  
+  document
+    .getElementById("delete-confirmation-modal")
+    .classList.remove("hidden");
+
   // Set up the confirm button handler
   const confirmBtn = document.getElementById("confirm-delete");
-  
+
   // Remove any existing listeners to avoid duplicates
   const newConfirmBtn = confirmBtn.cloneNode(true);
   confirmBtn.replaceWith(newConfirmBtn);
-  
+
   newConfirmBtn.onclick = async () => {
     try {
       const response = await fetch(`/users/${userId}`, {
@@ -318,7 +320,9 @@ async function deleteUser(userId) {
       console.error("Error deleting user:", error);
       showToast("Failed to delete user", "error");
     } finally {
-      document.getElementById("delete-confirmation-modal").classList.add("hidden");
+      document
+        .getElementById("delete-confirmation-modal")
+        .classList.add("hidden");
     }
   };
 }
@@ -364,6 +368,28 @@ function showToast(message, type = "info") {
     toast.style.opacity = "0";
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+// Update user interface based on plan
+function updateUserUIBasedOnPlan(plan) {
+  // Disable role selection for Basic
+  if (!plan.roleManagement) {
+    document.querySelectorAll('select[name="role"]').forEach((sel) => {
+      sel.querySelectorAll("option").forEach((opt) => {
+        if (opt.value !== "admin" && opt.value !== "cashier") {
+          opt.disabled = true;
+        }
+      });
+    });
+  }
+  // Hide Add User if limit reached
+  if (plan.userLimit > 0 && currentUserCount >= plan.userLimit) {
+    addUserBtn.disabled = true;
+    addUserBtn.title = "User limit reached for your plan";
+  } else {
+    addUserBtn.disabled = false;
+    addUserBtn.title = "";
+  }
 }
 
 // Initialize page

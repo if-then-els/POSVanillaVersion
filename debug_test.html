@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test</title>
+</head>
+<body>
+    <h1>Debug Sales Page Product Loading</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function testInventoryFetch() {
+            const output = document.getElementById('output');
+            
+            try {
+                output.innerHTML += '<p>Fetching from /getInventory...</p>';
+                const response = await fetch('/getInventory', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                });
+                
+                output.innerHTML += `<p>Response status: ${response.status}</p>`;
+                output.innerHTML += `<p>Response ok: ${response.ok}</p>`;
+                
+                const data = await response.json();
+                output.innerHTML += `<p>Response data: ${JSON.stringify(data, null, 2)}</p>`;
+                
+            } catch (error) {
+                output.innerHTML += `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        testInventoryFetch();
+    </script>
+</body>
+</html>

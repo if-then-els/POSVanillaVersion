@@ -1,5 +1,7 @@
 const Users = require("../models/user");
 const Business = require("../models/businessDetails");
+const Subscription = require("../models/subscription.model");
+const Plan = require("../models/plan.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendResetLinkEmail = require("../utils/emailService");
@@ -17,6 +19,35 @@ exports.registerUser = async (req, res) => {
     const businessExists = await Business.findById(business);
     if (!businessExists) {
       return res.status(400).json({ message: "Business not found" });
+    }
+
+    // Get subscription and plan
+    const subscription = await Subscription.findOne({ business });
+    const plan = await Plan.findById(subscription.plan);
+
+    // Count current active users
+    const userCount = await Users.countDocuments({
+      business,
+      status: "active",
+    });
+
+    // Enforce user limit
+    if (plan.userLimit > 0 && userCount >= plan.userLimit) {
+      return res
+        .status(403)
+        .json({ message: "User limit reached for your plan" });
+    }
+
+    // Enforce role management
+    if (
+      !plan.roleManagement &&
+      req.body.role &&
+      req.body.role !== "admin" &&
+      req.body.role !== "cashier"
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Role management not available for your plan" });
     }
 
     const newUser = new Users({

@@ -55,6 +55,7 @@ async function loadProducts() {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     const data = await response.json();
     if (data && data.products) {

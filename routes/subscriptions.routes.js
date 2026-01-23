@@ -4,7 +4,7 @@ const subscriptionsController = require("../controllers/subscriptions.controller
 const subscriptionMiddleware = require("../middleware/subscription.middleware");
 const Plan = require("../models/plan.model");
 const Subscription = require("../models/subscription.model");
-
+const auth = require("../middleware/auth.middleware");
 // Route to upgrade/create a subscription (triggered internally after payment verification)
 router.post(
   "/subscriptions/upgrade",
@@ -22,7 +22,7 @@ router.post(
 // Get subscription details
 router.get(
   "/subscriptions/details",
-
+  auth.verifyToken,
   subscriptionsController.getSubscriptionDetails
 );
 

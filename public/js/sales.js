@@ -1,30 +1,36 @@
 // Theme Toggle
 const themeToggle = document.getElementById("theme-toggle");
-themeToggle.addEventListener("click", () => {
-  document.documentElement.classList.toggle("dark");
-  const icon = themeToggle.querySelector("i");
-  icon.classList.toggle("fa-moon");
-  icon.classList.toggle("fa-sun");
-});
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+    const icon = themeToggle.querySelector("i");
+    if (icon) {
+      icon.classList.toggle("fa-moon");
+      icon.classList.toggle("fa-sun");
+    }
+  });
+}
 
 // Sidebar Toggle
 const toggleSidebar = document.getElementById("toggle-sidebar");
 const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
 
-toggleSidebar.addEventListener("click", () => {
-  sidebar.classList.toggle("translate-x-0");
-  sidebar.classList.toggle("-translate-x-full");
-  overlay.classList.toggle("hidden");
-  document.body.classList.toggle("sidebar-open");
-});
+if (toggleSidebar && sidebar && overlay) {
+  toggleSidebar.addEventListener("click", () => {
+    sidebar.classList.toggle("translate-x-0");
+    sidebar.classList.toggle("-translate-x-full");
+    overlay.classList.toggle("hidden");
+    document.body.classList.toggle("sidebar-open");
+  });
 
-overlay.addEventListener("click", () => {
-  sidebar.classList.add("-translate-x-full");
-  sidebar.classList.remove("translate-x-0");
-  overlay.classList.add("hidden");
-  document.body.classList.remove("sidebar-open");
-});
+  overlay.addEventListener("click", () => {
+    sidebar.classList.add("-translate-x-full");
+    sidebar.classList.remove("translate-x-0");
+    overlay.classList.add("hidden");
+    document.body.classList.remove("sidebar-open");
+  });
+}
 // Scroll Reveal Animation
 const observerOptions = {
   threshold: 0.1,
@@ -85,7 +91,12 @@ function showToast(message, type = "info") {
       </div>
     `;
 
-  document.getElementById("toast-container").appendChild(toast);
+  const toastContainer = document.getElementById("toast-container");
+  if (toastContainer) {
+    toastContainer.appendChild(toast);
+  } else {
+    console.warn("Toast container not found");
+  }
 
   setTimeout(() => {
     toast.style.transform = "translateX(100%)";
@@ -103,7 +114,10 @@ function createParticle() {
   particle.style.width = Math.random() * 4 + 1 + "px";
   particle.style.height = particle.style.width;
   particle.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
-  document.querySelector(".gradient-bg").appendChild(particle);
+  const gradientBg = document.querySelector(".gradient-bg");
+  if (gradientBg) {
+    gradientBg.appendChild(particle);
+  }
 
   setTimeout(() => {
     particle.remove();
@@ -185,11 +199,15 @@ async function loadProductsForSale() {
   }
 
   try {
+    console.log("Fetching products from /getInventory...");
     const response = await fetch("/getInventory", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for sending cookies with token
     });
+
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
 
     if (!response.ok) {
       if (response.status === 403) {
@@ -204,15 +222,26 @@ async function loadProductsForSale() {
     }
 
     const data = await response.json();
-    allProducts = data.products || []; // Store fetched products globally
+    console.log("Received data:", data);
+    
+    // Handle both possible response structures
+    if (data.products && Array.isArray(data.products)) {
+      allProducts = data.products;
+    } else if (Array.isArray(data)) {
+      allProducts = data;
+    } else {
+      allProducts = [];
+    }
+    
+    console.log("All products after fetch:", allProducts);
     renderProducts(); // Render products after fetching
     toggleSalesFeatures(true); // Ensure features are enabled after successful load
   } catch (error) {
+    console.error("Error loading products:", error);
     const productsGrid = document.getElementById("products-grid");
     if (productsGrid) {
       productsGrid.innerHTML = `<div class="text-center p-8 text-red-500">Failed to load products. ${error.message}</div>`;
     }
-    console.error("Error loading products:", error);
     showToast("Failed to load products. Please check your network.", "error");
     toggleSalesFeatures(false); // Disable features if products cannot be loaded
   }
@@ -224,8 +253,11 @@ function renderProducts() {
   if (!productsGrid) return;
   productsGrid.innerHTML = ""; // Clear existing products
 
+  console.log("Rendering products. Count:", allProducts.length);
+  
   if (allProducts.length === 0) {
-    productsGrid.innerHTML = `<div class="text-center p-8 text-gray-500">No products found.</div>`;
+    productsGrid.innerHTML = `<div class="text-center p-8 text-gray-500">No products found. Make sure you have products in inventory.</div>`;
+    return;
   }
 
   allProducts.forEach((product) => {

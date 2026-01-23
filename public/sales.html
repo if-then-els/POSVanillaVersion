@@ -1,22 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Modern POS System for efficient sales and checkout management">
-    <title>Sales - POS System</title>
+    <title>Sales - SwiftPOS</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Google Fonts for better typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Custom CSS - PRESERVED -->
     <link rel="stylesheet" href="./css/styles.css" />
-    
 
     <script>
-      // Tailwind configuration from manageSubscriptions.html
+      // Immediate theme check
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+
       tailwind.config = {
         darkMode: "class",
         theme: {
@@ -26,6 +35,19 @@
             },
             colors: {
               primary: {
+                50: "#f8fafc",
+                100: "#f1f5f9",
+                200: "#e2e8f0",
+                300: "#cbd5e1",
+                400: "#94a3b8",
+                500: "#64748b",
+                600: "#475569",
+                700: "#334155",
+                800: "#1e293b",
+                900: "#0f172a",
+                950: "#020617",
+              },
+              accent: {
                 50: "#f0f9ff",
                 100: "#e0f2fe",
                 200: "#bae6fd",
@@ -37,18 +59,6 @@
                 800: "#075985",
                 900: "#0c4a6e",
               },
-              accent: {
-                50: "#fdf4ff",
-                100: "#fae8ff",
-                200: "#f5d0fe",
-                300: "#f0abfc",
-                400: "#e879f9",
-                500: "#d946ef",
-                600: "#c026d3",
-                700: "#a21caf",
-                800: "#86198f",
-                900: "#701a75",
-              },
               success: {
                 50: "#f0fdf4",
                 100: "#dcfce7",
@@ -58,937 +68,681 @@
                 500: "#22c55e",
                 600: "#16a34a",
                 700: "#15803d",
-                800: "#166534",
-                900: "#14532d",
+              },
+              warning: {
+                50: "#fffbeb",
+                100: "#fef3c7",
+                400: "#fbbf24",
+                500: "#f59e0b",
+                600: "#d97706",
               },
             },
             animation: {
-              float: "float 6s ease-in-out infinite",
-              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-              "bounce-slow": "bounce 3s infinite",
-              "spin-slow": "spin 8s linear infinite",
-              gradient: "gradient 15s ease infinite",
-              "slide-up": "slideUp 0.5s ease-out",
-              "slide-in": "slideIn 0.6s ease-out",
-              "scale-in": "scaleIn 0.4s ease-out",
-              glow: "glow 2s ease-in-out infinite alternate",
+              "fade-in": "fadeIn 0.6s ease-out forwards",
+              "slide-up": "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              "slide-in": "slideIn 0.6s ease-out forwards",
+              "pulse-soft": "pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "float-slow": "float 6s ease-in-out infinite",
+              "float-slower": "float 8s ease-in-out infinite",
+              "scale-in": "scaleIn 0.4s ease-out forwards",
             },
             keyframes: {
-              float: {
-                "0%, 100%": { transform: "translateY(0px)" },
-                "50%": { transform: "translateY(-20px)" },
-              },
-              gradient: {
-                "0%, 100%": {
-                  "background-size": "200% 200%",
-                  "background-position": "left center",
-                },
-                "50%": {
-                  "background-size": "200% 200%",
-                  "background-position": "right center",
-                },
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
               },
               slideUp: {
-                "0%": { transform: "translateY(100px)", opacity: "0" },
-                "100%": { transform: "translateY(0)", opacity: "1" },
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
               },
               slideIn: {
-                "0%": { transform: "translateX(-100px)", opacity: "0" },
+                "0%": { transform: "translateX(-20px)", opacity: "0" },
                 "100%": { transform: "translateX(0)", opacity: "1" },
               },
               scaleIn: {
-                "0%": { transform: "scale(0.8)", opacity: "0" },
+                "0%": { transform: "scale(0.95)", opacity: "0" },
                 "100%": { transform: "scale(1)", opacity: "1" },
               },
-              glow: {
-                "0%": { boxShadow: "0 0 20px rgba(14, 165, 233, 0.5)" },
-                "100%": { boxShadow: "0 0 40px rgba(14, 165, 233, 0.8)" },
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-15px)" },
               },
-            },
-            backdropBlur: {
-              xs: "2px",
+              pulseSoft: {
+                "0%, 100%": { opacity: "1" },
+                "50%": { opacity: "0.7" },
+              },
             },
           },
         },
       };
     </script>
+
     <style>
-      /* Custom styles from manageSubscriptions.html */
+      :root {
+        /* Light Mode Variables */
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(226, 232, 240, 0.6);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --scroll-track: rgba(241, 245, 249, 0.5);
+        --scroll-thumb: rgba(148, 163, 184, 0.5);
+        --input-bg: rgba(255, 255, 255, 0.5);
+      }
 
-#chatInput {
-  max-height: 150px;
-  overflow-y: auto;
-}
-
-
-  .transition-all {
-    transition: all 0.3s ease;
-  }
-  .scale-90 {
-    transform: scale(0.9);
-  }
-  .opacity-0 {
-    opacity: 0;
-  }
-  .translate-y-2 {
-    transform: translateY(0.5rem);
-  }
-
+      .dark {
+        /* Dark Mode Variables */
+        --glass-bg: rgba(15, 23, 42, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        --card-bg: rgba(30, 41, 59, 0.4);
+        --scroll-track: rgba(15, 23, 42, 0.5);
+        --scroll-thumb: rgba(71, 85, 105, 0.5);
+        --input-bg: rgba(15, 23, 42, 0.6);
+      }
 
       body {
         font-family: "Inter", sans-serif;
+        overflow-x: hidden;
       }
 
-      .glass {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+      /* Premium Glass Classes */
+      .glass-premium {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
       }
 
-      .glass-dark {
-        background: rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      .gradient-bg {
-        background: linear-gradient(-45deg, #0ea5e9, #d946ef, #22c55e, #f59e0b);
-        background-size: 400% 400%;
-        animation: gradient 15s ease infinite;
+      .glass-card:hover {
+        transform: translateY(-4px);
+        background: var(--glass-bg);
+        border-color: rgba(14, 165, 233, 0.3);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      }
+      .dark .glass-card:hover {
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       }
 
-      .particle {
-        position: absolute;
-        border-radius: 50%;
-        pointer-events: none;
-        opacity: 0.6;
-        animation: float 6s ease-in-out infinite;
+      /* Logic-critical: Collapsible cart styles */
+      #cart-collapsed { display: flex; }
+      #cart-expanded { display: none; }
+      .cart-has-items #cart-collapsed { display: none; }
+      .cart-has-items #cart-expanded { display: block; }
+
+      /* Inputs */
+      .input-premium {
+        background: var(--input-bg);
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(4px);
+        transition: all 0.2s;
+      }
+      .input-premium:focus {
+        background: var(--card-bg);
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+        outline: none;
       }
 
-      .particle:nth-child(1) { animation-delay: 0s; }
-      .particle:nth-child(2) { animation-delay: 1s; }
-      .particle:nth-child(3) { animation-delay: 2s; }
-      .particle:nth-child(4) { animation-delay: 3s; }
-      .particle:nth-child(5) { animation-delay: 4s; }
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: var(--scroll-track); }
+      ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--glass-border); }
 
-      .hover-lift {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .hover-lift:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      }
-
-      .neon-border {
-        position: relative;
-        overflow: hidden;
-      }
-
-      .neon-border::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(14, 165, 233, 0.4),
-          transparent
-        );
-        transition: left 0.5s;
-      }
-
-      .neon-border:hover::before {
-        left: 100%;
-      }
-
-      .typing-animation {
-        overflow: hidden;
-        border-right: 2px solid #0ea5e9;
-        white-space: nowrap;
-        animation: typing 3.5s steps(40, end),
-          blink-caret 0.75s step-end infinite;
-      }
-
-      @keyframes typing {
-        from { width: 0; }
-        to { width: 100%; }
-      }
-
-      @keyframes blink-caret {
-        from, to { border-color: transparent; }
-        50% { border-color: #0ea5e9; }
-      }
-
-      .progress-ring { transform: rotate(-90deg); }
-      .progress-ring-circle {
-        transition: stroke-dashoffset 0.35s;
-        transform-origin: 50% 50%;
-      }
-
-      .morphing-blob {
-        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-        animation: morph 8s ease-in-out infinite;
-      }
-
-      @keyframes morph {
-        0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-        50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-        100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-      }
-
-      .scroll-reveal {
-        opacity: 0;
-        transform: translateY(50px);
-        transition: all 0.6s ease-out;
-      }
-
-      .scroll-reveal.revealed {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      /* Original sales.html custom styles - adapted for dark theme */
-      .smooth-transition {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      /* Better focus states - adapted for dark theme */
-      [type="text"]:focus, [type="email"]:focus, textarea:focus, select:focus {
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); /* Using primary-500 from new palette */
-        border-color: #0ea5e9; /* Using primary-500 from new palette */
-      }
-      
-      /* Custom scrollbar for dark theme */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #333; /* Darker track */
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #555; /* Darker thumb */
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #777; /* Lighter thumb on hover */
-      }
-      
-      /* Collapsible cart styles - adapted for dark theme */
-      #cart-collapsed {
-        display: flex;
-      }
-      #cart-expanded {
-        display: none;
-      }
-      .cart-has-items #cart-collapsed {
-        display: none;
-      }
-      .cart-has-items #cart-expanded {
-        display: block;
-      }
-@media (max-width: 767px) {
-  body.sidebar-open {
-    overflow: hidden;
-  }
-  
-  #sidebar {
-    transform: translateX(-100%);
-  }
-  
-  #sidebar.translate-x-0 {
-    transform: translateX(0);
-  }
-}
-
-/* Sidebar Collapse Styles */
-.sidebar-collapsed #sidebar {
-  width: 4rem; /* Adjust as needed */
-  overflow: hidden;
-}
-
-.sidebar-collapsed #sidebar .sidebar-text {
-  display: none;
-}
-
-.sidebar-collapsed #sidebar .flex.flex-col {
-  display: none;
-}
-
-.sidebar-collapsed #sidebar nav {
-  padding: 0.5rem;
-}
-
-.sidebar-collapsed #sidebar li a {
-  justify-content: center;
-  padding: 0.75rem;
-}
-
-.sidebar-collapsed #sidebar h1 {
-  display: none;
-}
-
-.sidebar-collapsed #sidebar .border-b {
-  justify-content: center;
-  padding: 0.5rem;
-}
+      /* Animation Delays */
+      .delay-100 { animation-delay: 100ms; }
+      .delay-200 { animation-delay: 200ms; }
+      .delay-300 { animation-delay: 300ms; }
     </style>
   </head>
-  <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
+
+  <body class="bg-primary-50 text-primary-900 dark:bg-primary-950 dark:text-white transition-colors duration-300 min-h-screen">
+    
     <!-- Animated Background -->
-    <div class="fixed inset-0 z-0">
-      <div class="gradient-bg absolute inset-0 opacity-20"></div>
-      <div class="absolute inset-0">
-        <div class="particle w-2 h-2 bg-primary-400 top-1/4 left-1/4"></div>
-        <div class="particle w-3 h-3 bg-accent-400 top-3/4 left-3/4"></div>
-        <div class="particle w-1 h-1 bg-success-400 top-1/2 left-1/2"></div>
-        <div class="particle w-2 h-2 bg-yellow-400 top-1/3 left-2/3"></div>
-        <div class="particle w-1 h-1 bg-pink-400 top-2/3 left-1/3"></div>
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+      <div class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-primary-950 dark:via-primary-900 dark:to-primary-950 transition-colors duration-500"></div>
+      
+      <div class="absolute inset-0 opacity-30 dark:opacity-20">
+        <div class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-accent-400/20 dark:bg-accent-500/10 rounded-full blur-3xl animate-float-slower"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-primary-400/20 dark:bg-primary-500/10 rounded-full blur-3xl animate-float-slow" style="animation-delay: 2s"></div>
+      </div>
+      
+      <!-- Grid Overlay -->
+      <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" 
+           style="background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0); background-size: 32px 32px;">
       </div>
     </div>
 
-    <!-- Dark Mode Toggle -->
-    <button
-      id="theme-toggle"
-     
-    >
-      <!-- <i
-        class="fas fa-moon text-yellow-400 group-hover:rotate-12 transition-transform duration-300"
-      ></i> -->
-    </button>
-
     <!-- Mobile Navigation -->
-    <nav
-      class="md:hidden flex justify-between items-center p-4 glass fixed top-0 w-full z-40 backdrop-blur-md"
-    >
-      <div class="flex items-center space-x-2">
-        <div
-          class="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg flex items-center justify-center"
-        >
+    <nav class="md:hidden fixed top-0 w-full z-40 glass-premium border-b border-primary-200/50 dark:border-primary-700/50 px-4 h-16 flex justify-between items-center transition-all duration-300">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center shadow-lg">
           <i class="fas fa-bolt text-white text-sm"></i>
         </div>
-        <h1
-          class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
-        >
-          POS 
-        </h1>
+        <span class="text-lg font-black tracking-tight text-primary-900 dark:text-white">
+          Swift<span class="text-accent-500">POS</span>
+        </span>
       </div>
-      <button
-        id="toggle-sidebar"
-        class="p-2 hover:bg-white/10 rounded-lg transition-colors"
-      >
-        <i class="fas fa-bars text-xl text-white"></i>
-      </button>
+      <div class="flex items-center gap-3">
+         <!-- Mobile Theme Toggle -->
+         <button onclick="toggleTheme()" class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800 transition-colors">
+            <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+            <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+         </button>
+         <button id="toggle-sidebar" class="p-2 text-primary-600 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+         </button>
+      </div>
     </nav>
 
+    <!-- Main Layout -->
     <div class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10">
-      <!-- Sidebar - EMPTY DIV, CONTENT TO BE RENDERED BY sidebar.js -->
+      
+      <!-- Sidebar Container -->
       <div
-  id="sidebar"
-  class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:!translate-x-0 transition-all duration-500 ease-out"
-></div>
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-premium transform -translate-x-full md:translate-x-0 transition-transform duration-500 ease-out border-r border-primary-200/50 dark:border-primary-700/50 shadow-2xl md:shadow-none"
+      >
+        <!-- Sidebar content loaded via JS -->
+      </div>
 
-      <!-- Overlay -->
-      <div id="overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"></div>
+      <!-- Overlay for Mobile Sidebar -->
+      <div
+        id="overlay"
+        class="fixed inset-0 bg-primary-900/20 dark:bg-black/50 backdrop-blur-sm hidden z-40 transition-opacity duration-300"
+      ></div>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative" id="main-content">
-        <div class="max-w-5xl mx-auto">
-          <!-- Page header with breadcrumbs -->
-          <div class="mb-6 scroll-reveal">
-            <nav class="flex mb-2" aria-label="Breadcrumb">
-              <ol class="inline-flex items-center space-x-1 md:space-x-2">
+      <main class="flex-1 overflow-y-auto md:ml-64 p-4 md:p-8 relative scroll-smooth" id="main-content">
+        <div class="max-w-7xl mx-auto pb-24">
+          
+          <!-- Header & Breadcrumbs -->
+          <div class="mb-8 animate-slide-up">
+            <nav class="flex mb-3" aria-label="Breadcrumb">
+              <ol class="inline-flex items-center space-x-1 md:space-x-2 text-sm">
                 <li class="inline-flex items-center">
-                  <a href="#" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-primary-400">
+                  <a href="#" class="inline-flex items-center text-primary-500 hover:text-accent-500 dark:text-primary-400 dark:hover:text-accent-400 transition-colors">
                     <i class="fas fa-home mr-2"></i>
                     Dashboard
                   </a>
                 </li>
-                <li aria-current="page">
+                <li>
                   <div class="flex items-center">
-                    <i class="fas fa-chevron-right text-gray-600 mx-2 text-xs"></i>
-                    <span class="ml-1 text-sm font-medium text-white md:ml-2">Sales</span>
+                    <i class="fas fa-chevron-right text-primary-300 dark:text-primary-600 mx-2 text-xs"></i>
+                    <span class="text-primary-800 dark:text-primary-200 font-medium">Sales</span>
                   </div>
                 </li>
               </ol>
             </nav>
             
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-white">Sales & Checkout</h1>
-                <p class="text-gray-400 mt-1">Process sales and manage transactions</p>
+                <h1 class="text-3xl md:text-4xl font-black text-primary-900 dark:text-white tracking-tight">Sales & Checkout</h1>
+                <p class="text-primary-500 dark:text-primary-400 mt-1 font-medium">Process new sales and manage transactions.</p>
               </div>
-              <div class="mt-3 sm:mt-0">
-                <!-- <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                  <i class="fas fa-plus mr-2"></i> New Sale
-                </button> -->
-              </div>
+              
+              <!-- Desktop Theme Toggle -->
+              <button onclick="toggleTheme()" class="hidden md:flex items-center justify-center w-10 h-10 rounded-xl glass-card text-primary-500 hover:text-accent-500 dark:text-primary-400 transition-colors">
+                  <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                  <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+              </button>
             </div>
           </div>
 
-          <!-- Main grid -->
+          <!-- Main Grid -->
           <div class="grid gap-6 lg:grid-cols-3">
-            <!-- Product Selection -->
-            <div class="lg:col-span-2">
-              <div id="products-section" class="glass rounded-3xl shadow-lg border border-white/20 overflow-hidden hover-lift scroll-reveal">
-                <div class="p-4 sm:p-6 border-b border-white/20 bg-black/10">
-                  <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-white flex items-center">
-                      <i class="fas fa-box mr-2 text-primary-400"></i> Products
-                    </h2>
-                    <div class="relative">
-                      <input
-                        type="text"
-                        placeholder="Search products..."
-                        class="pl-8 pr-4 py-2 border border-gray-600 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-full bg-gray-800 text-white placeholder-gray-400"
-                      />
-                      <i class="fas fa-search absolute left-3 top-3 text-gray-400 text-sm"></i>
+            
+            <!-- Product Selection (Left Column) -->
+            <div class="lg:col-span-2 space-y-6">
+              
+              <!-- Search & Filter Card -->
+              <div id="products-section" class="glass-premium rounded-2xl p-6 animate-slide-up delay-100">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                  <h2 class="text-lg font-bold text-primary-900 dark:text-white flex items-center gap-2">
+                    <div class="p-2 rounded-lg bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400">
+                      <i class="fas fa-box"></i>
                     </div>
+                    Products
+                  </h2>
+                  <div class="relative w-full sm:w-72">
+                    <input
+                      type="text"
+                      placeholder="Search products..."
+                      class="w-full pl-10 pr-4 py-2.5 rounded-xl input-premium text-sm text-primary-900 dark:text-white placeholder-primary-400"
+                    />
+                    <i class="fas fa-search absolute left-3.5 top-3 text-primary-400 text-sm"></i>
                   </div>
                 </div>
-                <div class="p-2 sm:p-4">
-                  <div
+
+                <!-- Products Grid -->
+                <div
                     id="products-grid"
-                    class="grid gap-3 sm:gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                    class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
                   >
-                    <!-- Products will be loaded here by JavaScript -->
-                    <div class="animate-pulse glass-dark rounded-xl p-4">
-                      <div class="bg-gray-700 h-32 rounded-md"></div>
-                      <div class="mt-2">
-                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                    <!-- Product Skeleton Loaders (Styling Updated) -->
+                    <div class="glass-card rounded-2xl p-4 animate-pulse">
+                      <div class="bg-primary-200 dark:bg-primary-700 h-32 rounded-xl mb-3 w-full"></div>
+                      <div class="space-y-2">
+                        <div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-1/2"></div>
                       </div>
                     </div>
-                    <!-- Repeat skeleton loader as needed -->
-                     <div class="animate-pulse glass-dark rounded-xl p-4">
-                      <div class="bg-gray-700 h-32 rounded-md"></div>
-                      <div class="mt-2">
-                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                    <!-- Repeat Skeletons -->
+                    <div class="glass-card rounded-2xl p-4 animate-pulse">
+                      <div class="bg-primary-200 dark:bg-primary-700 h-32 rounded-xl mb-3 w-full"></div>
+                      <div class="space-y-2">
+                        <div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-1/2"></div>
                       </div>
                     </div>
-                     <div class="animate-pulse glass-dark rounded-xl p-4">
-                      <div class="bg-gray-700 h-32 rounded-md"></div>
-                      <div class="mt-2">
-                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
+                    <div class="glass-card rounded-2xl p-4 animate-pulse">
+                      <div class="bg-primary-200 dark:bg-primary-700 h-32 rounded-xl mb-3 w-full"></div>
+                      <div class="space-y-2">
+                        <div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-3/4"></div>
+                        <div class="h-4 bg-primary-200 dark:bg-primary-700 rounded w-1/2"></div>
                       </div>
                     </div>
-                     <div class="animate-pulse glass-dark rounded-xl p-4">
-                      <div class="bg-gray-700 h-32 rounded-md"></div>
-                      <div class="mt-2">
-                        <div class="h-4 bg-gray-700 rounded w-3/4"></div>
-                        <div class="h-4 bg-gray-700 rounded w-1/2 mt-2"></div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Shopping Cart -->
-            <div class="lg:col-span-1">
-              <!-- Mobile floating cart container -->
-             <!-- Mobile floating cart container - UPDATED TO LEFT SIDE -->
-<div class="lg:hidden fixed bottom-4 left-4 z-30">
-  <!-- Floating cart button (always visible) -->
-  <div
-    id="mobile-cart-button"
-    class="bg-gradient-to-r from-primary-500 to-accent-500 rounded-full shadow-lg border border-white/20 cursor-pointer hover:shadow-xl transition-all duration-300 w-16 h-16 flex items-center justify-center relative animate-bounce-slow"
-    onclick="toggleMobileCart()"
-  >
-    <i class="fas fa-shopping-cart text-2xl text-white"></i>
-    <span
-      id="mobile-cart-badge"
-      class="absolute -top-2 -right-2 bg-success-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
-      >0</span
-    >
-  </div>
-
-  <!-- Expanded Cart Panel -->
-  <div
-    id="mobile-cart-panel"
-    class="hidden glass-dark rounded-3xl shadow-lg border border-white/20 w-[calc(100vw-2rem)] max-w-md transition-all duration-300 -translate-y-2 animate-scale-in"
-    style="max-height: 70vh; left: 1rem; right: auto;"
-  >
-    <div class="p-4 border-b border-white/20 bg-black/10 flex justify-between items-center">
-      <div>
-        <h2 class="text-lg font-semibold text-white flex items-center">
-          <i class="fas fa-shopping-cart mr-2 text-primary-400"></i>
-          Cart
-        </h2>
-        <p id="mobile-cart-count" class="text-sm text-gray-400 mt-1">
-          0 items in cart
-        </p>
-      </div>
-      <button
-        onclick="toggleMobileCart()"
-        class="p-2 rounded-md hover:bg-white/10 text-gray-400"
-      >
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-
-    <div
-      id="mobile-cart-items"
-      class="p-4 space-y-4 overflow-y-auto"
-      style="max-height: calc(70vh - 180px);"
-    >
-      <div class="text-center py-8 text-gray-600 flex flex-col items-center">
-        <i class="fas fa-shopping-cart text-3xl mb-2"></i>
-        <p>Your cart is empty</p>
-        <p class="text-sm mt-1">Add products to get started</p>
-      </div>
-    </div>
-
-    <div class="p-4 border-t border-white/20 space-y-4 bg-black/10">
-      <div class="space-y-2">
-        <div class="flex justify-between">
-          <span class="text-gray-400">Subtotal</span>
-          <span id="mobile-cart-subtotal" class="font-medium text-white">KSH 0.00</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400">Tax (10%)</span>
-          <span id="mobile-cart-tax" class="font-medium text-white">KSH 0.00</span>
-        </div>
-      </div>
-      <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
-        <span>Total:</span>
-        <span id="mobile-cart-total" class="text-xl text-primary-400">KSH 0.00</span>
-      </div>
-      <button
-        id="mobile-checkout-btn"
-        class="w-full bg-gradient-to-r from-success-500 to-success-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-        disabled
-      >
-        <i class="fas fa-credit-card mr-2"></i> Checkout
-      </button>
-      <button
-        id="mobile-clear-cart-btn"
-        class="w-full glass-dark text-gray-300 py-2 px-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled
-      >
-      Clear Cart
-      </button>
-    </div>
-  </div>
-</div>
-              <!-- Desktop cart (unchanged) -->
-              <div class="hidden lg:block">
-                <!-- Collapsed Cart (shown when empty) -->
+            <!-- Shopping Cart (Right Column) -->
+            <div class="lg:col-span-1 relative">
+              
+              <!-- Desktop Cart Container -->
+              <div class="hidden lg:block sticky top-6 z-30 transition-all duration-300">
+                
+                <!-- Collapsed State -->
                 <div
                   id="cart-collapsed"
-                  class="glass rounded-3xl shadow-lg border border-white/20 sticky top-6 overflow-hidden cursor-pointer hover-lift"
+                  class="glass-card rounded-2xl p-4 cursor-pointer items-center justify-center gap-3 animate-slide-in hover:scale-105 transition-transform"
                 >
-                  <div class="p-4 flex items-center justify-center" id="toggle-cart">
-                    <div class="relative">
-                      <i class="fas fa-shopping-cart text-2xl text-primary-400"></i>
-                      <span
-                        id="cart-count-badge"
-                        class="absolute -top-2 -right-2 bg-success-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden"
-                        >0</span
-                      >
-                    </div>
-                    <span class="ml-3 font-medium text-white">Cart</span>
+                  <div class="relative">
+                    <i class="fas fa-shopping-cart text-2xl text-accent-500"></i>
+                    <span
+                      id="cart-count-badge"
+                      class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-md hidden"
+                      >0</span
+                    >
                   </div>
+                  <span class="font-bold text-primary-700 dark:text-primary-200">View Cart</span>
                 </div>
 
-                <!-- Expanded Cart (shown when has items or clicked) -->
+                <!-- Expanded State -->
                 <div
                   id="cart-expanded"
-                  class="glass rounded-3xl shadow-lg border border-white/20 sticky top-6 overflow-hidden"
+                  class="glass-premium rounded-3xl shadow-xl border border-primary-200/50 dark:border-primary-700/50 overflow-hidden animate-slide-up"
                 >
-                  <div class="p-4 sm:p-6 border-b border-white/20 bg-black/10 flex justify-between items-center">
+                  <!-- Header -->
+                  <div class="p-5 border-b border-primary-100 dark:border-primary-800 flex justify-between items-center bg-primary-50/50 dark:bg-primary-900/30">
                     <div>
-                      <h2 class="text-lg font-semibold text-white flex items-center">
-                        <i class="fas fa-shopping-cart mr-2 text-primary-400"></i> Cart
+                      <h2 class="text-lg font-bold text-primary-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-shopping-cart text-accent-500"></i>
+                        Current Order
                       </h2>
-                      <p id="cart-count" class="text-sm text-gray-400 mt-1">0 items in cart</p>
+                      <p id="cart-count" class="text-xs text-primary-500 dark:text-primary-400 mt-0.5">0 items</p>
                     </div>
-                    <button id="minimize-cart" class="p-2 rounded-md hover:bg-white/10 text-gray-400">
-                      <i class="fas fa-minus"></i>
+                    <button id="minimize-cart" class="p-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-700 text-primary-400 transition-colors">
+                      <i class="fas fa-chevron-down"></i>
                     </button>
                   </div>
 
-                  <div id="cart-items" class="p-4 sm:p-6 space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto">
-                    <!-- Cart items will be loaded here by JavaScript -->
-                    <div class="text-center py-8 text-gray-600 flex flex-col items-center">
-                      <i class="fas fa-shopping-cart text-3xl mb-2"></i>
-                      <p>Your cart is empty</p>
-                      <p class="text-sm mt-1">Add products to get started</p>
+                  <!-- Items Area -->
+                  <div id="cart-items" class="p-5 space-y-4 min-h-[200px] max-h-[calc(100vh-400px)] overflow-y-auto">
+                    <!-- Empty State -->
+                    <div class="flex flex-col items-center justify-center py-10 text-primary-400 dark:text-primary-600 opacity-60">
+                      <i class="fas fa-shopping-basket text-4xl mb-3"></i>
+                      <p class="text-sm font-medium">Your cart is empty</p>
                     </div>
                   </div>
 
-                  <div class="p-4 sm:p-6 border-t border-white/20 space-y-4 bg-black/10">
-                    <div class="space-y-2">
-                      <div class="flex justify-between">
-                        <!-- <span class="text-gray-400">Subtotal</span>
-                        <span id="cart-subtotal" class="font-medium text-white">KSH 0.00</span> -->
-                      </div>
-                      <div class="flex justify-between">
-                        <!-- <span class="text-gray-400">Tax (10%)</span>
-                        <span id="cart-tax" class="font-medium text-white">KSH 0.00</span> -->
-                      </div>
+                  <!-- Footer -->
+                  <div class="p-5 border-t border-primary-100 dark:border-primary-800 bg-primary-50/80 dark:bg-primary-900/50 space-y-4 backdrop-blur-sm">
+                    <div class="flex justify-between items-center">
+                       <span class="text-primary-500 dark:text-primary-400 font-medium">Total Amount</span>
+                       <span id="cart-total" class="text-2xl font-black text-primary-900 dark:text-white tracking-tight">KES 0.00</span>
                     </div>
-                    <div class="flex justify-between text-lg font-bold border-t border-gray-700 pt-3">
-                      <span>Total:</span>
-                      <span id="cart-total" class="text-xl text-primary-400">KSH 0.00</span>
+
+                    <div class="grid grid-cols-2 gap-3">
+                      <button
+                        id="clear-cart-btn"
+                        class="px-4 py-3 rounded-xl border border-primary-200 dark:border-primary-700 text-primary-600 dark:text-primary-400 font-bold text-sm hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled
+                      >
+                        Clear
+                      </button>
+                      <button
+                        id="checkout-btn"
+                        class="px-4 py-3 rounded-xl bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-bold text-sm shadow-lg shadow-success-500/20 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                        disabled
+                      >
+                        Checkout <i class="fas fa-arrow-right"></i>
+                      </button>
                     </div>
-                    <button
-                      id="checkout-btn"
-                      class="w-full bg-gradient-to-r from-success-500 to-success-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-success-600 hover:to-success-700 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-success-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                      disabled
-                    >
-                      <i class="fas fa-credit-card mr-2"></i> Checkout
-                    </button>
-                    <button
-                      id="clear-cart-btn"
-                      class="w-full glass-dark text-gray-300 py-2 px-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled
-                    >
-                      Clear Cart
-                    </button>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Checkout Modal -->
-            <div id="checkout-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-              <div class="flex items-center justify-center min-h-screen px-4">
+              <!-- Mobile Floating Cart Button -->
+              <div class="lg:hidden fixed bottom-6 left-6 z-30">
                 <div
-                  class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity smooth-transition"
-                  id="checkout-modal-backdrop"
-                ></div>
-
-                <div
-                  class="glass-dark rounded-3xl overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full relative z-10 animate-scale-in"
+                  id="mobile-cart-button"
+                  class="w-16 h-16 rounded-full bg-accent-500 hover:bg-accent-600 text-white shadow-2xl flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-95 animate-bounce-soft border-4 border-white dark:border-primary-900"
+                  onclick="toggleMobileCart()"
                 >
-                  <div class="px-6 py-4 border-b border-white/20 bg-black/10">
-                    <h3 class="text-lg font-medium text-white flex items-center">
-                      <i class="fas fa-cash-register mr-2 text-primary-400"></i> Complete Checkout
-                    </h3>
-                  </div>
-
-                  <form id="checkout-form">
-                    <div class="px-6 py-4 space-y-4">
-                      <div class="space-y-3">
-                        <label
-                          for="customer-name"
-                          class="block text-sm font-medium text-gray-300"
-                        >
-                          Customer Name <span class="text-red-400">*</span>
-                        </label>
-                        <div class="relative">
-                          <i class="fas fa-user absolute left-3 top-3 text-gray-400 text-sm"></i>
-                          <input
-                            id="customer-name"
-                            name="customerName"
-                            class="w-full pl-10 border border-gray-600 rounded-xl shadow-sm p-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-800 text-white placeholder-gray-400"
-                            placeholder="Enter customer name"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <!-- <div class="space-y-3">
-                        <label
-                          for="customer-email"
-                          class="block text-sm font-medium text-gray-300"
-                        >Customer Email</label>
-                        <div class="relative">
-                          <i class="fas fa-envelope absolute left-3 top-3 text-gray-400 text-sm"></i>
-                          <input
-                            id="customer-email"
-                            name="customerEmail"
-                            type="email"
-                            class="w-full pl-10 border border-gray-600 rounded-xl shadow-sm p-2 focus:outline-none focus:ring-primary-500 focus:border-primary-500 bg-gray-800 text-white placeholder-gray-400"
-                            placeholder="Enter customer email (optional)"
-                          />
-                        </div>
-                      </div> -->
-
-                      <div class="space-y-3">
-                        <label class="block text-sm font-medium text-gray-300"
-                          >Payment Method</label
-                        >
-                        <div class="grid grid-cols-3 gap-2">
-                          <div>
-                            <input
-                              type="radio"
-                              id="payment-cash"
-                              name="paymentMethod"
-                              value="cash"
-                              checked
-                              class="hidden peer"
-                            />
-                            <label
-                              for="payment-cash"
-                              class="flex flex-col items-center p-3 border border-gray-600 rounded-xl cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-500/20 hover:bg-white/10 text-gray-300"
-                            >
-                              <i class="fas fa-money-bill-wave text-xl text-primary-400 mb-1"></i>
-                              <span class="text-sm">Cash</span>
-                            </label>
-                          </div>
-                          <div>
-                            <input
-                              type="radio"
-                              id="payment-credit"
-                              name="paymentMethod"
-                              value="credit"
-                              class="hidden peer"
-                            />
-                            <label
-                              for="payment-credit"
-                              class="flex flex-col items-center p-3 border border-gray-600 rounded-xl cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-500/20 hover:bg-white/10 text-gray-300"
-                            >
-                              <i class="fas fa-credit-card text-xl text-primary-400 mb-1"></i>
-                              <span class="text-sm">Credit Card</span>
-                            </label>
-                          </div>
-                          <div>
-                            <input
-                              type="radio"
-                              id="payment-online"
-                              name="paymentMethod"
-                              value="online"
-                              class="hidden peer"
-                            />
-                            <label
-                              for="payment-online"
-                              class="flex flex-col items-center p-3 border border-gray-600 rounded-xl cursor-pointer peer-checked:border-primary-500 peer-checked:bg-primary-500/20 hover:bg-white/10 text-gray-300"
-                            >
-                              <i class="fas fa-globe text-xl text-primary-400 mb-1"></i>
-                              <span class="text-sm">Mpesa</span>
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="mt-4 space-y-3 rounded-xl bg-black/10 p-4 border border-white/20">
-                        <h4 class="font-semibold text-white flex items-center">
-                          <i class="fas fa-receipt mr-2 text-primary-400"></i> Order Summary
-                        </h4>
-                        <div id="checkout-items" class="space-y-3 text-sm divide-y divide-gray-700">
-                          <!-- Order items will be loaded here by JavaScript -->
-                        </div>
-                        <div class="pt-3 space-y-2">
-                          <div class="flex justify-between text-gray-400">
-                            <!-- <span>Subtotal</span>
-                            <span id="checkout-subtotal" class="text-white">KES 0.00</span> -->
-                          </div>
-                          <div class="flex justify-between text-gray-400">
-                            <!-- <span>Tax (10%)</span> -->
-                            <!-- <span id="checkout-tax" class="text-white">KES 0.00</span> -->
-                          </div>
-                          <div class="flex justify-between font-bold text-white border-t border-gray-700 pt-2">
-                            <span>Total</span>
-                            <span id="checkout-total" class="text-primary-400">KES 0.00</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Cash payment section (hidden by default) -->
-                      <div id="cash-payment-section" class="mt-4 space-y-3 hidden">
-                        <label class="block text-sm font-medium text-gray-300">Cash Received</label>
-                        <input
-                          type="number"
-                          id="cash-received"
-                          min="0"
-                          step="0.01"
-                          class="w-full border border-gray-600 rounded-xl p-2 bg-gray-800 text-white placeholder-gray-400"
-                          placeholder="Enter amount received"
-                        />
-                        <div class="flex justify-between text-success-400 font-semibold">
-                          <span>Change:</span>
-                          <span id="cash-change">KES 0.00</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="px-6 py-4 bg-black/10 text-right space-x-3 border-t border-white/20">
-                      <button
-                        type="button"
-                        id="checkout-cancel"
-                        class="px-4 py-2 text-sm font-medium text-gray-300 glass-dark rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 smooth-transition"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        id="process-sale-btn"
-                        class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-success-500 to-success-600 rounded-xl hover:from-success-600 hover:to-success-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success-500 smooth-transition inline-flex items-center"
-                      >
-                        <i class="fas fa-check-circle mr-2"></i> Process Sale
-                      </button>
-                    </div>
-                  </form>
+                  <i class="fas fa-shopping-cart text-xl"></i>
+                  <span
+                    id="mobile-cart-badge"
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-white dark:border-primary-900 hidden"
+                  >0</span>
                 </div>
               </div>
-            </div>
 
-            <!-- Toast notification container -->
-            <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"></div>
-            
-            <!-- Subscription Inactive Modal -->
-            <div id="subscription-inactive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center">
-                <div class="glass-dark rounded-3xl p-8 max-w-md w-full text-center relative animate-scale-in">
-                    <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-6"></i>
-                    <h2 class="text-2xl font-bold text-white mb-4">Subscription Expired!</h2>
-                    <p class="text-gray-300 mb-6">Your subscription has expired or is inactive. Please renew your plan to continue using sales functionalities.</p>
-                    <a href="/manageSubscriptions.html" class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 inline-flex items-center">
-                        <i class="fas fa-dollar-sign mr-2"></i> Manage Subscription
-                    </a>
+              <!-- Mobile Cart Panel -->
+              <div
+                id="mobile-cart-panel"
+                class="lg:hidden fixed bottom-24 left-4 right-4 z-40 glass-premium rounded-3xl shadow-2xl hidden transform transition-all duration-300 origin-bottom-left"
+                style="max-height: 70vh;"
+              >
+                <!-- Mobile Cart Header -->
+                <div class="p-4 border-b border-primary-100 dark:border-primary-800 flex justify-between items-center bg-primary-50/50 dark:bg-primary-900/50">
+                   <h3 class="font-bold text-primary-900 dark:text-white flex items-center gap-2">
+                     <i class="fas fa-shopping-cart text-accent-500"></i> Cart
+                     <span id="mobile-cart-count" class="text-xs font-normal text-primary-500 dark:text-primary-400 bg-primary-100 dark:bg-primary-800 px-2 py-0.5 rounded-full ml-2">0 items</span>
+                   </h3>
+                   <button onclick="toggleMobileCart()" class="text-primary-400 hover:text-primary-600 dark:hover:text-white"><i class="fas fa-times"></i></button>
                 </div>
-            </div>
-            <!-- End Subscription Inactive Modal -->
+                
+                <!-- Mobile Cart Items -->
+                <div id="mobile-cart-items" class="p-4 overflow-y-auto space-y-3" style="max-height: calc(70vh - 160px);">
+                   <div class="text-center py-6 text-primary-400 opacity-60">Empty Cart</div>
+                </div>
+                
+                <!-- Mobile Cart Footer -->
+                <div class="p-4 border-t border-primary-100 dark:border-primary-800 bg-primary-50/80 dark:bg-primary-900/80 backdrop-blur-md rounded-b-3xl space-y-3">
+                   <div class="flex justify-between items-center font-bold text-primary-900 dark:text-white">
+                      <span>Total</span>
+                      <span id="mobile-cart-total" class="text-xl">KES 0.00</span>
+                   </div>
+                   <div class="grid grid-cols-2 gap-2">
+                      <button id="mobile-clear-cart-btn" class="py-2.5 rounded-xl border border-primary-200 dark:border-primary-700 font-bold text-sm" disabled>Clear</button>
+                      <button id="mobile-checkout-btn" class="py-2.5 rounded-xl bg-success-500 text-white font-bold text-sm" disabled>Checkout</button>
+                   </div>
+                </div>
+              </div>
 
+            </div>
           </div>
-        </main>
+        </div>
+      </main>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-[60] hidden">
+      <div 
+        class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm transition-opacity" 
+        id="checkout-modal-backdrop"
+      ></div>
+      
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div class="w-full max-w-lg transform overflow-hidden rounded-3xl glass-premium shadow-2xl transition-all animate-scale-in relative">
+            
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-accent-500 to-accent-600 p-6 flex justify-between items-center">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-cash-register"></i> Complete Payment
+              </h3>
+              <button id="checkout-cancel" class="text-white/80 hover:text-white transition-colors">
+                <i class="fas fa-times text-lg"></i>
+              </button>
+            </div>
+
+            <!-- Modal Body -->
+            <form id="checkout-form" class="p-6 space-y-6">
+              
+              <!-- Customer Details -->
+              <div class="space-y-4">
+                <div>
+                   <label for="customer-name" class="block text-sm font-semibold text-primary-700 dark:text-primary-300 mb-1.5">Customer Name <span class="text-red-500">*</span></label>
+                   <div class="relative">
+                      <input 
+                        id="customer-name" 
+                        name="customerName" 
+                        required 
+                        class="w-full pl-10 pr-4 py-3 rounded-xl input-premium text-primary-900 dark:text-white placeholder-primary-400"
+                        placeholder="Enter customer name" 
+                      />
+                      <i class="fas fa-user absolute left-3.5 top-3.5 text-primary-400"></i>
+                   </div>
+                </div>
+              </div>
+
+              <!-- Payment Method -->
+              <div>
+                <label class="block text-sm font-semibold text-primary-700 dark:text-primary-300 mb-2">Payment Method</label>
+                <div class="grid grid-cols-3 gap-3">
+                   <label class="cursor-pointer">
+                      <input type="radio" name="paymentMethod" value="cash" checked class="peer hidden" id="payment-cash">
+                      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
+                         <i class="fas fa-money-bill-wave text-xl mb-1"></i>
+                         <span class="text-xs font-bold">Cash</span>
+                      </div>
+                   </label>
+                   <label class="cursor-pointer">
+                      <input type="radio" name="paymentMethod" value="credit" class="peer hidden" id="payment-credit">
+                      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
+                         <i class="fas fa-credit-card text-xl mb-1"></i>
+                         <span class="text-xs font-bold">Card</span>
+                      </div>
+                   </label>
+                   <label class="cursor-pointer">
+                      <input type="radio" name="paymentMethod" value="online" class="peer hidden" id="payment-online">
+                      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
+                         <i class="fas fa-mobile-alt text-xl mb-1"></i>
+                         <span class="text-xs font-bold">M-Pesa</span>
+                      </div>
+                   </label>
+                </div>
+              </div>
+
+              <!-- Order Summary Box -->
+              <div class="bg-primary-50 dark:bg-primary-800/50 rounded-xl p-4 border border-primary-100 dark:border-primary-700/50">
+                 <h4 class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider mb-2">Order Summary</h4>
+                 <div id="checkout-items" class="space-y-2 max-h-32 overflow-y-auto text-sm mb-3"></div>
+                 
+                 <div class="border-t border-primary-200 dark:border-primary-700 pt-3 flex justify-between items-center">
+                    <span class="font-bold text-primary-900 dark:text-white">Total To Pay</span>
+                    <span id="checkout-total" class="text-xl font-black text-accent-600 dark:text-accent-400">KES 0.00</span>
+                 </div>
+              </div>
+
+              <!-- Cash Payment Details (Hidden by default) -->
+              <div id="cash-payment-section" class="hidden space-y-3 animate-fade-in">
+                 <div class="relative">
+                    <label class="block text-xs font-bold text-primary-500 uppercase mb-1">Cash Received</label>
+                    <input type="number" id="cash-received" min="0" step="0.01" class="w-full pl-3 pr-4 py-2 rounded-lg input-premium" placeholder="0.00">
+                 </div>
+                 <div class="flex justify-between items-center text-sm font-bold text-success-600 dark:text-success-400">
+                    <span>Change:</span>
+                    <span id="cash-change">KES 0.00</span>
+                 </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <button 
+                type="submit" 
+                id="process-sale-btn" 
+                class="w-full py-3.5 bg-gradient-to-r from-success-500 to-success-600 text-white font-bold rounded-xl shadow-lg shadow-success-500/25 hover:scale-[1.02] transition-transform flex justify-center items-center gap-2"
+              >
+                <span>Process Payment</span>
+                <i class="fas fa-check-circle"></i>
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-<!-- Feedback Modal -->
-<div
-  id="feedbackModal"
-  class="fixed bottom-28 left-4 sm:left-auto sm:right-4 w-80 max-h-[80vh] glass-dark rounded-2xl shadow-lg border border-gray-600 flex flex-col hidden z-50 bg-gray-900 text-white"
->
-  <!-- Header -->
-  <div class="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-4 rounded-t-2xl flex justify-between items-center">
-    <h2 class="text-lg font-semibold"></h2>
-    <button id="closeChat" class="text-white text-xl">&times;</button>
-  </div>
 
-  <!-- Body & Tabs -->
-  <div class="flex-1 overflow-y-auto p-4 space-y-4">
+    <!-- Subscription Inactive Modal (Preserved & Styled) -->
+    <div id="subscription-inactive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center">
+        <div class="glass-premium rounded-3xl p-8 max-w-md w-full text-center relative animate-scale-in m-4">
+            <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-black text-primary-900 dark:text-white mb-2">Subscription Expired!</h2>
+            <p class="text-primary-500 dark:text-primary-300 mb-8">Your subscription has expired. Please renew to continue sales.</p>
+            <a href="/manageSubscriptions.html" class="w-full block py-3.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-xl hover:shadow-lg transition-all">
+                Manage Subscription
+            </a>
+        </div>
+    </div>
 
-    <!-- HOME TAB -->
-   <!-- HOME TAB -->
-<div id="tab-Home" class="tab-panel space-y-3">
-  <!-- Greeting -->
-  <div id="welcomeBox" class="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1">
-    <h3 class="text-base font-semibold">Hi Codecine 👋</h3>
-    <p class="text-sm text-gray-300">How can we help?</p>
-  </div>
-
-  <!-- Status -->
-  <div id="statusBox" class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm">
-    <p class="font-semibold">Status: <span class="text-green-400">All systems operational</span></p>
-    <p class="text-xs text-gray-400">Updated on: <span id="currentDate"></span></p>
-  </div>
-
-  <!-- Send Button -->
-  <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
-    <button
-      id="openMessage"
-      class="w-full flex items-center justify-between px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-sm font-medium transition"
+    <!-- Feedback Modal (Matches Dashboard) -->
+    <div
+      id="feedbackModal"
+      class="fixed bottom-24 right-4 md:bottom-8 md:right-8 w-80 md:w-96 max-h-[600px] glass-premium rounded-2xl shadow-2xl flex flex-col hidden z-[60] overflow-hidden transform transition-all duration-300 scale-95 opacity-0 border border-primary-200/50 dark:border-primary-700/50"
     >
-      <span>Send us a message</span>
-      <i class="fas fa-paper-plane ml-2"></i>
-    </button>
-  </div>
-
-  <!-- Hidden Chat Form -->
-  <form id="chatForm" class="hidden flex flex-col space-y-2 mt-2">
-    <textarea
-      id="chatInput"
-      rows="3"
-      placeholder="Type your feedback..."
-      class="w-full resize-none px-4 py-2 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-accent-400"
-      required
-    ></textarea>
-    <button
-      id="sendButton"
-      type="submit"
-      class="self-end px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium rounded-lg flex items-center gap-2"
-    >
-      <span id="sendText">Send</span>
-      <span id="sendSpinner" class="hidden animate-spin"><i class="fas fa-spinner"></i></span>
-      <span id="sendCheck" class="hidden"><i class="fas fa-check-double"></i></span>
-    </button>
-  </form>
-
-  <!-- Chat Output -->
-  <div id="chatBox" class="max-h-40 overflow-y-auto space-y-2 text-sm mt-2 break-words"></div>
-</div>
-
-    <!-- MESSAGES TAB -->
-    <div id="tab-Messages" class="tab-panel hidden flex flex-col space-y-2 h-full">
-      <div class="flex-1 overflow-y-auto space-y-2 bg-gray-800 p-2 rounded-lg max-h-40 text-sm" id="messagesArea"></div>
-
-      <div class="flex items-center gap-2">
-        <input
-          id="msgInput"
-          type="text"
-          placeholder="Type your message..."
-          class="flex-1 px-3 py-2 text-sm rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
-        />
-        <button id="msgSendBtn" class="px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-white">
-          <i class="fas fa-paper-plane"></i>
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-accent-600 to-accent-500 p-4 flex justify-between items-center text-white shadow-md">
+        <div class="flex items-center gap-2">
+           <i class="fas fa-headset text-lg"></i>
+           <h2 class="font-bold tracking-wide">Support Center</h2>
+        </div>
+        <button id="closeChat" class="hover:bg-white/20 rounded-lg p-1 transition-colors">
+           <i class="fas fa-times text-lg"></i>
         </button>
       </div>
 
-      <div class="mt-3 bg-gray-800 border border-gray-700 rounded-lg p-3 text-center">
-        <p class="text-xs text-gray-400 mb-2">Rate this conversation:</p>
-        <div class="flex justify-center gap-3 text-xl">
-          <button title="Terrible 😠" class="hover:scale-110 transition">😠</button>
-          <button title="Bad 😞" class="hover:scale-110 transition">😞</button>
-          <button title="Okay 😐" class="hover:scale-110 transition">😐</button>
-          <button title="Good 😊" class="hover:scale-110 transition">😊</button>
-          <button title="Excellent 😍" class="hover:scale-110 transition">😍</button>
+      <!-- Body & Tabs -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-white/50 dark:bg-primary-900/50 backdrop-blur-md">
+        <!-- HOME TAB -->
+        <div id="tab-Home" class="tab-panel space-y-4">
+          <!-- Greeting -->
+          <div id="welcomeBox" class="p-4 rounded-xl bg-white dark:bg-primary-800 border border-primary-100 dark:border-primary-700 shadow-sm">
+            <h3 class="text-lg font-bold text-primary-900 dark:text-white mb-1">Hi there 👋</h3>
+            <p class="text-sm text-primary-500 dark:text-primary-400">Need help with sales?</p>
+          </div>
+
+          <!-- Status -->
+          <div id="statusBox" class="p-3 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800/30 flex items-center gap-3">
+            <span class="flex h-3 w-3 relative">
+               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"></span>
+               <span class="relative inline-flex rounded-full h-3 w-3 bg-success-500"></span>
+            </span>
+            <div>
+               <p class="text-xs font-bold text-success-700 dark:text-success-400 uppercase tracking-wider">System Status</p>
+               <p class="text-sm font-medium text-success-800 dark:text-success-300">Operational</p>
+            </div>
+          </div>
+
+          <!-- Send Button -->
+          <button id="openMessage" class="w-full py-3 px-4 bg-primary-900 dark:bg-white text-white dark:text-primary-900 rounded-xl font-bold hover:opacity-90 transition-all shadow-lg flex justify-between items-center group">
+              <span>Start Conversation</span>
+              <i class="fas fa-paper-plane group-hover:translate-x-1 transition-transform"></i>
+          </button>
+
+          <!-- Hidden Chat Form -->
+          <form id="chatForm" class="hidden flex flex-col space-y-3 mt-2 animate-fade-in">
+            <textarea id="chatInput" rows="3" placeholder="How can we help?" class="w-full resize-none p-3 rounded-xl bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white placeholder-primary-400 focus:outline-none focus:ring-2 focus:ring-accent-500 transition-shadow text-sm" required></textarea>
+            <button id="sendButton" type="submit" class="self-end px-5 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-bold rounded-xl transition-colors shadow-md flex items-center gap-2">
+              <span id="sendText">Send</span>
+              <span id="sendSpinner" class="hidden animate-spin"><i class="fas fa-spinner"></i></span>
+              <span id="sendCheck" class="hidden"><i class="fas fa-check"></i></span>
+            </button>
+          </form>
+          <div id="chatBox" class="max-h-40 overflow-y-auto space-y-2 text-sm mt-2 break-words text-primary-600 dark:text-primary-300"></div>
         </div>
+
+        <!-- MESSAGES TAB -->
+        <div id="tab-Messages" class="tab-panel hidden flex flex-col h-full">
+          <div class="flex-1 overflow-y-auto space-y-3 mb-3 p-2" id="messagesArea"></div>
+          <div class="flex items-center gap-2 mt-auto">
+            <input id="msgInput" type="text" placeholder="Type message..." class="flex-1 px-4 py-2 text-sm rounded-xl bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent-500" />
+            <button id="msgSendBtn" class="p-2.5 bg-accent-500 hover:bg-accent-600 rounded-xl text-white shadow-md transition-colors"><i class="fas fa-paper-plane"></i></button>
+          </div>
+        </div>
+
+        <!-- TICKETS TAB -->
+        <div id="tab-Tickets" class="tab-panel hidden flex flex-col items-center justify-center h-48 text-primary-500 dark:text-primary-400">
+          <div class="w-16 h-16 bg-primary-100 dark:bg-primary-800 rounded-full flex items-center justify-center mb-3">
+             <i class="fas fa-ticket-alt text-2xl text-primary-400 dark:text-primary-500"></i>
+          </div>
+          <p class="text-sm font-medium">No active tickets</p>
+        </div>
+      </div>
+
+      <!-- Footer Nav -->
+      <div class="bg-white dark:bg-primary-950 p-1 border-t border-primary-100 dark:border-primary-800 grid grid-cols-3 gap-1">
+        <button class="flex flex-col items-center justify-center py-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 text-primary-500 dark:text-primary-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors" data-tab="Home" id="tabHome">
+          <i class="fas fa-home text-lg mb-0.5"></i><span class="text-[10px] font-bold uppercase">Home</span>
+        </button>
+        <button class="flex flex-col items-center justify-center py-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 text-primary-500 dark:text-primary-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors" data-tab="Messages" id="tabMessages">
+          <i class="fas fa-comment-dots text-lg mb-0.5"></i><span class="text-[10px] font-bold uppercase">Chat</span>
+        </button>
+        <button class="flex flex-col items-center justify-center py-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 text-primary-500 dark:text-primary-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors" data-tab="Tickets" id="tabTickets">
+          <i class="fas fa-clipboard-list text-lg mb-0.5"></i><span class="text-[10px] font-bold uppercase">Tickets</span>
+        </button>
       </div>
     </div>
 
-    <!-- TICKETS TAB -->
-    <div id="tab-Tickets" class="tab-panel hidden text-center text-sm text-gray-300">
-      <p>No tickets created yet.</p>
-    </div>
-  </div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-24 right-4 z-[100] space-y-3 pointer-events-none"></div>
 
-  <!-- Footer Navigation (INSIDE MODAL) -->
-  <div class="border-t border-gray-700 bg-gray-800 p-2 flex justify-around text-sm text-gray-300">
-    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Home" id="tabHome">
-      <i class="fas fa-home text-lg"></i>
-      <span>Home</span>
-    </button>
-    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Messages" id="tabMessages">
-      <i class="fas fa-comment-dots text-lg"></i>
-      <span>Messages</span>
-    </button>
-    <button class="tab-button flex flex-col items-center hover:text-white" data-tab="Tickets" id="tabTickets">
-      <i class="fas fa-ticket-alt text-lg"></i>
-      <span>Tickets</span>
-    </button>
-  </div>
-</div>
-
-
-    <!-- Floating Action Button -->
-<!-- <button
-  id="fab"
-  class="fixed bottom-8 left-8 sm:left-auto sm:right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
->
-  <i
-    class="fas fa-comment-dots text-white text-2xl group-hover:scale-110 transition-transform duration-300"
-  ></i>
-</button> -->
-
-
-
-    <!-- Scripts -->
-    
-    <!-- External Scripts - PRESERVED -->
+    <!-- Logic Scripts -->
     <script src="./js/sidebar.js"></script>
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
-     <script src="./js/sales.js"></script>
+    <script src="./js/sales.js"></script>
     <script src="./js/chat2.js"></script>
     <script src="js/checkSubExpirely.js"></script>
+
+    <script>
+      function toggleTheme() {
+        if (document.documentElement.classList.contains("dark")) {
+          document.documentElement.classList.remove("dark");
+          localStorage.theme = "light";
+        } else {
+          document.documentElement.classList.add("dark");
+          localStorage.theme = "dark";
+        }
+      }
+
+      // Consistent Toast UI
+      window.showToast = function(message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success: "border-success-500 text-success-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          error: "border-red-500 text-red-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          warning: "border-warning-500 text-warning-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          info: "border-accent-500 text-primary-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+        };
+        const icons = {
+          success: "fa-check-circle text-success-500",
+          error: "fa-times-circle text-red-500",
+          warning: "fa-exclamation-triangle text-warning-500",
+          info: "fa-info-circle text-accent-500",
+        };
+
+        toast.className = `pointer-events-auto w-80 p-4 rounded-xl shadow-xl backdrop-blur-md border-l-4 transform transition-all duration-500 translate-x-full opacity-0 flex items-start gap-3 ${colors[type]}`;
+        toast.innerHTML = `<i class="fas ${icons[type]} text-lg mt-0.5"></i><div><p class="text-sm font-semibold">${message}</p></div>`;
+
+        document.getElementById("toast-container").appendChild(toast);
+        requestAnimationFrame(() => toast.classList.remove("translate-x-full", "opacity-0"));
+        setTimeout(() => {
+          toast.classList.add("translate-x-full", "opacity-0");
+          setTimeout(() => toast.remove(), 500);
+        }, 4000);
+      }
+    </script>
   </body>
 </html>
