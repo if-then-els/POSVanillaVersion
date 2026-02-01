@@ -1,16 +1,57 @@
+// Add custom CSS styles for enhanced subscription UI
+const subscriptionStyles = `
+  .subscription-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+  }
+  
+  .plan-upgrade-badge {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: bold;
+  }
+  
+  .action-button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .action-button:active {
+    transform: translateY(0);
+  }
+`;
+
+// Inject styles into the document
+const styleSheet = document.createElement("style");
+styleSheet.textContent = subscriptionStyles;
+document.head.appendChild(styleSheet);
+
 document.addEventListener("DOMContentLoaded", () => {
   // --- Global Application State ---
   const appState = {
     selectedPlan: null, // Stores { _id, name, price } of the plan chosen for upgrade
     currentSubscription: null, // Stores { _id, plan, endDate, status, price, paymentMethod, ... }
     currentBusiness: null, // Stores { _id, email, dateCreated, ... }
-    paymentAction: "upgrade", // 'upgrade' or 'updatePaymentMethod'
+    paymentAction: "upgrade", // 'upgrade', 'payCurrent', or 'updatePaymentMethod'
   };
 
   // Toast Notification Function (existing code)
   function showToast(
     message = "Action completed Successfully!",
-    type = "success"
+    type = "success",
   ) {
     const toastContainer = document.getElementById("toast-container");
     const colors = {
@@ -25,10 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
       type === "success"
         ? "border-success-500"
         : type === "error"
-        ? "border-red-500"
-        : type === "warning"
-        ? "border-yellow-500"
-        : "border-primary-500"
+          ? "border-red-500"
+          : type === "warning"
+            ? "border-yellow-500"
+            : "border-primary-500"
     }`;
     toast.innerHTML = `
       <div class="flex items-center space-x-3">
@@ -36,19 +77,19 @@ document.addEventListener("DOMContentLoaded", () => {
           type === "success"
             ? "check-circle"
             : type === "error"
-            ? "exclamation-circle"
-            : type === "warning"
-            ? "exclamation-triangle"
-            : "info-circle"
+              ? "exclamation-circle"
+              : type === "warning"
+                ? "exclamation-triangle"
+                : "info-circle"
         } text-${
-      type === "success"
-        ? "success"
-        : type === "error"
-        ? "red"
-        : type === "warning"
-        ? "yellow"
-        : "primary"
-    }-400"></i>
+          type === "success"
+            ? "success"
+            : type === "error"
+              ? "red"
+              : type === "warning"
+                ? "yellow"
+                : "primary"
+        }-400"></i>
         <span>${message}</span>
       </div>
     `;
@@ -60,6 +101,47 @@ document.addEventListener("DOMContentLoaded", () => {
       toast.style.opacity = "0";
       setTimeout(() => toast.remove(), 300);
     }, 3000);
+  }
+
+  // --- Helper function to determine if plan is a trial ---
+  function isTrialPlan(plan) {
+    if (!plan) return false;
+    const planName = plan.name || plan;
+    return planName.toLowerCase() === "trial";
+  }
+
+  // --- Helper function to get available actions based on subscription status ---
+  function getAvailableActions() {
+    const actions = {
+      canUpgrade: false,
+      canPayCurrent: false,
+      canUpdatePayment: false,
+      isCurrentTrial: false,
+      isCurrentPaid: false,
+      needsPayment: false,
+    };
+
+    if (!appState.currentSubscription) {
+      // No subscription - can select any plan
+      actions.canUpgrade = true;
+      return actions;
+    }
+
+    const { status, plan, price } = appState.currentSubscription;
+    actions.isCurrentTrial = isTrialPlan(plan);
+    actions.isCurrentPaid = !actions.isCurrentTrial;
+    actions.needsPayment = status === "pending" || (price === 0 && !actions.isCurrentTrial);
+
+    // Can upgrade if subscription is active and current plan is not trial
+    actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
+    
+    // Can pay for current plan if it's a trial that needs activation
+    actions.canPayCurrent = actions.isCurrentTrial && (status === "active" || status === "pending");
+    
+    // Can always update payment method if there's a subscription
+    actions.canUpdatePayment = true;
+
+    return actions;
   }
 
   // --- Function to check subscription status and calculate days until expiry ---
@@ -76,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = new Date();
     const expiryDate = new Date(appState.currentSubscription.endDate);
     const daysUntilExpiry = Math.ceil(
-      (expiryDate - now) / (1000 * 60 * 60 * 24)
+      (expiryDate - now) / (1000 * 60 * 60 * 24),
     );
 
     return {
@@ -134,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function lockFeatures() {
     console.log("Subscription expired: Locking features.");
     const restrictedElements = document.querySelectorAll(
-      '[data-requires-subscription="true"]'
+      '[data-requires-subscription="true"]',
     );
     restrictedElements.forEach((element) => {
       element.classList.add("opacity-50", "pointer-events-none", "grayscale");
@@ -144,13 +226,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function unlockFeatures() {
     console.log("Subscription active: Unlocking features.");
     const restrictedElements = document.querySelectorAll(
-      '[data-requires-subscription="true"]'
+      '[data-requires-subscription="true"]',
     );
     restrictedElements.forEach((element) => {
       element.classList.remove(
         "opacity-50",
         "pointer-events-none",
-        "grayscale"
+        "grayscale",
       );
     });
   }
@@ -205,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!appState.currentBusiness?._id) {
         console.error(
           "Business details missing _id:",
-          appState.currentBusiness
+          appState.currentBusiness,
         );
         showToast("Invalid business details received", "error");
         return;
@@ -216,11 +298,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const startDate = new Date(appState.currentBusiness.dateCreated);
         const currentDate = new Date();
         const monthsActive = Math.floor(
-          (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30)
+          (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30),
         );
-        document.getElementById("months-active").textContent = monthsActive;
-        document.getElementById("date-created").textContent =
-          startDate.toLocaleDateString();
+        const monthsActiveElement = document.getElementById("months-active");
+        const dateCreatedElement = document.getElementById("date-created");
+        if (monthsActiveElement) monthsActiveElement.textContent = monthsActive;
+        if (dateCreatedElement)
+          dateCreatedElement.textContent = startDate.toLocaleDateString();
       }
     } catch (error) {
       console.error("Error fetching business details:", error);
@@ -230,22 +314,30 @@ document.addEventListener("DOMContentLoaded", () => {
         _id: "unknown_business",
         email: "fallback@example.com",
       };
-      document.getElementById("months-active").textContent = "N/A";
-      document.getElementById("date-created").textContent = "N/A";
+      const monthsActiveElement = document.getElementById("months-active");
+      const dateCreatedElement = document.getElementById("date-created");
+      if (monthsActiveElement) monthsActiveElement.textContent = "N/A";
+      if (dateCreatedElement) dateCreatedElement.textContent = "N/A";
     }
   }
 
   // --- Fetch Subscription Details Function ---
   async function fetchSubscriptionDetails() {
     // Check if currentBusiness is available, if not, try fetching it.
-    if (!appState.currentBusiness || !appState.currentBusiness.id) {
+    if (
+      !appState.currentBusiness ||
+      !(appState.currentBusiness.id || appState.currentBusiness._id)
+    ) {
       console.warn(
-        "Business ID not available yet, attempting to fetch business details before subscription."
+        "Business ID not available yet, attempting to fetch business details before subscription.",
       );
       await fetchBusinessDetails(); // Try to get business details
-      if (!appState.currentBusiness || !appState.currentBusiness.id) {
+      if (
+        !appState.currentBusiness ||
+        !(appState.currentBusiness.id || appState.currentBusiness._id)
+      ) {
         console.error(
-          "Failed to retrieve Business ID. Cannot fetch subscription details."
+          "Failed to retrieve Business ID. Cannot fetch subscription details.",
         );
         return; // Exit if still no business ID
       }
@@ -263,13 +355,20 @@ document.addEventListener("DOMContentLoaded", () => {
           console.log("No active subscription found for this business.");
           appState.currentSubscription = null; // Clear any old subscription data
           // Update UI for 'No Active Plan' scenario
-          document.getElementById("current-plan-name").textContent =
-            "No Active Plan";
-          document.getElementById("current-plan-price").textContent = "N/A";
-          document.getElementById("subscription-status").textContent =
-            "Inactive";
-          document.getElementById("subscription-expiry").textContent = "N/A";
-          document.getElementById("current-payment-method").textContent = "N/A";
+          const planNameElement = document.getElementById("current-plan-name");
+          const planPriceElement =
+            document.getElementById("current-plan-price");
+          const statusElement = document.getElementById("subscription-status");
+          const expiryElement = document.getElementById("subscription-expiry");
+          const paymentElement = document.getElementById(
+            "current-payment-method",
+          );
+
+          if (planNameElement) planNameElement.textContent = "No Active Plan";
+          if (planPriceElement) planPriceElement.textContent = "N/A";
+          if (statusElement) statusElement.textContent = "Inactive";
+          if (expiryElement) expiryElement.textContent = "N/A";
+          if (paymentElement) paymentElement.textContent = "N/A";
           const tbody = document.querySelector("table tbody");
           tbody.innerHTML = `
             <tr>
@@ -279,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         throw new Error(
-          `Failed to fetch subscription details: ${response.statusText}`
+          `Failed to fetch subscription details: ${response.statusText}`,
         );
       }
 
@@ -287,45 +386,46 @@ document.addEventListener("DOMContentLoaded", () => {
       appState.currentSubscription = data.subscription;
       console.log(
         "Subscription details fetched:",
-        appState.currentSubscription
+        appState.currentSubscription,
       );
 
       // Update new fields for plan display using appState
-      document.getElementById("current-plan-name").textContent =
-        appState.currentSubscription.plan?.name || "N/A";
-      document.getElementById("current-plan-price").textContent =
-        appState.currentSubscription.price !== undefined &&
-        appState.currentSubscription.price !== null
-          ? `KES ${appState.currentSubscription.price.toLocaleString()}`
-          : "N/A";
-      document.getElementById("subscription-status").textContent = appState
-        .currentSubscription.status
-        ? appState.currentSubscription.status.charAt(0).toUpperCase() +
-          appState.currentSubscription.status.slice(1)
-        : "N/A";
-      document.getElementById("subscription-expiry").textContent = appState
-        .currentSubscription.endDate
-        ? new Date(appState.currentSubscription.endDate).toLocaleDateString()
-        : "N/A";
-      document.getElementById("current-payment-method").textContent = appState
-        .currentSubscription.paymentMethod
-        ? appState.currentSubscription.paymentMethod.charAt(0).toUpperCase() +
-          appState.currentSubscription.paymentMethod.slice(1)
-        : "N/A";
+      const planNameElement = document.getElementById("current-plan-name");
+      const planPriceElement = document.getElementById("current-plan-price");
+      const statusElement = document.getElementById("subscription-status");
+      const expiryElement = document.getElementById("subscription-expiry");
+      const paymentElement = document.getElementById("current-payment-method");
 
-      // Show/hide upgrade button based on status
-      const upgradeBtn = document.getElementById("upgrade-plan-btn");
-      if (upgradeBtn) {
-        upgradeBtn.disabled = appState.currentSubscription.status !== "active";
-        upgradeBtn.classList.toggle(
-          "opacity-50",
-          appState.currentSubscription.status !== "active"
-        );
-        upgradeBtn.classList.toggle(
-          "pointer-events-none",
-          appState.currentSubscription.status !== "active"
-        );
+      if (planNameElement)
+        planNameElement.textContent =
+          appState.currentSubscription.plan?.name || "N/A";
+      if (planPriceElement) {
+        planPriceElement.textContent =
+          appState.currentSubscription.price !== undefined &&
+          appState.currentSubscription.price !== null
+            ? `KES ${appState.currentSubscription.price.toLocaleString()}`
+            : "N/A";
       }
+      if (statusElement) {
+        statusElement.textContent = appState.currentSubscription.status
+          ? appState.currentSubscription.status.charAt(0).toUpperCase() +
+            appState.currentSubscription.status.slice(1)
+          : "N/A";
+      }
+      if (expiryElement) {
+        expiryElement.textContent = appState.currentSubscription.endDate
+          ? new Date(appState.currentSubscription.endDate).toLocaleDateString()
+          : "N/A";
+      }
+      if (paymentElement) {
+        paymentElement.textContent = appState.currentSubscription.paymentMethod
+          ? appState.currentSubscription.paymentMethod.charAt(0).toUpperCase() +
+            appState.currentSubscription.paymentMethod.slice(1)
+          : "N/A";
+      }
+
+      // Update UI based on available actions
+      setTimeout(updateSubscriptionActions, 100); // Small delay to ensure DOM is ready
 
       // Fetch and update billing history from logs
       const historyResponse = await fetch("/subscriptions/history", {
@@ -347,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
           tr.className = "hover:bg-white/5 transition-colors group";
           tr.innerHTML = `
             <td class="py-4 px-6 text-white font-medium">${new Date(
-              entry.date
+              entry.date,
             ).toLocaleDateString()}</td>
             <td class="py-4 px-6">
               <div class="flex items-center space-x-3">
@@ -361,8 +461,8 @@ document.addEventListener("DOMContentLoaded", () => {
                   <p class="text-gray-400 text-sm">${
                     entry.action || "Payment"
                   } (KES ${
-            entry.price ? entry.price.toLocaleString() : "N/A"
-          })</p>
+                    entry.price ? entry.price.toLocaleString() : "N/A"
+                  })</p>
                 </div>
               </div>
             </td>
@@ -408,6 +508,219 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // --- Function to update subscription action buttons based on current status ---
+  function updateSubscriptionActions() {
+    const actions = getAvailableActions();
+    const actionContainer = document.querySelector(".flex.flex-col.gap-3.w-full.md\\:w-auto");
+    
+    if (!actionContainer) return;
+
+    // Clear existing buttons
+    actionContainer.innerHTML = "";
+
+    // Pay for Current Plan button (for trial plans)
+    if (actions.canPayCurrent) {
+      const payCurrentBtn = document.createElement("button");
+      payCurrentBtn.id = "pay-current-plan-btn";
+      payCurrentBtn.className = "px-6 py-3 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white rounded-xl font-bold shadow-lg shadow-success-500/25 transition-all hover:scale-105 flex items-center justify-center gap-2";
+      payCurrentBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay for Current Plan';
+      actionContainer.appendChild(payCurrentBtn);
+
+      // Add event listener
+      payCurrentBtn.addEventListener("click", () => {
+        console.log("Pay current plan clicked");
+        if (!appState.currentBusiness) {
+          showToast("Business information not available. Please refresh the page.", "error");
+          return;
+        }
+        appState.paymentAction = "payCurrent";
+        initiatePaymentFlow();
+      });
+    }
+
+    // Upgrade Plan button (for paid plans)
+    if (actions.canUpgrade) {
+      const upgradeBtn = document.createElement("button");
+      upgradeBtn.id = "upgrade-plan-btn";
+      upgradeBtn.className = "px-6 py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white rounded-xl font-bold shadow-lg shadow-accent-500/25 transition-all hover:scale-105 flex items-center justify-center gap-2";
+      upgradeBtn.innerHTML = '<i class="fas fa-arrow-circle-up"></i> Upgrade Plan';
+      actionContainer.appendChild(upgradeBtn);
+
+      // Add event listener
+      upgradeBtn.addEventListener("click", () => {
+        console.log("Upgrade button clicked");
+        if (!appState.currentBusiness) {
+          showToast("Business information not available. Please refresh the page.", "error");
+          return;
+        }
+        appState.paymentAction = "upgrade";
+        showUpgradeFlow();
+      });
+    }
+
+    // Update Payment Method button
+    if (actions.canUpdatePayment) {
+      const updatePaymentBtn = document.createElement("button");
+      updatePaymentBtn.id = "update-payment-method-btn";
+      updatePaymentBtn.className = "px-6 py-3 border border-primary-200 dark:border-primary-700 text-primary-700 dark:text-primary-300 rounded-xl font-bold hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors flex items-center justify-center gap-2";
+      updatePaymentBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Update Payment Method';
+      actionContainer.appendChild(updatePaymentBtn);
+
+      // Add event listener
+      updatePaymentBtn.addEventListener("click", async () => {
+        appState.paymentAction = "updatePaymentMethod";
+        await showUpdatePaymentFlow();
+      });
+    }
+
+    // Cancel Subscription button (only for active paid subscriptions)
+    if (appState.currentSubscription && appState.currentSubscription.status === "active" && !actions.isCurrentTrial) {
+      const cancelBtn = document.createElement("button");
+      cancelBtn.id = "cancel-subscription-button";
+      cancelBtn.className = "px-6 py-3 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-2";
+      cancelBtn.innerHTML = '<i class="fas fa-times-circle"></i> Cancel Plan';
+      actionContainer.appendChild(cancelBtn);
+
+      // Add event listener
+      cancelBtn.addEventListener("click", () => {
+        const cancelModal = document.getElementById("cancel-confirmation-modal");
+        if (cancelModal) cancelModal.classList.remove("hidden");
+      });
+    }
+
+    // Add status indicator
+    const statusDiv = document.createElement("div");
+    statusDiv.className = "px-4 py-2 rounded-lg text-sm font-medium text-center";
+    
+    if (actions.isCurrentTrial) {
+      statusDiv.className += " bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300";
+      statusDiv.innerHTML = '<i class="fas fa-clock mr-2"></i>Trial Plan';
+    } else if (actions.needsPayment) {
+      statusDiv.className += " bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
+      statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Payment Required';
+    } else if (appState.currentSubscription?.status === "active") {
+      statusDiv.className += " bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-300";
+      statusDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Active Plan';
+    } else {
+      statusDiv.className += " bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300";
+      statusDiv.innerHTML = '<i class="fas fa-info-circle mr-2"></i>No Active Plan';
+    }
+    
+    actionContainer.appendChild(statusDiv);
+
+    // Add helpful information text
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "text-xs text-primary-500 dark:text-primary-400 mt-2 text-center";
+    
+    if (actions.isCurrentTrial) {
+      infoDiv.innerHTML = '<i class="fas fa-info-circle mr-1"></i>Activate your trial by choosing a paid plan';
+    } else if (actions.canUpgrade) {
+      infoDiv.innerHTML = '<i class="fas fa-arrow-up mr-1"></i>Upgrade to unlock more features';
+    } else if (!appState.currentSubscription) {
+      infoDiv.innerHTML = '<i class="fas fa-rocket mr-1"></i>Get started with a plan';
+    }
+    
+    actionContainer.appendChild(infoDiv);
+  }
+
+  // --- Function to initiate payment flow for current plan ---
+  function initiatePaymentFlow() {
+    if (!appState.currentSubscription || !appState.currentSubscription.plan) {
+      showToast("Current subscription details not available", "error");
+      return;
+    }
+
+    const paymentModal = document.getElementById("payment-options-modal");
+    if (paymentModal) {
+      paymentModal.classList.remove("hidden");
+      showStep("payment-step-3"); // Go directly to payment method selection
+      
+      // Pre-fill payment details
+      const paystackEmailInput = document.getElementById("paystack-email-input");
+      const paystackAmountInput = document.getElementById("paystack-amount");
+      const mpesaAmountInput = document.getElementById("mpesa-amount");
+
+      if (paystackEmailInput && appState.currentBusiness?.email) {
+        paystackEmailInput.value = appState.currentBusiness.email;
+      }
+
+      // Set amount based on available paid plans (get first paid plan)
+      fetchAvailablePlans().then(() => {
+        // Find a suitable paid plan to upgrade to
+        const availablePaidPlans = getAvailablePaidPlans();
+        if (availablePaidPlans.length > 0) {
+          const suggestedPlan = availablePaidPlans[0];
+          if (paystackAmountInput) {
+            paystackAmountInput.value = `KES ${suggestedPlan.price.toLocaleString()}`;
+          }
+          if (mpesaAmountInput) {
+            mpesaAmountInput.value = `KES ${suggestedPlan.price.toLocaleString()}`;
+          }
+          appState.selectedPlan = suggestedPlan;
+        }
+      });
+    }
+  }
+
+  // --- Function to show upgrade flow ---
+  function showUpgradeFlow() {
+    const paymentModal = document.getElementById("payment-options-modal");
+    if (paymentModal) {
+      paymentModal.classList.remove("hidden");
+      showStep("payment-step-2"); // Show plan selection
+      fetchAvailablePlans(); // Load available plans
+    }
+  }
+
+  // --- Function to show update payment flow ---
+  async function showUpdatePaymentFlow() {
+    await fetchSubscriptionDetails();
+
+    if (!appState.currentBusiness || !appState.currentSubscription) {
+      showToast("Current subscription details not available. Please ensure you have an active subscription.", "error");
+      return;
+    }
+
+    const paymentModal = document.getElementById("payment-options-modal");
+    if (paymentModal) {
+      paymentModal.classList.remove("hidden");
+      showStep("payment-step-3"); // Go directly to payment method selection
+      
+      // Populate with current plan details
+      const paystackEmailInput = document.getElementById("paystack-email-input");
+      const paystackAmountInput = document.getElementById("paystack-amount");
+      const mpesaAmountInput = document.getElementById("mpesa-amount");
+
+      if (paystackEmailInput) {
+        paystackEmailInput.value = appState.currentBusiness.email || "";
+      }
+
+      const currentPrice = appState.currentSubscription.price;
+      if (typeof currentPrice === "number" && currentPrice > 0) {
+        if (paystackAmountInput) {
+          paystackAmountInput.value = `KES ${currentPrice.toLocaleString()}`;
+        }
+        if (mpesaAmountInput) {
+          mpesaAmountInput.value = `KES ${currentPrice.toLocaleString()}`;
+        }
+      } else {
+        if (paystackAmountInput) {
+          paystackAmountInput.value = `KES 0 (Trial/Free)`;
+        }
+        if (mpesaAmountInput) {
+          mpesaAmountInput.value = `KES 0 (Trial/Free)`;
+        }
+        showToast("Current subscription is free. No payment required to update method.", "info");
+      }
+    }
+  }
+
+  // --- Function to get available paid plans (excluding trial) ---
+  function getAvailablePaidPlans() {
+    // This will be populated by fetchAvailablePlans
+    return window.availablePaidPlans || [];
+  }
+
   async function fetchAvailablePlans() {
     try {
       const response = await fetch("/plans", {
@@ -429,7 +742,12 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("Invalid plans data format");
       }
 
+      // Store paid plans globally
+      window.availablePaidPlans = plansArray.filter(plan => !isTrialPlan(plan));
+
       const plansList = document.getElementById("plans-list");
+      if (!plansList) return;
+      
       plansList.innerHTML = "";
 
       if (plansArray.length === 0) {
@@ -442,14 +760,57 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      plansArray.forEach((plan) => {
-        const button = document.createElement("button");
-        button.className =
-          "w-full px-4 py-3 mb-2 bg-gray-800 rounded-lg text-left hover:bg-gray-700";
-        button.innerHTML = `
-        <div class="font-semibold">${plan.name} Plan</div>
-        <div class="text-sm text-gray-400">KES ${plan.price.toLocaleString()}</div>
+      // Filter plans based on current subscription
+      const actions = getAvailableActions();
+      const currentPlanId = appState.currentSubscription?.plan?._id || appState.currentSubscription?.plan;
+      
+      let eligiblePlans = plansArray;
+      
+      // If upgrading, exclude trial plans and current plan
+      if (appState.paymentAction === "upgrade") {
+        eligiblePlans = plansArray.filter(plan => {
+          // Exclude trial plans
+          if (isTrialPlan(plan)) return false;
+          
+          // Exclude current plan
+          if (plan._id === currentPlanId) return false;
+          
+          // Only allow upgrades to more expensive plans
+          const currentPrice = appState.currentSubscription?.price || 0;
+          return plan.price > currentPrice;
+        });
+      }
+
+      if (eligiblePlans.length === 0) {
+        plansList.innerHTML = `
+        <div class="text-center py-4 text-gray-400">
+          <i class="fas fa-info-circle mr-2"></i>
+          ${appState.paymentAction === "upgrade" 
+            ? "No upgrade plans available. You're already on the highest tier." 
+            : "No suitable plans available."}
+        </div>
       `;
+        return;
+      }
+
+      eligiblePlans.forEach((plan) => {
+        const button = document.createElement("button");
+        button.className = "w-full px-4 py-3 mb-2 bg-gray-800 rounded-lg text-left hover:bg-gray-700 transition-colors";
+        
+        const isUpgrade = plan.price > (appState.currentSubscription?.price || 0);
+        const badgeClass = isUpgrade ? "text-success-400" : "text-gray-400";
+        const badgeText = isUpgrade ? "UPGRADE" : "DOWNGRADE";
+        
+        button.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="font-semibold">${plan.name} Plan</div>
+              <div class="text-sm text-gray-400">KES ${plan.price.toLocaleString()}</div>
+            </div>
+            ${isUpgrade ? `<span class="text-xs ${badgeClass} font-bold">${badgeText}</span>` : ''}
+          </div>
+        `;
+        
         button.addEventListener("click", () => {
           appState.selectedPlan = {
             _id: plan._id,
@@ -457,238 +818,36 @@ document.addEventListener("DOMContentLoaded", () => {
             price: plan.price,
           };
 
-          document.getElementById(
-            "confirm-plan-name"
-          ).textContent = `${plan.name} subscription`;
-          document
-            .getElementById("confirmation-modal")
-            .classList.remove("hidden");
+          // Go directly to payment method selection
+          const paymentModal = document.getElementById("payment-options-modal");
+          if (paymentModal) {
+            showStep("payment-step-3");
+            
+            // Pre-fill email
+            const paystackEmailInput = document.getElementById("paystack-email-input");
+            if (paystackEmailInput && appState.currentBusiness?.email) {
+              paystackEmailInput.value = appState.currentBusiness.email;
+            }
+            
+            // Set amount
+            const paystackAmountInput = document.getElementById("paystack-amount");
+            const mpesaAmountInput = document.getElementById("mpesa-amount");
+            if (paystackAmountInput) {
+              paystackAmountInput.value = `KES ${plan.price.toLocaleString()}`;
+            }
+            if (mpesaAmountInput) {
+              mpesaAmountInput.value = `KES ${plan.price.toLocaleString()}`;
+            }
+          }
         });
 
         plansList.appendChild(button);
       });
     } catch (error) {
-      console.error("Error fetching plans:", error);
-      const plansList = document.getElementById("plans-list");
-      plansList.innerHTML = `
-      <div class="text-center py-4 text-red-400">
-        <i class="fas fa-exclamation-triangle mr-2"></i>
-        Failed to load plans: ${error.message}
-      </div>
-    `;
-      showToast("Failed to load available plans", "error");
-    }
-  }
-
-  // --- M-Pesa Payment Initiation Placeholder ---
-  async function initiateMpesaPayment() {
-    showToast("M-Pesa payment initiation is not yet implemented.", "info");
-    // TODO: Implement M-Pesa payment initiation by calling your backend endpoint
-  }
-
-  // --- Paystack Payment Initiation ---
-  async function initiatePaystackPayment() {
-    const email = document.getElementById("paystack-email-input").value.trim();
-    let amountToPay = 0;
-    let planIdForPayment = null;
-
-    if (appState.paymentAction === "upgrade") {
-      // Ensure selectedPlan and its price exist and are valid numbers
-      if (
-        appState.selectedPlan &&
-        typeof appState.selectedPlan.price === "number" && // Ensure it's a number
-        appState.selectedPlan.price > 0 // Crucial: Only initiate payment if price is greater than 0
-      ) {
-        amountToPay = appState.selectedPlan.price;
-        planIdForPayment = appState.selectedPlan._id;
-      } else if (appState.selectedPlan && appState.selectedPlan.price === 0) {
-        // Handle free trial plan upgrade: bypass payment
-        showToast(
-          "Upgrading to a free plan. Bypassing payment gateway.",
-          "info"
-        );
-        console.log("Upgrading to a free plan (price 0). Bypassing Paystack.");
-        // Directly call the upgrade logic on the backend without Paystack
-        try {
-          const response = await fetch("/subscriptions/upgrade", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              businessId: appState.currentBusiness.id,
-              planId: appState.selectedPlan._id,
-              paymentMethod: "N/A", // Or a specific identifier for free plans
-              // No amount or reference needed for free upgrade
-            }),
-          });
-          if (response.ok) {
-            showToast(
-              "Subscription upgraded successfully (free plan)!",
-              "success"
-            );
-            document
-              .getElementById("payment-options-modal")
-              .classList.add("hidden");
-            showStep("payment-step-1");
-            fetchSubscriptionDetails(); // Refresh details
-          } else {
-            const errorData = await response.json();
-            showToast(
-              errorData.message ||
-                "Failed to upgrade subscription (free plan).",
-              "error"
-            );
-          }
-        } catch (error) {
-          console.error("Error during free plan upgrade:", error);
-          showToast("Network error during free plan upgrade.", "error");
-        }
-        document.getElementById("processingPopup").classList.add("hidden");
-        return; // Exit as payment is bypassed
-      } else {
-        showToast(
-          "Selected plan or its price is invalid for upgrade.",
-          "error"
-        );
-        console.error(
-          "Upgrade: Invalid selected plan or price:",
-          appState.selectedPlan
-        );
-        document.getElementById("processingPopup").classList.add("hidden");
-        return;
-      }
-    } else if (appState.paymentAction === "updatePaymentMethod") {
-      // Ensure currentSubscription, its price, and its plan ID exist and price > 0
-      if (
-        appState.currentSubscription &&
-        typeof appState.currentSubscription.price === "number" && // Ensure it's a number
-        appState.currentSubscription.price > 0 && // Crucial: Only initiate payment if price is greater than 0
-        appState.currentSubscription.plan?._id
-      ) {
-        amountToPay = appState.currentSubscription.price;
-        planIdForPayment = appState.currentSubscription.plan._id;
-      } else {
-        showToast(
-          "Current subscription is free or invalid for payment method update. No payment required.",
-          "info"
-        );
-        console.warn(
-          "Update Payment Method: Current subscription is free (price 0) or invalid. Bypassing Paystack."
-        );
-        document.getElementById("processingPopup").classList.add("hidden");
-        document
-          .getElementById("payment-options-modal")
-          .classList.add("hidden");
-        showStep("payment-step-1");
-        // No payment needed, just update UI. Could theoretically call backend to log method change if desired.
-        fetchSubscriptionDetails();
-        return; // Exit as payment is bypassed
-      }
-    }
-
-    // --- Added detailed logging ---
-    console.log("Current business state:", appState.currentBusiness); // Debug log
-
-    // Update validation check
-    if (
-      !email ||
-      !amountToPay ||
-      !planIdForPayment ||
-      !(appState.currentBusiness?.id || appState.currentBusiness?._id)
-    ) {
-      showToast(
-        "Missing payment or business information. Please try again.",
-        "error"
-      );
-      console.error("Missing critical info for Paystack init:", {
-        email,
-        amountToPay,
-        planIdForPayment,
-        businessId:
-          appState.currentBusiness?.id || appState.currentBusiness?._id,
-      });
-      document.getElementById("processingPopup").classList.add("hidden");
-      return;
-    }
-
-    // Use id instead of _id in request body
-    const businessId =
-      appState.currentBusiness.id || appState.currentBusiness._id;
-
-    // Generate a unique reference for Paystack
-    const reference = `sub_${
-      appState.currentBusiness.id
-    }_${planIdForPayment}_${Date.now()}`;
-
-    document.getElementById("processingPopup").classList.remove("hidden"); // Show processing popup
-
-    try {
-      const response = await fetch("/payments/paystack/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          businessId: businessId,
-          planId: planIdForPayment,
-          amount: amountToPay,
-          email: email,
-          reference: reference,
-          action: appState.paymentAction,
-          currency: "KES", // Add currency code
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Initialize Paystack payment
-        const paystackHandler = PaystackPop.setup({
-          key: "pk_live_bdcc7613b63180912b0084c1b83a35d1226f265c",
-          email: email,
-          amount: amountToPay * 100, // Amount in cents
-          currency: "KES", // Add currency code
-          ref: reference,
-          metadata: {
-            businessId: businessId,
-            planId: planIdForPayment,
-            action: appState.paymentAction,
-          },
-          onSuccess: function (response) {
-            // Changed from callback to onSuccess
-            document.getElementById("processingPopup").classList.add("hidden");
-            if (response.status === "success") {
-              showToast("Payment successful! Verifying...", "success");
-              window.location.href = `/subscriptions?payment_status=success&reference=${response.reference}`;
-            } else {
-              showToast("Payment not completed or failed.", "error");
-            }
-            document
-              .getElementById("payment-options-modal")
-              .classList.add("hidden");
-            showStep("payment-step-1");
-            fetchSubscriptionDetails();
-          },
-          onClose: function () {
-            document.getElementById("processingPopup").classList.add("hidden");
-            showToast("Payment window closed.", "info");
-            document
-              .getElementById("payment-options-modal")
-              .classList.add("hidden");
-            showStep("payment-step-1");
-          },
-        });
-        paystackHandler.openIframe(); // Open Paystack payment popup
-      } else {
-        document.getElementById("processingPopup").classList.add("hidden");
-        showToast(
-          data.message || "Failed to initiate Paystack payment",
-          "error"
-        );
-      }
-    } catch (error) {
-      document.getElementById("processingPopup").classList.add("hidden");
-      console.error("Error during Paystack initiation:", error);
-      showToast("Network error during payment initiation.", "error");
+      const processingPopup = document.getElementById("processingPopup");
+      if (processingPopup) processingPopup.classList.add("hidden");
+      console.error("Error during plan fetch:", error);
+      showToast("Network error during plan loading.", "error");
     }
   }
 
@@ -712,7 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Cancel Subscription ---
   async function cancelSubscription() {
-    if (!appState.currentBusiness?._id) {
+    if (!appState.currentBusiness?._id && !appState.currentBusiness?.id) {
       showToast("Business ID not found", "error");
       return;
     }
@@ -722,7 +881,10 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ businessId: appState.currentBusiness.id }),
+        body: JSON.stringify({
+          businessId:
+            appState.currentBusiness.id || appState.currentBusiness._id,
+        }),
       });
 
       if (response.ok) {
@@ -749,124 +911,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Event Listeners ---
 
-  // Main "Upgrade Plan" button
-  document.getElementById("upgrade-plan-btn").addEventListener("click", () => {
-    console.log("Upgrade button clicked");
-    console.log("Current state:", {
-      selectedPlan: appState.selectedPlan,
-      currentSubscription: appState.currentSubscription,
-      currentBusiness: appState.currentBusiness,
-    });
-    appState.paymentAction = "upgrade";
-    document.getElementById("payment-options-modal").classList.remove("hidden");
-    showStep("payment-step-1");
-  });
-
-  // "Upgrade Plan" button inside the modal (from step 1 to step 2)
-  document
-    .getElementById("modal-upgrade-plan-btn")
-    .addEventListener("click", () => {
+  // Modal buttons (keeping these for the modal flow)
+  const modalUpgradePlanBtn = document.getElementById("modal-upgrade-plan-btn");
+  if (modalUpgradePlanBtn) {
+    modalUpgradePlanBtn.addEventListener("click", () => {
       showStep("payment-step-2");
-      fetchAvailablePlans(); // Load plans when modal opens
+      if (typeof fetchAvailablePlans === "function") fetchAvailablePlans(); // Load plans when modal opens
     });
+  }
 
-  // "Update Payment" button from main page
-  document
-    .getElementById("update-payment-button")
-    .addEventListener("click", async () => {
-      appState.paymentAction = "updatePaymentMethod";
-      // Ensure business and subscription details are fresh
-      await fetchSubscriptionDetails();
-
-      if (!appState.currentBusiness || !appState.currentSubscription) {
-        showToast(
-          "Current subscription details not available. Please ensure you have an active subscription.",
-          "error"
-        );
-        console.error("Error: Missing details for update payment method:", {
-          business: appState.currentBusiness,
-          subscription: appState.currentSubscription,
-        });
-        return;
-      }
-      // Populate with current plan details
-      document.getElementById("paystack-email-input").value =
-        appState.currentBusiness.email || "";
-      // Only set amount if price is greater than 0
-      const currentPrice = appState.currentSubscription.price;
-      if (typeof currentPrice === "number" && currentPrice > 0) {
-        document.getElementById(
-          "paystack-amount"
-        ).value = `KES ${currentPrice.toLocaleString()}`;
-        document.getElementById(
-          "mpesa-amount"
-        ).value = `KES ${currentPrice.toLocaleString()}`;
-      } else {
-        document.getElementById("paystack-amount").value = `KES 0 (Trial/Free)`;
-        document.getElementById("mpesa-amount").value = `KES 0 (Trial/Free)`;
-        showToast(
-          "Current subscription is free. No payment required to update method.",
-          "info"
-        );
-      }
-
-      document
-        .getElementById("payment-options-modal")
-        .classList.remove("hidden");
-      showStep("payment-step-3"); // Go to choose payment method
+  const modalUpdatePaymentBtn = document.getElementById(
+    "modal-update-payment-method-btn",
+  );
+  if (modalUpdatePaymentBtn) {
+    modalUpdatePaymentBtn.addEventListener("click", async () => {
+      await showUpdatePaymentFlow();
     });
-
-  // "Update Payment Method" button inside the modal (from step 1 to step 3)
-  document
-    .getElementById("modal-update-payment-method-btn")
-    .addEventListener("click", async () => {
-      appState.paymentAction = "updatePaymentMethod";
-      await fetchSubscriptionDetails();
-
-      if (!appState.currentBusiness || !appState.currentSubscription) {
-        showToast(
-          "Current subscription details not available for update. Please ensure you have an active subscription.",
-          "error"
-        );
-        console.error(
-          "Error: Missing details for update payment method from modal:",
-          {
-            business: appState.currentBusiness,
-            subscription: appState.currentSubscription,
-          }
-        );
-        return;
-      }
-      document.getElementById("paystack-email-input").value =
-        appState.currentBusiness.email || "";
-      // Only set amount if price is greater than 0
-      const currentPrice = appState.currentSubscription.price;
-      if (typeof currentPrice === "number" && currentPrice > 0) {
-        document.getElementById(
-          "paystack-amount"
-        ).value = `KES ${currentPrice.toLocaleString()}`;
-        document.getElementById(
-          "mpesa-amount"
-        ).value = `KES ${currentPrice.toLocaleString()}`;
-      } else {
-        document.getElementById("paystack-amount").value = `KES 0 (Trial/Free)`;
-        document.getElementById("mpesa-amount").value = `KES 0 (Trial/Free)`;
-        showToast(
-          "Current subscription is free. No payment required to update method.",
-          "info"
-        );
-      }
-
-      document
-        .getElementById("payment-options-modal")
-        .classList.remove("hidden");
-      showStep("payment-step-3");
-    });
+  }
 
   // Listener for "Back" buttons in modal steps
-  document
-    .querySelectorAll('[data-step-action="prev-step"]')
-    .forEach((button) => {
+  const backButtons = document.querySelectorAll(
+    '[data-step-action="prev-step"]',
+  );
+  if (backButtons) {
+    backButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const currentStep = button.closest("[data-step]");
         if (currentStep) {
@@ -887,93 +955,46 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+  }
 
-  // Cancel subscription modal handlers
-  document
-    .getElementById("cancel-subscription-button")
-    .addEventListener("click", () => {
-      document
-        .getElementById("cancel-confirmation-modal")
-        .classList.remove("hidden");
-    });
-
-  document.getElementById("cancel-cancel").addEventListener("click", () => {
-    document
-      .getElementById("cancel-confirmation-modal")
-      .classList.add("hidden");
+  // Cancel subscription modal handlers (for dynamically created buttons)
+  document.addEventListener("click", (e) => {
+    // Handle cancel subscription button click
+    if (e.target.id === "cancel-subscription-button" || e.target.closest("#cancel-subscription-button")) {
+      const cancelModal = document.getElementById("cancel-confirmation-modal");
+      if (cancelModal) cancelModal.classList.remove("hidden");
+    }
   });
 
-  document.getElementById("confirm-cancel").addEventListener("click", () => {
-    document
-      .getElementById("cancel-confirmation-modal")
-      .classList.add("hidden");
-    cancelSubscription();
-  });
-
-  // Confirm plan change (modified to go to choose payment method)
-  document
-    .getElementById("confirm-plan-change")
-    .addEventListener("click", async (e) => {
-      if (!appState.selectedPlan) {
-        showToast("Please select a plan first.", "error");
-        return;
-      }
-
-      console.log("Selected plan:", appState.selectedPlan);
-
-      // Add loading state
-      const button = e.target;
-      button.disabled = true;
-      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-      try {
-        // Hide confirmation modal and show payment options
-        document.getElementById("confirmation-modal").classList.add("hidden");
-        document
-          .getElementById("payment-options-modal")
-          .classList.remove("hidden");
-        showStep("payment-step-3"); // Go directly to payment method selection
-
-        // Pre-fill email if available
-        if (appState.currentBusiness?.email) {
-          document.getElementById("paystack-email-input").value =
-            appState.currentBusiness.email;
-        }
-
-        // Set amount in payment forms
-        if (appState.selectedPlan.price) {
-          document.getElementById(
-            "paystack-amount"
-          ).value = `KES ${appState.selectedPlan.price.toLocaleString()}`;
-          document.getElementById(
-            "mpesa-amount"
-          ).value = `KES ${appState.selectedPlan.price.toLocaleString()}`;
-        }
-      } catch (error) {
-        console.error("Upgrade failed:", error);
-        showToast("Failed to upgrade plan. Please try again.", "error");
-      } finally {
-        button.disabled = false;
-        button.innerHTML = "Confirm";
-      }
+  const cancelCancelBtn = document.getElementById("cancel-cancel");
+  if (cancelCancelBtn) {
+    cancelCancelBtn.addEventListener("click", () => {
+      const modal = document.getElementById("cancel-confirmation-modal");
+      if (modal) modal.classList.add("hidden");
     });
+  }
 
-  // Cancel plan change
-  document
-    .getElementById("cancel-plan-change")
-    .addEventListener("click", () => {
-      document.getElementById("confirmation-modal").classList.add("hidden");
+  const confirmCancelBtn = document.getElementById("confirm-cancel");
+  if (confirmCancelBtn) {
+    confirmCancelBtn.addEventListener("click", () => {
+      const modal = document.getElementById("cancel-confirmation-modal");
+      if (modal) modal.classList.add("hidden");
+      if (typeof cancelSubscription === "function") cancelSubscription();
     });
+  }
+
+  // Note: Confirmation modal logic removed since we go directly to payment method selection
 
   // Close modals
-  document
-    .getElementById("payment-options-modal")
-    .addEventListener("click", (e) => {
+  const paymentModal = document.getElementById("payment-options-modal");
+  if (paymentModal) {
+    paymentModal.addEventListener("click", (e) => {
       if (e.target.id === "payment-options-modal") {
         e.currentTarget.classList.add("hidden");
         showStep("payment-step-1"); // reset to initial step
       }
     });
+  }
 
   // Payment method selection buttons
   // document.getElementById("selectMpesa").addEventListener("click", () => {
@@ -989,49 +1010,296 @@ document.addEventListener("DOMContentLoaded", () => {
   //   }`;
   // });
 
-  document.getElementById("selectPaystack").addEventListener("click", () => {
-    showStep("payment-step-4-paystack");
-    document.getElementById("paystack-email-input").value =
-      appState.currentBusiness?.email || "";
-    // Amount based on action
-    const amount =
-      appState.paymentAction === "upgrade"
-        ? appState.selectedPlan?.price
-        : appState.currentSubscription?.price;
-    document.getElementById("paystack-amount").value = `KES ${
-      amount ? amount.toLocaleString() : "N/A"
-    }`;
-  });
+  const selectPaystackBtn = document.getElementById("selectPaystack");
+  if (selectPaystackBtn) {
+    selectPaystackBtn.addEventListener("click", () => {
+      showStep("payment-step-4-paystack");
+      const paystackEmailInput = document.getElementById(
+        "paystack-email-input",
+      );
+      const paystackAmountInput = document.getElementById("paystack-amount");
 
-  // Pay with M-Pesa button (placeholder)
-  document
-    .getElementById("payWithMpesa")
-    .addEventListener("click", initiateMpesaPayment);
+      if (paystackEmailInput)
+        paystackEmailInput.value = appState.currentBusiness?.email || "";
+
+      // Amount based on action
+      const amount =
+        appState.paymentAction === "upgrade"
+          ? appState.selectedPlan?.price
+          : appState.currentSubscription?.price;
+
+      if (paystackAmountInput) {
+        paystackAmountInput.value = `KES ${amount ? amount.toLocaleString() : "N/A"}`;
+      }
+    });
+  }
+
+  // Pay with M-Pesa button (currently disabled in UI)
+  // const payWithMpesaBtn = document.getElementById("payWithMpesa");
+  // if (payWithMpesaBtn) {
+  //   payWithMpesaBtn.addEventListener("click", initiateMpesaPayment);
+  // }
 
   // Pay with Paystack button
-  document
-    .getElementById("payWithPaystack")
-    .addEventListener("click", initiatePaystackPayment);
+  const payWithPaystackBtn = document.getElementById("payWithPaystack");
+  if (payWithPaystackBtn) {
+    payWithPaystackBtn.addEventListener("click", initiatePaystackPayment);
+  }
+
+  // --- Payment Processing Functions ---
+
+  // Function to initiate Paystack payment
+  async function initiatePaystackPayment() {
+    const processingPopup = document.getElementById("processingPopup");
+    if (processingPopup) processingPopup.classList.remove("hidden");
+
+    try {
+      const emailInput = document.getElementById("paystack-email-input");
+      const amountInput = document.getElementById("paystack-amount");
+
+      if (!appState.currentBusiness?._id && !appState.currentBusiness?.id) {
+        showToast("Business ID not found", "error");
+        return;
+      }
+
+      // Determine plan ID and amount based on action
+      let planId, amount, planName, actionText;
+      
+      if (appState.paymentAction === "upgrade") {
+        planId = appState.selectedPlan?._id;
+        amount = appState.selectedPlan?.price;
+        planName = appState.selectedPlan?.name;
+        actionText = `Upgrading to ${planName} Plan`;
+      } else if (appState.paymentAction === "payCurrent") {
+        // For paying current plan, find a suitable paid plan to upgrade to
+        const paidPlans = getAvailablePaidPlans();
+        if (paidPlans.length === 0) {
+          showToast("No paid plans available for activation", "error");
+          return;
+        }
+        planId = paidPlans[0]._id;
+        amount = paidPlans[0].price;
+        planName = paidPlans[0].name;
+        actionText = `Activating ${planName} Plan`;
+      } else {
+        // updatePaymentMethod
+        planId =
+          appState.currentSubscription?.plan?._id ||
+          appState.currentSubscription?.plan;
+        amount = appState.currentSubscription?.price;
+        planName =
+          appState.currentSubscription?.plan?.name ||
+          appState.currentSubscription?.plan;
+        actionText = `Updating payment method for ${planName}`;
+      }
+
+      if (!planId || (amount && amount <= 0 && appState.paymentAction !== "updatePaymentMethod")) {
+        showToast("Plan information not available or invalid amount", "error");
+        return;
+      }
+
+      const email = emailInput?.value || appState.currentBusiness?.email;
+      if (!email) {
+        showToast("Email is required for Paystack payment", "error");
+        return;
+      }
+
+      // Show processing message
+      showToast(actionText + "...", "info");
+
+      const response = await fetch("/payments/paystack/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          businessId:
+            appState.currentBusiness.id || appState.currentBusiness._id,
+          planId: planId,
+          amount: amount,
+          email: email,
+          action: appState.paymentAction === "payCurrent" ? "upgrade" : appState.paymentAction,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to initiate Paystack payment",
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.status && data.data?.authorization_url) {
+        // Open Paystack popup
+        const handler = PaystackPop.setup({
+          key: data.data.public_key || "pk_live_xxxxxxxxxxxxxxxxxxxxxxxx", // Fallback - should be from config
+          email: email,
+          amount: amount * 100, // Paystack expects amount in kobo/cents
+          ref: data.data.reference,
+          callback: function (response) {
+            // Payment successful - close popup and show success message
+            showToast(
+              "Payment successful! Processing your subscription...",
+              "success",
+            );
+            const paymentModal = document.getElementById(
+              "payment-options-modal",
+            );
+            if (paymentModal) paymentModal.classList.add("hidden");
+
+            // Refresh subscription details after a delay
+            setTimeout(async () => {
+              await fetchSubscriptionDetails();
+              monitorSubscriptionStatus();
+            }, 3000);
+          },
+          onClose: function () {
+            showToast("Payment cancelled", "warning");
+          },
+        });
+        handler.openIframe();
+      } else if (data.message && data.message.includes("free")) {
+        // Free plan - no payment required
+        showToast("Payment method updated successfully!", "success");
+        const paymentModal = document.getElementById("payment-options-modal");
+        if (paymentModal) paymentModal.classList.add("hidden");
+        await fetchSubscriptionDetails();
+        monitorSubscriptionStatus();
+      } else {
+        throw new Error("Invalid response from payment server");
+      }
+    } catch (error) {
+      console.error("Error during Paystack initiation:", error);
+      showToast(error.message || "Failed to initiate payment", "error");
+    } finally {
+      if (processingPopup) processingPopup.classList.add("hidden");
+    }
+  }
+
+  // Function to initiate M-Pesa payment (currently disabled in UI)
+  // async function initiateMpesaPayment() {
+  //   showToast("M-Pesa payment is currently unavailable. Please use Paystack.", "info");
+  //   return;
+
+  //   const processingPopup = document.getElementById("processingPopup");
+  //   if (processingPopup) processingPopup.classList.remove("hidden");
+
+  //   try {
+  //     const phoneInput = document.getElementById("mpesa-phone-input");
+
+  //     if (!appState.currentBusiness?._id && !appState.currentBusiness?.id) {
+  //       showToast("Business ID not found", "error");
+  //       return;
+  //     }
+
+  //     // Determine plan and amount based on action
+  //     let plan, durationMonths = 1; // Default to 1 month
+  //     if (appState.paymentAction === "upgrade") {
+  //       plan = appState.selectedPlan?.name;
+  //     } else {
+  //       plan = appState.currentSubscription?.plan?.name || appState.currentSubscription?.plan;
+  //     }
+
+  //     if (!plan) {
+  //       showToast("Plan information not available", "error");
+  //       return;
+  //     }
+
+  //     const phone = phoneInput?.value;
+  //     if (!phone) {
+  //       showToast("Phone number is required for M-Pesa payment", "error");
+  //       return;
+  //     }
+
+  //     // Validate phone number (basic validation for Kenyan numbers)
+  //     if (!/^07[0-9]{8}$/.test(phone)) {
+  //       showToast("Please enter a valid Kenyan phone number (e.g., 07XXXXXXXX)", "error");
+  //       return;
+  //     }
+
+  //     const response = await fetch("/payments/mpesa/stkpush", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       credentials: "include",
+  //       body: JSON.stringify({
+  //         phone: phone,
+  //         businessId: appState.currentBusiness.id || appState.currentBusiness._id,
+  //         plan: plan,
+  //         durationMonths: durationMonths
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.message || "Failed to initiate M-Pesa payment");
+  //     }
+
+  //     const data = await response.json();
+  //     showToast("M-Pesa STK Push sent! Please check your phone to complete payment.", "success");
+
+  //     // Close modal after successful initiation
+  //     setTimeout(() => {
+  //       const paymentModal = document.getElementById("payment-options-modal");
+  //       if (paymentModal) paymentModal.classList.add("hidden");
+  //     }, 2000);
+
+  //     // Poll for payment status
+  //     const checkStatus = async () => {
+  //       try {
+  //         const statusResponse = await fetch(`/payments/status/${data.subscriptionId}`);
+  //         if (statusResponse.ok) {
+  //           const statusData = await statusResponse.json();
+  //           if (statusData.status === "completed") {
+  //             showToast("Payment successful! Processing your subscription...", "success");
+  //             await fetchSubscriptionDetails();
+  //             monitorSubscriptionStatus();
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.error("Error checking payment status:", error);
+  //       }
+  //     };
+
+  //     // Check status every 5 seconds for 2 minutes
+  //     let checks = 0;
+  //     const statusInterval = setInterval(() => {
+  //       checkStatus();
+  //       checks++;
+  //       if (checks >= 24) { // 2 minutes worth of checking
+  //         clearInterval(statusInterval);
+  //       }
+  //     }, 5000);
+
+  //   } catch (error) {
+  //     console.error("Error during M-Pesa initiation:", error);
+  //     showToast(error.message || "Failed to initiate M-Pesa payment", "error");
+  //   } finally {
+  //     if (processingPopup) processingPopup.classList.add("hidden");
+  //   }
+  // }
 
   // Mobile sidebar toggle: This was missing!
-  document.getElementById("toggle-sidebar").addEventListener("click", () => {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("overlay");
-    sidebar.classList.toggle("translate-x-0");
-    sidebar.classList.toggle("-translate-x-full"); // Assuming it starts hidden
-    overlay.classList.toggle("hidden");
-    document.body.classList.toggle("sidebar-open"); // To prevent body scroll
-  });
+  const toggleSidebarBtn = document.getElementById("toggle-sidebar");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
 
-  // Overlay click to close sidebar
-  document.getElementById("overlay").addEventListener("click", () => {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("overlay");
-    sidebar.classList.add("-translate-x-full");
-    sidebar.classList.remove("translate-x-0");
-    overlay.classList.add("hidden");
-    document.body.classList.remove("sidebar-open");
-  });
+  if (toggleSidebarBtn && sidebar && overlay) {
+    toggleSidebarBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("translate-x-0");
+      sidebar.classList.toggle("-translate-x-full"); // Assuming it starts hidden
+      overlay.classList.toggle("hidden");
+      document.body.classList.toggle("sidebar-open"); // To prevent body scroll
+    });
+
+    // Overlay click to close sidebar
+    overlay.addEventListener("click", () => {
+      sidebar.classList.add("-translate-x-full");
+      sidebar.classList.remove("translate-x-0");
+      overlay.classList.add("hidden");
+      document.body.classList.remove("sidebar-open");
+    });
+  }
 
   // Initialize scroll reveal animations: This was also missing!
   const scrollReveals = document.querySelectorAll(".scroll-reveal");
@@ -1043,7 +1311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     },
-    { threshold: 0.1 }
+    { threshold: 0.1 },
   );
 
   scrollReveals.forEach((element) => {

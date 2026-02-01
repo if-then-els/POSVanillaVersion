@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Fix Test</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+</head>
+<body>
+    <div id="test-results">
+        <h2>Testing JavaScript Functions</h2>
+        <div id="results"></div>
+    </div>
+
+    <!-- Mock HTML elements that the script expects -->
+    <div id="processingPopup" class="hidden">Processing...</div>
+    <div id="payment-options-modal" class="hidden">
+        <input id="paystack-email-input" type="email" value="test@example.com">
+        <input id="paystack-amount" type="text" value="KES 1000">
+    </div>
+    <button id="payWithPaystack">Pay with Paystack</button>
+    <div id="toast-container"></div>
+
+    <script>
+        // Mock the appState and other dependencies
+        window.appState = {
+            currentBusiness: { _id: "test_business_id", email: "test@example.com" },
+            selectedPlan: { _id: "test_plan_id", name: "Test Plan", price: 1000 },
+            currentSubscription: { plan: { _id: "current_plan_id", name: "Current Plan" }, price: 500 },
+            paymentAction: "upgrade"
+        };
+
+        // Mock showToast function
+        window.showToast = function(message, type) {
+            console.log(`Toast [${type}]: ${message}`);
+        };
+
+        // Mock fetch function
+        window.fetch = function(url, options) {
+            console.log(`Mock fetch call to: ${url}`);
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({
+                    status: true,
+                    data: {
+                        authorization_url: "https://paystack.com/pay/test",
+                        reference: "test_reference_123",
+                        public_key: "pk_test_key"
+                    }
+                })
+            });
+        };
+
+        // Mock PaystackPop
+        window.PaystackPop = {
+            setup: function(options) {
+                console.log("PaystackPop.setup called with:", options);
+                return {
+                    openIframe: function() {
+                        console.log("Paystack popup opened");
+                        // Simulate successful payment callback
+                        setTimeout(() => {
+                            options.callback({ reference: "test_reference_123" });
+                        }, 1000);
+                    }
+                };
+            }
+        };
+    </script>
+
+    <script src="public/js/subscriptions.js"></script>
+    <script>
+        // Test the function
+        setTimeout(() => {
+            const results = document.getElementById('results');
+            
+            try {
+                // Check if function is defined
+                if (typeof initiatePaystackPayment === 'function') {
+                    results.innerHTML += '<p style="color: green;">✅ initiatePaystackPayment is defined</p>';
+                    
+                    // Test calling the function
+                    initiatePaystackPayment().then(() => {
+                        results.innerHTML += '<p style="color: green;">✅ Function executed without errors</p>';
+                    }).catch(error => {
+                        results.innerHTML += `<p style="color: red;">❌ Function error: ${error.message}</p>`;
+                    });
+                } else {
+                    results.innerHTML += '<p style="color: red;">❌ initiatePaystackPayment is NOT defined</p>';
+                }
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

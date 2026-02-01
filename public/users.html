@@ -1,16 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <title>User Management - SwiftPOS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Theme Script: Prevents FOUC -->
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
 
@@ -23,7 +37,21 @@
               inter: ["Inter", "sans-serif"],
             },
             colors: {
+              // Matches dashboard.html palette exactly
               primary: {
+                50: "#f8fafc",
+                100: "#f1f5f9",
+                200: "#e2e8f0",
+                300: "#cbd5e1",
+                400: "#94a3b8",
+                500: "#64748b",
+                600: "#475569",
+                700: "#334155",
+                800: "#1e293b",
+                900: "#0f172a",
+                950: "#020617",
+              },
+              accent: {
                 50: "#f0f9ff",
                 100: "#e0f2fe",
                 200: "#bae6fd",
@@ -35,18 +63,6 @@
                 800: "#075985",
                 900: "#0c4a6e",
               },
-              accent: {
-                50: "#fdf4ff",
-                100: "#fae8ff",
-                200: "#f5d0fe",
-                300: "#f0abfc",
-                400: "#e879f9",
-                500: "#d946ef",
-                600: "#c026d3",
-                700: "#a21caf",
-                800: "#86198f",
-                900: "#701a75",
-              },
               success: {
                 50: "#f0fdf4",
                 100: "#dcfce7",
@@ -56,51 +72,49 @@
                 500: "#22c55e",
                 600: "#16a34a",
                 700: "#15803d",
-                800: "#166534",
-                900: "#14532d",
+              },
+              warning: {
+                50: "#fffbeb",
+                100: "#fef3c7",
+                400: "#fbbf24",
+                500: "#f59e0b",
+                600: "#d97706",
+              },
+              error: {
+                400: "#f87171",
+                500: "#ef4444",
+                600: "#dc2626",
               },
             },
             animation: {
-              float: "float 6s ease-in-out infinite",
-              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-              "bounce-slow": "bounce 3s infinite",
-              "spin-slow": "spin 8s linear infinite",
-              gradient: "gradient 15s ease infinite",
-              "slide-up": "slideUp 0.5s ease-out",
-              "slide-in": "slideIn 0.6s ease-out",
-              "scale-in": "scaleIn 0.4s ease-out",
-              glow: "glow 2s ease-in-out infinite alternate",
+              "fade-in": "fadeIn 0.6s ease-out forwards",
+              "slide-up": "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              "slide-in": "slideIn 0.6s ease-out forwards",
+              "pulse-soft":
+                "pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "float-slow": "float 6s ease-in-out infinite",
+              "float-slower": "float 8s ease-in-out infinite",
             },
             keyframes: {
-              float: {
-                "0%, 100%": { transform: "translateY(0px)" },
-                "50%": { transform: "translateY(-20px)" },
-              },
-              gradient: {
-                "0%, 100%": {
-                  "background-size": "200% 200%",
-                  "background-position": "left center",
-                },
-                "50%": {
-                  "background-size": "200% 200%",
-                  "background-position": "right center",
-                },
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
               },
               slideUp: {
-                "0%": { transform: "translateY(100px)", opacity: "0" },
-                "100%": { transform: "translateY(0)", opacity: "1" },
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
               },
               slideIn: {
-                "0%": { transform: "translateX(-100px)", opacity: "0" },
+                "0%": { transform: "translateX(-20px)", opacity: "0" },
                 "100%": { transform: "translateX(0)", opacity: "1" },
               },
-              scaleIn: {
-                "0%": { transform: "scale(0.8)", opacity: "0" },
-                "100%": { transform: "scale(1)", opacity: "1" },
+              pulseSoft: {
+                "0%, 100%": { opacity: "1" },
+                "50%": { opacity: "0.7" },
               },
-              glow: {
-                "0%": { boxShadow: "0 0 20px rgba(14, 165, 233, 0.5)" },
-                "100%": { boxShadow: "0 0 40px rgba(14, 165, 233, 0.8)" },
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-15px)" },
               },
             },
           },
@@ -109,86 +123,162 @@
     </script>
 
     <style>
+      :root {
+        /* Light Mode Variables (Matches Dashboard) */
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(226, 232, 240, 0.6);
+        --glass-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --scroll-track: rgba(241, 245, 249, 0.5);
+        --scroll-thumb: rgba(148, 163, 184, 0.5);
+      }
+
+      .dark {
+        /* Dark Mode Variables (Matches Dashboard) */
+        --glass-bg: rgba(15, 23, 42, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        --card-bg: rgba(30, 41, 59, 0.4);
+        --scroll-track: rgba(15, 23, 42, 0.5);
+        --scroll-thumb: rgba(71, 85, 105, 0.5);
+      }
+
       body {
         font-family: "Inter", sans-serif;
+        overflow-x: hidden;
       }
 
-      .glass {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+      /* Premium Glass Classes */
+      .glass-premium {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
       }
 
-      .glass-dark {
-        background: rgba(0, 0, 0, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+      .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      .gradient-bg {
-        background: linear-gradient(-45deg, #0ea5e9, #d946ef, #22c55e, #f59e0b);
-        background-size: 400% 400%;
-        animation: gradient 15s ease infinite;
+      /* Adaptive Inputs (Matches Dashboard style) */
+      .input-premium {
+        @apply bg-white dark:bg-primary-800/50 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white transition-all duration-200 placeholder-primary-400;
+      }
+      .input-premium:focus {
+        @apply border-accent-500 ring-2 ring-accent-500/20 outline-none;
       }
 
-      .hover-lift {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Table Styles */
+      .premium-table th {
+        @apply text-xs uppercase tracking-wider font-bold text-primary-500 dark:text-primary-400 px-6 py-4 border-b border-primary-200/50 dark:border-primary-700/50 bg-primary-50/50 dark:bg-primary-800/30;
       }
 
-      .hover-lift:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      .premium-table td {
+        @apply px-6 py-4 border-b border-primary-100/50 dark:border-primary-800/30 text-primary-600 dark:text-primary-300 transition-colors duration-200;
       }
 
-      .scroll-reveal {
-        opacity: 0;
-        transform: translateY(50px);
-        transition: all 0.6s ease-out;
+      .premium-table tr:hover td {
+        @apply bg-primary-50/80 dark:bg-primary-800/20;
       }
 
-      .scroll-reveal.revealed {
-        opacity: 1;
-        transform: translateY(0);
+      .btn-shine {
+        position: relative;
+        overflow: hidden;
       }
-      @media (max-width: 767px) {
-        body.sidebar-open {
-          overflow: hidden;
-        }
+      .btn-shine::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+      .btn-shine:hover::after {
+        left: 100%;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--scroll-track);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--glass-border);
       }
     </style>
   </head>
 
-  <body class="bg-gray-900 text-white font-inter overflow-x-hidden">
-    <!-- Animated Background -->
-    <div class="fixed inset-0 z-0">
-      <div class="gradient-bg absolute inset-0 opacity-20"></div>
+  <body
+    class="bg-primary-50 text-primary-900 dark:bg-primary-950 dark:text-white transition-colors duration-300 min-h-screen"
+  >
+    <!-- Animated Background (Matches Dashboard) -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-primary-950 dark:via-primary-900 dark:to-primary-950 transition-colors duration-500"
+      ></div>
+
+      <div class="absolute inset-0 opacity-30 dark:opacity-20">
+        <div
+          class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-accent-400/20 dark:bg-accent-500/10 rounded-full blur-3xl animate-float-slower"
+        ></div>
+        <div
+          class="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-primary-400/20 dark:bg-primary-500/10 rounded-full blur-3xl animate-float-slow"
+          style="animation-delay: 2s"
+        ></div>
+      </div>
+
+      <!-- Grid Overlay -->
+      <div
+        class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style="
+          background-image: radial-gradient(
+            circle at 1px 1px,
+            currentColor 1px,
+            transparent 0
+          );
+          background-size: 32px 32px;
+        "
+      ></div>
     </div>
 
     <!-- Mobile Navigation -->
-    <!-- <button
-      id="toggle-sidebar"
-      class="p-2 hover:bg-white/10 rounded-lg transition-colors"
-    >
-      <i class="fas fa-bars text-xl"></i>
-    </button> -->
     <nav
-      class="md:hidden flex justify-between items-center p-4 glass fixed top-0 w-full z-40 backdrop-blur-md"
+      class="md:hidden fixed top-0 w-full z-40 glass-premium border-b border-primary-200/50 dark:border-primary-700/50 px-4 h-16 flex justify-between items-center transition-all duration-300"
     >
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-3">
         <div
-          class="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg flex items-center justify-center"
+          class="w-8 h-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center shadow-lg"
         >
           <i class="fas fa-bolt text-white text-sm"></i>
         </div>
-        <h1
-          class="text-xl font-bold bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent"
+        <span
+          class="text-lg font-black tracking-tight text-primary-900 dark:text-white"
         >
-          SwiftPOS
-        </h1>
+          Swift<span class="text-accent-500">POS</span>
+        </span>
       </div>
       <button
         id="toggle-sidebar"
-        class="p-2 hover:bg-white/10 rounded-lg transition-colors"
+        class="p-2 text-primary-600 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-colors"
       >
         <i class="fas fa-bars text-xl"></i>
       </button>
@@ -197,10 +287,10 @@
     <div
       class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10"
     >
-      <!-- Sidebar -->
+      <!-- Sidebar (Content loaded via JS) -->
       <div
         id="sidebar"
-        class="fixed inset-y-0 left-0 z-50 w-64 glass-dark transform -translate-x-full md:translate-x-0 transition-all duration-500 ease-out"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-premium transform -translate-x-full md:translate-x-0 transition-transform duration-500 ease-out border-r border-primary-200/50 dark:border-primary-700/50 shadow-2xl md:shadow-none"
       >
         <!-- Sidebar content loaded via JS -->
       </div>
@@ -208,108 +298,126 @@
       <!-- Overlay -->
       <div
         id="overlay"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-40"
+        class="fixed inset-0 bg-primary-900/20 dark:bg-black/50 backdrop-blur-sm hidden z-40 transition-opacity duration-300"
       ></div>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto md:ml-64 p-6 relative">
-        <div class="max-w-6xl mx-auto">
+      <main
+        class="flex-1 overflow-y-auto md:ml-64 p-4 md:p-8 relative scroll-smooth"
+      >
+        <div class="max-w-7xl mx-auto space-y-8 pb-20 animate-slide-up">
           <!-- Header Section -->
-          <div class="mb-12 scroll-reveal">
-            <div class="relative">
+          <div
+            class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-primary-200 dark:border-primary-700/50 pb-8 transition-colors duration-300"
+          >
+            <div>
               <h1
-                class="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-primary-400 via-accent-400 to-success-400 bg-clip-text text-transparent animate-slide-in"
+                class="text-3xl md:text-4xl font-black text-primary-900 dark:text-white tracking-tight mb-2"
               >
                 User Management
               </h1>
-              <p class="text-xl text-gray-400 mb-6">
-                Manage system users and permissions
+              <p
+                class="text-primary-500 dark:text-primary-400 text-sm font-medium"
+              >
+                Configure access control and permissions for your team.
               </p>
+            </div>
 
-              <div class="flex items-center space-x-4">
-                <div
-                  class="flex items-center space-x-2 glass px-4 py-2 rounded-full"
+            <div class="flex items-center space-x-4">
+              <!-- Theme Toggler -->
+              <button
+                onclick="toggleTheme()"
+                class="w-10 h-10 flex items-center justify-center rounded-xl glass-card text-primary-500 hover:text-accent-500 dark:text-primary-400 transition-colors"
+              >
+                <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+              </button>
+
+              <div
+                class="flex items-center gap-2 px-4 py-2 rounded-xl glass-card text-sm font-semibold text-primary-700 dark:text-primary-200"
+              >
+                <span class="relative flex h-2.5 w-2.5">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"
+                  ></span>
+                  <span
+                    class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success-500"
+                  ></span>
+                </span>
+                Active Users:
+                <span
+                  id="active-users-count"
+                  class="text-primary-900 dark:text-white font-bold"
+                  >0</span
                 >
-                  <div
-                    class="w-2 h-2 bg-success-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-sm"
-                    >Active Users: <span id="active-users-count">0</span></span
-                  >
-                </div>
               </div>
             </div>
           </div>
 
           <!-- Action Bar -->
-          <div class="glass rounded-2xl p-6 mb-8 scroll-reveal">
-            <div
-              class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-            >
-              <div class="flex-1">
-                <div class="relative">
-                  <div
-                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                  >
-                    <i class="fas fa-search text-gray-500"></i>
-                  </div>
-                  <input
-                    type="text"
-                    id="user-search"
-                    class="glass-dark w-full pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    placeholder="Search users..."
-                  />
-                </div>
+          <div
+            class="flex flex-col md:flex-row gap-4 justify-between items-center"
+          >
+            <div class="w-full md:w-96 relative group">
+              <div
+                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              >
+                <i
+                  class="fas fa-search text-primary-400 dark:text-primary-500 group-focus-within:text-accent-500 transition-colors"
+                ></i>
               </div>
-              <div class="flex gap-4">
-                <button
-                  id="add-user-btn"
-                  class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
-                >
-                  <i class="fas fa-user-plus mr-2"></i> Add User
-                </button>
-                <button
-                  id="export-users-btn"
-                  class="px-6 py-3 glass-dark border border-gray-700 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 hover:scale-105"
-                >
-                  <i class="fas fa-file-export mr-2"></i> Export
-                </button>
-              </div>
+              <input
+                type="text"
+                id="user-search"
+                class="w-full pl-10 pr-4 py-3 rounded-xl input-premium text-sm shadow-sm"
+                placeholder="Search by name, email, or role..."
+              />
+            </div>
+
+            <div class="flex gap-3 w-full md:w-auto">
+              <button
+                id="export-users-btn"
+                class="flex-1 md:flex-none px-4 py-3 bg-white dark:bg-primary-800/50 hover:bg-primary-50 dark:hover:bg-primary-800 border border-primary-200 dark:border-primary-700 text-primary-700 dark:text-primary-300 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+              >
+                <i class="fas fa-download"></i> <span>Export</span>
+              </button>
+              <button
+                id="add-user-btn"
+                class="flex-1 md:flex-none px-6 py-3 bg-accent-500 hover:bg-accent-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-accent-500/20 btn-shine transition-all flex items-center justify-center gap-2 transform hover:translate-y-[-2px]"
+              >
+                <i class="fas fa-plus"></i> <span>Add User</span>
+              </button>
             </div>
           </div>
 
-          <!-- Users Table -->
-          <div class="glass rounded-3xl p-8 scroll-reveal">
+          <!-- Users Table Container -->
+          <div class="glass-premium rounded-2xl overflow-hidden">
             <div class="overflow-x-auto">
-              <table class="w-full">
+              <table class="w-full text-left premium-table">
                 <thead>
-                  <tr class="border-b border-gray-700">
-                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
-                      Name
-                    </th>
-                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
-                      Email
-                    </th>
-                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
-                      Role
-                    </th>
-                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
-                      Status
-                    </th>
-                    <th class="text-left py-4 px-6 text-gray-400 font-semibold">
-                      Last Active
-                    </th>
-                    <th
-                      class="text-right py-4 px-6 text-gray-400 font-semibold"
-                    >
-                      Actions
-                    </th>
+                  <tr>
+                    <th>Identity</th>
+                    <th>Contact</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Last Active</th>
+                    <th class="text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody id="users-table" class="divide-y divide-gray-700">
+                <tbody id="users-table" class="text-sm">
                   <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
-                      Loading users...
+                    <td
+                      colspan="6"
+                      class="px-6 py-12 text-center text-primary-500"
+                    >
+                      <div class="flex flex-col items-center justify-center">
+                        <i
+                          class="fas fa-circle-notch fa-spin text-3xl mb-4 text-accent-500"
+                        ></i>
+                        <span class="text-xs uppercase tracking-wide font-bold"
+                          >Loading directory...</span
+                        >
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -317,24 +425,40 @@
             </div>
 
             <!-- Pagination -->
-            <div class="flex items-center justify-between mt-6">
-              <div class="text-sm text-gray-400">
-                Showing <span id="users-start">1</span> to
-                <span id="users-end">10</span> of
-                <span id="users-total">0</span> users
+            <div
+              class="px-6 py-4 border-t border-primary-200 dark:border-primary-700/50 flex flex-col sm:flex-row items-center justify-between gap-4 bg-primary-50/50 dark:bg-primary-900/20"
+            >
+              <div class="text-xs text-primary-500 font-medium">
+                Showing
+                <span
+                  id="users-start"
+                  class="text-primary-900 dark:text-white font-bold"
+                  >1</span
+                >
+                to
+                <span
+                  id="users-end"
+                  class="text-primary-900 dark:text-white font-bold"
+                  >10</span
+                >
+                of
+                <span
+                  id="users-total"
+                  class="text-primary-900 dark:text-white font-bold"
+                  >0</span
+                >
+                entries
               </div>
               <div class="flex gap-2">
                 <button
                   id="prev-page"
-                  class="glass-dark px-4 py-2 rounded-xl hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled
+                  class="px-4 py-2 rounded-lg bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 text-primary-600 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-700 text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
                   Previous
                 </button>
                 <button
                   id="next-page"
-                  class="glass-dark px-4 py-2 rounded-xl hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled
+                  class="px-4 py-2 rounded-lg bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 text-primary-600 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-700 text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 >
                   Next
                 </button>
@@ -351,98 +475,141 @@
       class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
     >
       <div
-        class="fixed inset-0 bg-black/70 backdrop-blur-sm"
+        class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm"
         id="modal-backdrop"
       ></div>
       <div
-        class="glass rounded-2xl w-full max-w-md relative z-10 animate-scale-in"
+        class="glass-premium rounded-2xl w-full max-w-lg relative z-10 animate-slide-up shadow-2xl"
       >
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">Add New User</h3>
-            <button id="close-modal" class="text-gray-400 hover:text-white">
-              <i class="fas fa-times text-xl"></i>
+        <div class="p-8">
+          <div
+            class="flex justify-between items-center mb-6 border-b border-primary-100 dark:border-primary-700/50 pb-4"
+          >
+            <div>
+              <h3
+                class="text-xl font-black text-primary-900 dark:text-white tracking-tight"
+              >
+                New User
+              </h3>
+              <p
+                class="text-xs text-primary-500 dark:text-primary-400 mt-1 font-medium"
+              >
+                Create a new access account for the system.
+              </p>
+            </div>
+            <button
+              id="close-modal"
+              class="text-primary-400 hover:text-primary-900 dark:text-primary-500 dark:hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary-100 dark:hover:bg-primary-800"
+            >
+              <i class="fas fa-times"></i>
             </button>
           </div>
 
-          <form id="add-user-form" class="space-y-4">
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Full Name</label
-              >
-              <input
-                type="text"
-                name="name"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              />
-            </div>
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Phone</label
-              >
-              <input
-                type="tel"
-                name="phone"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              />
+          <form id="add-user-form" class="space-y-5">
+            <div class="grid grid-cols-2 gap-5">
+              <div class="space-y-1.5">
+                <label
+                  class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                  >Full Name</label
+                >
+                <input
+                  type="text"
+                  name="name"
+                  class="w-full px-4 py-3 rounded-xl input-premium text-sm"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                  >Phone</label
+                >
+                <input
+                  type="tel"
+                  name="phone"
+                  class="w-full px-4 py-3 rounded-xl input-premium text-sm"
+                  placeholder="+254..."
+                  required
+                />
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Email</label
+            <div class="space-y-1.5">
+              <label
+                class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                >Email Address</label
               >
               <input
                 type="email"
                 name="email"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 rounded-xl input-premium text-sm"
+                placeholder="user@company.com"
                 required
               />
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Role</label
-              >
-              <select
-                name="role"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              >
-                <option value="">Select Role</option>
-                <option value="admin">Administrator</option>
-                <option value="manager">Manager</option>
-                <option value="cashier">Cashier</option>
-                <option value="inventory">Inventory Manager</option>
-              </select>
+            <div class="grid grid-cols-2 gap-5">
+              <div class="space-y-1.5">
+                <label
+                  class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                  >System Role</label
+                >
+                <select
+                  name="role"
+                  class="w-full px-4 py-3 rounded-xl input-premium text-sm appearance-none bg-no-repeat bg-right"
+                  required
+                >
+                  <option value="" class="bg-white dark:bg-primary-900">
+                    Select Role
+                  </option>
+                  <option value="admin" class="bg-white dark:bg-primary-900">
+                    Administrator
+                  </option>
+                  <option value="manager" class="bg-white dark:bg-primary-900">
+                    Manager
+                  </option>
+                  <option value="cashier" class="bg-white dark:bg-primary-900">
+                    Cashier
+                  </option>
+                  <option
+                    value="inventory"
+                    class="bg-white dark:bg-primary-900"
+                  >
+                    Inventory Manager
+                  </option>
+                </select>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                  >Password</label
+                >
+                <input
+                  type="password"
+                  name="password"
+                  class="w-full px-4 py-3 rounded-xl input-premium text-sm"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Initial Password</label
-              >
-              <input
-                type="password"
-                name="password"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              />
-            </div>
-
-            <div class="pt-4 flex justify-end gap-3">
+            <div
+              class="pt-6 flex justify-end gap-3 border-t border-primary-100 dark:border-primary-700/50 mt-2"
+            >
               <button
                 type="button"
                 id="cancel-add-user"
-                class="px-4 py-2 glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
+                class="px-5 py-2.5 bg-white dark:bg-primary-800 hover:bg-primary-50 dark:hover:bg-primary-700 text-primary-600 dark:text-primary-300 rounded-xl text-sm font-bold transition-colors border border-primary-200 dark:border-primary-700"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+                class="px-6 py-2.5 bg-accent-500 hover:bg-accent-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-accent-500/20 btn-shine transition-transform hover:scale-105"
               >
-                <i class="fas fa-save mr-2"></i> Save User
+                Create User
               </button>
             </div>
           </form>
@@ -456,111 +623,152 @@
       class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
     >
       <div
-        class="fixed inset-0 bg-black/70 backdrop-blur-sm"
+        class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm"
         id="edit-modal-backdrop"
       ></div>
       <div
-        class="glass rounded-2xl w-full max-w-md relative z-10 animate-scale-in"
+        class="glass-premium rounded-2xl w-full max-w-md relative z-10 animate-slide-up shadow-2xl"
       >
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold">Edit User</h3>
+        <div class="p-8">
+          <div
+            class="flex justify-between items-center mb-6 border-b border-primary-100 dark:border-primary-700/50 pb-4"
+          >
+            <div>
+              <h3
+                class="text-xl font-black text-primary-900 dark:text-white tracking-tight"
+              >
+                Edit Profile
+              </h3>
+              <p
+                class="text-xs text-primary-500 dark:text-primary-400 mt-1 font-medium"
+              >
+                Modify user details and permissions.
+              </p>
+            </div>
             <button
               id="close-edit-modal"
-              class="text-gray-400 hover:text-white"
+              class="text-primary-400 hover:text-primary-900 dark:text-primary-500 dark:hover:text-white transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-primary-100 dark:hover:bg-primary-800"
             >
-              <i class="fas fa-times text-xl"></i>
+              <i class="fas fa-times"></i>
             </button>
           </div>
 
-          <form id="edit-user-form" class="space-y-4">
+          <form id="edit-user-form" class="space-y-5">
             <input type="hidden" id="edit-user-id" name="userId" />
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
+            <div class="space-y-1.5">
+              <label
+                class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
                 >Full Name</label
               >
               <input
                 type="text"
                 id="edit-fullName"
                 name="name"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 rounded-xl input-premium text-sm"
                 required
               />
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
+            <div class="space-y-1.5">
+              <label
+                class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
                 >Phone</label
               >
               <input
                 type="tel"
                 id="edit-phone"
                 name="phone"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 rounded-xl input-premium text-sm"
                 required
               />
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
+            <div class="space-y-1.5">
+              <label
+                class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
                 >Email</label
               >
               <input
                 type="email"
                 id="edit-email"
                 name="email"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-4 py-3 rounded-xl input-premium text-sm"
                 required
               />
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Role</label
-              >
-              <select
-                id="edit-role"
-                name="role"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              >
-                <option value="admin">Administrator</option>
-                <option value="manager">Manager</option>
-                <option value="cashier">Cashier</option>
-                <option value="inventory">Inventory Manager</option>
-              </select>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label
+                  class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                  >Role</label
+                >
+                <select
+                  id="edit-role"
+                  name="role"
+                  class="w-full px-4 py-3 rounded-xl input-premium text-sm"
+                  required
+                >
+                  <option value="admin" class="bg-white dark:bg-primary-900">
+                    Administrator
+                  </option>
+                  <option value="manager" class="bg-white dark:bg-primary-900">
+                    Manager
+                  </option>
+                  <option value="cashier" class="bg-white dark:bg-primary-900">
+                    Cashier
+                  </option>
+                  <option
+                    value="inventory"
+                    class="bg-white dark:bg-primary-900"
+                  >
+                    Inventory Manager
+                  </option>
+                </select>
+              </div>
+              <div class="space-y-1.5">
+                <label
+                  class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                  >Status</label
+                >
+                <select
+                  id="edit-status"
+                  name="status"
+                  class="w-full px-4 py-3 rounded-xl input-premium text-sm"
+                  required
+                >
+                  <option value="active" class="bg-white dark:bg-primary-900">
+                    Active
+                  </option>
+                  <option value="inactive" class="bg-white dark:bg-primary-900">
+                    Inactive
+                  </option>
+                  <option
+                    value="suspended"
+                    class="bg-white dark:bg-primary-900"
+                  >
+                    Suspended
+                  </option>
+                </select>
+              </div>
             </div>
 
-            <div class="space-y-2">
-              <label class="block text-sm font-medium text-gray-300"
-                >Status</label
-              >
-              <select
-                id="edit-status"
-                name="status"
-                class="w-full glass-dark border border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                required
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </div>
-
-            <div class="pt-4 flex justify-end gap-3">
+            <div
+              class="pt-6 flex justify-end gap-3 border-t border-primary-100 dark:border-primary-700/50 mt-2"
+            >
               <button
                 type="button"
                 id="cancel-edit-user"
-                class="px-4 py-2 glass-dark border border-gray-700 rounded-xl hover:bg-white/10"
+                class="px-5 py-2.5 bg-white dark:bg-primary-800 hover:bg-primary-50 dark:hover:bg-primary-700 text-primary-600 dark:text-primary-300 rounded-xl text-sm font-bold transition-colors border border-primary-200 dark:border-primary-700"
               >
-                Cancel
+                Discard
               </button>
               <button
                 type="submit"
-                class="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105"
+                class="px-6 py-2.5 bg-accent-500 hover:bg-accent-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-accent-500/20 btn-shine transition-transform hover:scale-105"
               >
-                <i class="fas fa-save mr-2"></i> Save Changes
+                Save Changes
               </button>
             </div>
           </form>
@@ -568,139 +776,199 @@
       </div>
     </div>
 
-    <!-- Toast notification container -->
-    <div
-      id="toast-container"
-      class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"
-    ></div>
-
     <!-- Delete User Confirmation Modal -->
     <div id="delete-confirmation-modal" class="fixed inset-0 z-50 hidden">
-      <!-- Blurred Backdrop -->
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-lg"></div>
-
-      <!-- Modal Content -->
+      <div
+        class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm"
+      ></div>
       <div class="fixed inset-0 flex items-center justify-center p-4">
         <div
-          class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative border border-gray-700 animate-scale-in"
-          onclick="event.stopPropagation();"
+          class="glass-premium rounded-2xl p-8 max-w-sm w-full relative shadow-2xl animate-slide-up"
+          onclick="event.stopPropagation()"
         >
-          <!-- Message -->
-          <p class="text-gray-300 mb-6">
-            Are you sure you want to delete this user? This action cannot be
-            undone.
-          </p>
+          <div class="text-center mb-6">
+            <div
+              class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200 dark:border-red-800"
+            >
+              <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3
+              class="text-primary-900 dark:text-white font-black text-xl mb-2"
+            >
+              Delete User?
+            </h3>
+            <p class="text-primary-500 dark:text-primary-400 text-sm">
+              Are you sure you want to delete this user? This action cannot be
+              undone.
+            </p>
+          </div>
 
-          <!-- Action Buttons -->
-          <div class="flex justify-end gap-4">
+          <div class="flex justify-center gap-3">
             <button
               type="button"
               id="cancel-delete-user"
-              class="px-4 py-2 glass-dark border border-gray-700 rounded-xl hover:bg-white/10 text-gray-200"
+              class="px-5 py-2.5 bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-700 text-primary-600 dark:text-primary-300 text-sm font-bold transition-colors"
             >
               Cancel
             </button>
             <button
               id="confirm-delete"
-              class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+              class="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-500/20 transition-transform hover:scale-105"
             >
-              Delete
+              Yes, Delete
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Subscription Inactive Modal -->
+    <div
+      id="subscription-inactive-modal"
+      class="fixed inset-0 bg-primary-900/60 dark:bg-black/90 backdrop-blur-md z-[9999] hidden flex items-center justify-center"
+    >
+      <div
+        class="glass-premium rounded-2xl p-10 max-w-md w-full text-center relative animate-slide-up border-warning-500/30"
+      >
+        <div
+          class="w-20 h-20 bg-warning-100 dark:bg-warning-900/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-warning-200 dark:border-warning-700"
+        >
+          <i class="fas fa-lock text-warning-500 text-3xl"></i>
+        </div>
+        <h2
+          class="text-3xl font-black text-primary-900 dark:text-white mb-3 tracking-tight"
+        >
+          Access Restricted
+        </h2>
+        <p
+          class="text-primary-500 dark:text-primary-400 mb-8 text-sm leading-relaxed font-medium"
+        >
+          Your subscription plan has expired. Please renew your plan to restore
+          full access to sales functionalities.
+        </p>
+        <a
+          href="/manageSubscriptions.html"
+          class="w-full inline-flex justify-center items-center px-8 py-4 bg-gradient-to-r from-accent-600 to-accent-500 rounded-xl font-bold text-white shadow-xl shadow-accent-500/30 hover:scale-[1.02] transition-transform"
+        >
+          <i class="fas fa-credit-card mr-2"></i> Renew Subscription
+        </a>
       </div>
     </div>
 
     <!-- Feedback Modal -->
     <div
       id="feedbackModal"
-      class="fixed bottom-28 left-4 sm:left-auto sm:right-4 w-80 max-h-[80vh] glass-dark rounded-2xl shadow-lg border border-gray-600 flex flex-col hidden z-50 bg-gray-900 text-white"
+      class="fixed bottom-24 right-4 sm:right-8 w-80 max-h-[80vh] glass-premium rounded-2xl shadow-2xl flex flex-col hidden z-50 overflow-hidden border border-primary-200 dark:border-primary-700/50"
     >
       <!-- Header -->
       <div
-        class="bg-gradient-to-r from-primary-500 to-accent-500 text-white p-4 rounded-t-2xl flex justify-between items-center"
+        class="bg-gradient-to-r from-accent-600 to-accent-500 p-4 flex justify-between items-center text-white shadow-md"
       >
-        <h2 class="text-lg font-semibold"></h2>
-        <button id="closeChat" class="text-white text-xl">&times;</button>
+        <div class="flex items-center gap-2">
+          <i class="fas fa-headset text-lg"></i>
+          <h2 class="font-bold tracking-wide text-sm">Support Center</h2>
+        </div>
+        <button
+          id="closeChat"
+          class="hover:bg-white/20 rounded-lg p-1 transition-colors"
+        >
+          <i class="fas fa-times text-lg"></i>
+        </button>
       </div>
 
       <!-- Body & Tabs -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        class="flex-1 overflow-y-auto p-4 space-y-4 bg-white/50 dark:bg-primary-900/50 backdrop-blur-md"
+      >
         <!-- HOME TAB -->
-        <!-- HOME TAB -->
-        <div id="tab-Home" class="tab-panel space-y-3">
-          <!-- Greeting -->
+        <div
+          id="tab-Home"
+          class="tab-panel space-y-3 !border-0 !shadow-none !bg-transparent !p-0"
+        >
           <div
             id="welcomeBox"
-            class="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-1"
+            class="bg-white dark:bg-primary-800 border border-primary-100 dark:border-primary-700 rounded-xl p-4 shadow-sm"
           >
-            <h3 class="text-base font-semibold">Hi Codecine 👋</h3>
-            <p class="text-sm text-gray-300">How can we help?</p>
+            <h3 class="text-sm font-bold text-primary-900 dark:text-white">
+              Hello there 👋
+            </h3>
+            <p class="text-xs text-primary-500 dark:text-primary-400 mt-1">
+              How can we assist you today?
+            </p>
           </div>
 
-          <!-- Status -->
           <div
             id="statusBox"
-            class="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm"
+            class="p-3 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800/30 flex items-center gap-3"
           >
-            <p class="font-semibold">
-              Status:
-              <span class="text-green-400">All systems operational</span>
-            </p>
-            <p class="text-xs text-gray-400">
-              Updated on: <span id="currentDate"></span>
-            </p>
+            <span class="flex h-2.5 w-2.5 relative">
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-400 opacity-75"
+              ></span>
+              <span
+                class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success-500"
+              ></span>
+            </span>
+            <div>
+              <p
+                class="text-[10px] font-bold text-success-700 dark:text-success-400 uppercase tracking-wider"
+              >
+                System Status
+              </p>
+              <p
+                class="text-xs font-medium text-success-800 dark:text-success-300"
+              >
+                Operational
+              </p>
+            </div>
           </div>
 
-          <!-- Send Button -->
-          <div class="bg-gray-800 border border-gray-700 rounded-lg p-3">
-            <button
-              id="openMessage"
-              class="w-full flex items-center justify-between px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-sm font-medium transition"
-            >
-              <span>Send us a message</span>
-              <i class="fas fa-paper-plane ml-2"></i>
-            </button>
-          </div>
+          <button
+            id="openMessage"
+            class="w-full py-3 px-4 bg-primary-900 dark:bg-white text-white dark:text-primary-900 rounded-xl font-bold hover:opacity-90 transition-all shadow-lg flex justify-between items-center group text-xs"
+          >
+            <span>Start Conversation</span>
+            <i
+              class="fas fa-paper-plane group-hover:translate-x-1 transition-transform"
+            ></i>
+          </button>
 
-          <!-- Hidden Chat Form -->
           <form id="chatForm" class="hidden flex flex-col space-y-2 mt-2">
             <textarea
               id="chatInput"
               rows="3"
-              placeholder="Type your feedback..."
-              class="w-full resize-none px-4 py-2 rounded-lg text-sm bg-gray-700 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-accent-400"
+              placeholder="Describe your issue..."
+              class="w-full resize-none p-3 rounded-xl bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white placeholder-primary-400 text-xs focus:ring-2 focus:ring-accent-500 outline-none"
               required
             ></textarea>
             <button
               id="sendButton"
               type="submit"
-              class="self-end px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium rounded-lg flex items-center gap-2"
+              class="self-end px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition shadow-md"
             >
               <span id="sendText">Send</span>
               <span id="sendSpinner" class="hidden animate-spin"
                 ><i class="fas fa-spinner"></i
               ></span>
               <span id="sendCheck" class="hidden"
-                ><i class="fas fa-check-double"></i
+                ><i class="fas fa-check"></i
               ></span>
             </button>
           </form>
 
-          <!-- Chat Output -->
           <div
             id="chatBox"
-            class="max-h-40 overflow-y-auto space-y-2 text-sm mt-2 break-words"
+            class="max-h-40 overflow-y-auto space-y-2 text-xs mt-2 break-words text-primary-600 dark:text-primary-300"
           ></div>
         </div>
 
         <!-- MESSAGES TAB -->
         <div
           id="tab-Messages"
-          class="tab-panel hidden flex flex-col space-y-2 h-full"
+          class="tab-panel hidden flex flex-col space-y-2 h-full !border-0 !shadow-none !bg-transparent !p-0"
         >
           <div
-            class="flex-1 overflow-y-auto space-y-2 bg-gray-800 p-2 rounded-lg max-h-40 text-sm"
+            class="flex-1 overflow-y-auto space-y-2 bg-white/50 dark:bg-black/20 p-2 rounded-xl max-h-40 text-xs"
             id="messagesArea"
           ></div>
 
@@ -708,129 +976,85 @@
             <input
               id="msgInput"
               type="text"
-              placeholder="Type your message..."
-              class="flex-1 px-3 py-2 text-sm rounded-lg bg-gray-700 text-white placeholder-gray-400 outline-none"
+              placeholder="Type..."
+              class="flex-1 px-3 py-2 text-xs rounded-xl bg-white dark:bg-primary-800 text-primary-900 dark:text-white placeholder-primary-400 border border-primary-200 dark:border-primary-700 outline-none focus:ring-2 focus:ring-accent-500"
             />
             <button
               id="msgSendBtn"
-              class="px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-white"
+              class="p-2 bg-accent-500 hover:bg-accent-600 rounded-xl text-white text-xs shadow-md"
             >
               <i class="fas fa-paper-plane"></i>
             </button>
-          </div>
-
-          <div
-            class="mt-3 bg-gray-800 border border-gray-700 rounded-lg p-3 text-center"
-          >
-            <p class="text-xs text-gray-400 mb-2">Rate this conversation:</p>
-            <div class="flex justify-center gap-3 text-xl">
-              <button title="Terrible 😠" class="hover:scale-110 transition">
-                😠
-              </button>
-              <button title="Bad 😞" class="hover:scale-110 transition">
-                😞
-              </button>
-              <button title="Okay 😐" class="hover:scale-110 transition">
-                😐
-              </button>
-              <button title="Good 😊" class="hover:scale-110 transition">
-                😊
-              </button>
-              <button title="Excellent 😍" class="hover:scale-110 transition">
-                😍
-              </button>
-            </div>
           </div>
         </div>
 
         <!-- TICKETS TAB -->
         <div
           id="tab-Tickets"
-          class="tab-panel hidden text-center text-sm text-gray-300"
+          class="tab-panel hidden text-center text-xs text-primary-500 py-8 !border-0 !shadow-none !bg-transparent !p-0"
         >
-          <p>No tickets created yet.</p>
+          <i
+            class="fas fa-ticket-alt text-2xl mb-2 text-primary-300 dark:text-primary-600"
+          ></i>
+          <p>No active tickets.</p>
         </div>
       </div>
 
       <!-- Footer Navigation (INSIDE MODAL) -->
       <div
-        class="border-t border-gray-700 bg-gray-800 p-2 flex justify-around text-sm text-gray-300"
+        class="bg-white dark:bg-primary-950 p-1 border-t border-primary-100 dark:border-primary-800 grid grid-cols-3 gap-1"
       >
         <button
-          class="tab-button flex flex-col items-center hover:text-white"
+          class="flex flex-col items-center justify-center py-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 text-primary-500 dark:text-primary-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
           data-tab="Home"
           id="tabHome"
         >
-          <i class="fas fa-home text-lg"></i>
-          <span>Home</span>
+          <i class="fas fa-home text-lg mb-0.5"></i>
+          <span class="text-[10px] font-bold uppercase">Home</span>
         </button>
         <button
-          class="tab-button flex flex-col items-center hover:text-white"
+          class="flex flex-col items-center justify-center py-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 text-primary-500 dark:text-primary-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
           data-tab="Messages"
           id="tabMessages"
         >
-          <i class="fas fa-comment-dots text-lg"></i>
-          <span>Messages</span>
+          <i class="fas fa-comment-dots text-lg mb-0.5"></i>
+          <span class="text-[10px] font-bold uppercase">Chat</span>
         </button>
         <button
-          class="tab-button flex flex-col items-center hover:text-white"
+          class="flex flex-col items-center justify-center py-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 text-primary-500 dark:text-primary-400 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
           data-tab="Tickets"
           id="tabTickets"
         >
-          <i class="fas fa-ticket-alt text-lg"></i>
-          <span>Tickets</span>
+          <i class="fas fa-clipboard-list text-lg mb-0.5"></i>
+          <span class="text-[10px] font-bold uppercase">Tickets</span>
         </button>
       </div>
     </div>
+
     <!-- Toast notification container -->
     <div
       id="toast-container"
-      class="fixed top-6 left-1/2 transform -translate-x-1/2 z-[999] space-y-2"
+      class="fixed top-24 right-4 z-[100] space-y-3 pointer-events-none"
     ></div>
 
-    <!-- Subscription Inactive Modal -->
-    <div
-      id="subscription-inactive-modal"
-      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center"
-    >
-      <div
-        class="glass-dark rounded-3xl p-8 max-w-md w-full text-center relative animate-scale-in"
-      >
-        <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-6"></i>
-        <h2 class="text-2xl font-bold text-white mb-4">
-          Subscription Expired!
-        </h2>
-        <p class="text-gray-300 mb-6">
-          Your subscription has expired or is inactive. Please renew your plan
-          to continue using sales functionalities.
-        </p>
-        <a
-          href="/manageSubscriptions.html"
-          class="px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 hover:scale-105 inline-flex items-center"
-        >
-          <i class="fas fa-dollar-sign mr-2"></i> Manage Subscription
-        </a>
-      </div>
-    </div>
-    <!-- End Subscription Inactive Modal -->
-
-    <!-- Floating Action Button -->
-    <!-- <button
-      id="fab"
-      class="fixed bottom-8 left-8 sm:left-auto sm:right-8 w-16 h-16 bg-gradient-to-r from-accent-500 to-accent-600 rounded-full shadow-2xl hover:scale-110 transition-all duration-300 z-50 group animate-bounce-slow"
-    >
-      <i
-        class="fas fa-comment-dots text-white text-2xl group-hover:scale-110 transition-transform duration-300"
-      ></i>
-    </button> -->
-
     <script>
+      // Theme Toggle Logic
+      function toggleTheme() {
+        if (document.documentElement.classList.contains("dark")) {
+          document.documentElement.classList.remove("dark");
+          localStorage.theme = "light";
+        } else {
+          document.documentElement.classList.add("dark");
+          localStorage.theme = "dark";
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         // Get the elements
         const cancelAddUserBtn = document.getElementById("cancel-add-user");
         const addUserModal = document.getElementById("add-user-modal");
         const deleteConfirmationModal = document.getElementById(
-          "delete-confirmation-modal"
+          "delete-confirmation-modal",
         );
 
         // Show confirmation modal when cancel button is clicked in add user modal
@@ -841,27 +1065,26 @@
             // Create a custom confirmation modal with blurred backdrop
             const confirmationModal = `
         <div id="cancel-add-confirm-modal" class="fixed inset-0 z-[60]">
-          <!-- Blurred Backdrop -->
-          <div class="fixed inset-0 bg-black/60 backdrop-blur-lg"></div>
+          <div class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm"></div>
           
-          <!-- Modal Content -->
           <div class="fixed inset-0 flex items-center justify-center p-4">
-            <div class="bg-gray-900 rounded-2xl p-8 max-w-md w-full relative border border-gray-700 animate-scale-in" onclick="event.stopPropagation();">
-              <p class="text-gray-300 mb-6">
+            <div class="glass-premium rounded-2xl p-8 max-w-sm w-full relative shadow-2xl animate-slide-up" onclick="event.stopPropagation();">
+              <h3 class="text-primary-900 dark:text-white font-bold mb-2">Discard Changes?</h3>
+              <p class="text-primary-500 dark:text-primary-400 text-sm mb-6">
                 Are you sure you want to cancel? Any unsaved changes will be lost.
               </p>
-              <div class="flex justify-end gap-4">
+              <div class="flex justify-end gap-3">
                 <button
                   id="continue-editing"
-                  class="px-4 py-2 glass-dark border border-gray-700 rounded-xl hover:bg-white/10 text-gray-200"
+                  class="px-5 py-2.5 bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-700 text-primary-600 dark:text-primary-300 text-sm font-bold"
                 >
                   Continue Editing
                 </button>
                 <button 
                   id="confirm-cancel-add"
-                  class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                  class="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-500/20"
                 >
-                  Discard Changes
+                  Discard
                 </button>
               </div>
             </div>
@@ -869,11 +1092,9 @@
         </div>
       `;
 
-            // Insert the modal into the DOM
             document.body.insertAdjacentHTML("beforeend", confirmationModal);
-            document.body.style.overflow = "hidden"; // Prevent scrolling
+            document.body.style.overflow = "hidden";
 
-            // Handle the buttons
             document
               .getElementById("continue-editing")
               .addEventListener("click", function () {
@@ -889,7 +1110,6 @@
                 document.body.style.overflow = "";
               });
 
-            // Close when clicking on backdrop
             document
               .getElementById("cancel-add-confirm-modal")
               .addEventListener("click", function (e) {
@@ -911,7 +1131,6 @@
             document.body.style.overflow = "";
           });
 
-        // Close delete modal when clicking on backdrop
         document
           .getElementById("delete-confirmation-modal")
           .addEventListener("click", function (e) {
@@ -922,13 +1141,63 @@
           });
       });
 
+      // Updated Toast Function to match Dashboard style
+      window.showToast = function (message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success:
+            "border-success-500 text-success-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          error:
+            "border-red-500 text-red-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          warning:
+            "border-warning-500 text-warning-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          info: "border-accent-500 text-primary-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+        };
+
+        const iconColors = {
+          success: "text-success-500",
+          error: "text-red-500",
+          warning: "text-warning-500",
+          info: "text-accent-500",
+        };
+
+        const icons = {
+          success: "fa-check-circle",
+          error: "fa-times-circle",
+          warning: "fa-exclamation-triangle",
+          info: "fa-info-circle",
+        };
+
+        toast.className = `pointer-events-auto w-80 p-4 rounded-xl shadow-xl backdrop-blur-md border-l-4 transform transition-all duration-500 translate-x-full opacity-0 flex items-start gap-3 ${colors[type]}`;
+
+        toast.innerHTML = `
+          <i class="fas ${icons[type]} ${iconColors[type]} text-lg mt-0.5"></i>
+          <div>
+             <p class="text-sm font-semibold">${message}</p>
+          </div>
+        `;
+
+        const container = document.getElementById("toast-container");
+        container.appendChild(toast);
+
+        // Animation in
+        requestAnimationFrame(() => {
+          toast.classList.remove("translate-x-full", "opacity-0");
+        });
+
+        // Auto remove
+        setTimeout(() => {
+          toast.classList.add("translate-x-full", "opacity-0");
+          setTimeout(() => toast.remove(), 500);
+        }, 4000);
+      };
+
       // Delete function with modal support
       async function deleteUser(userId) {
         const modal = document.getElementById("delete-confirmation-modal");
         modal.classList.remove("hidden");
         document.body.style.overflow = "hidden";
 
-        // Clone button to avoid duplicate events
         const confirmBtn = document.getElementById("confirm-delete");
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.replaceWith(newConfirmBtn);

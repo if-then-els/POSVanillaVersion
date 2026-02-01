@@ -14,7 +14,7 @@ function verifyToken(req, res, next) {
     }
 
     req.user = user; // Contains { id: user._id, business: user.business }
-    next(); // <--- IMPORTANT: Call next() to pass control to the next middleware/route handler
+    next();
   });
 }
 
