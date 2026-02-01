@@ -239,24 +239,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Function to check and update subscription status periodically ---
   async function monitorSubscriptionStatus() {
-    // Re-fetch details to ensure appState.currentSubscription is fresh
-    await fetchSubscriptionDetails();
-    const status = await checkSubscriptionStatus();
-
-    if (status.daysUntilExpiry <= 7) {
-      showExpiryNotification(status.daysUntilExpiry);
+    // Use unified subscription manager instead of duplicate logic
+    if (window.SubscriptionManager) {
+      const state = window.SubscriptionManager.getCurrentState();
+      
+      // Update appState for compatibility
+      appState.currentSubscription = state.subscription;
+      window.isSubscriptionActive = state.isActive && !state.isExpired;
+      
+      console.log('Using unified subscription manager:', state);
     } else {
-      const existingBanner = document.getElementById("subscription-banner");
-      if (existingBanner) existingBanner.remove();
-    }
+      // Fallback to local logic if unified manager not available
+      await fetchSubscriptionDetails();
+      const status = await checkSubscriptionStatus();
 
-    if (status.isExpired) {
-      lockFeatures();
-    } else {
-      unlockFeatures();
-    }
+      if (status.daysUntilExpiry <= 7) {
+        showExpiryNotification(status.daysUntilExpiry);
+      } else {
+        const existingBanner = document.getElementById("subscription-banner");
+        if (existingBanner) existingBanner.remove();
+      }
 
-    window.isSubscriptionActive = status.isActive && !status.isExpired;
+      if (status.isExpired) {
+        lockFeatures();
+      } else {
+        unlockFeatures();
+      }
+
+      window.isSubscriptionActive = status.isActive && !status.isExpired;
+    }
   }
 
   // --- Fetch Business Details (critical first step) ---
