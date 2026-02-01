@@ -80,12 +80,21 @@ exports.registerBusiness = async (req, res) => {
     // Add admin to business users
     newBusiness.users.push(adminUser._id);
     await newBusiness.save();
-    const trialPlan = await Plan.findOne({ name: "trial" });
-    if (!trialPlan) {
-      console.error("Trial plan not found in the database");
-    }
-
     // Create trial subscription
+    let trialPlan = await Plan.findOne({ name: "trial" });
+    
+    // Create trial plan if it doesn't exist
+    if (!trialPlan) {
+      console.log("Trial plan not found, creating default trial plan");
+      trialPlan = await Plan.create({
+        name: "trial",
+        price: 0,
+        description: "Free 30-day trial",
+        userLimit: 2,
+        roleManagement: false,
+      });
+    }
+    
     const trialEnd = new Date();
     trialEnd.setMonth(trialEnd.getMonth() + 1);
     await Subscription.create({
@@ -109,7 +118,7 @@ exports.registerBusiness = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    console;
+
     res.status(201).json({
       message: "Business and admin user registered successfully",
       token, // Send token to client

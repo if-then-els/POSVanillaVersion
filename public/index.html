@@ -1865,6 +1865,16 @@
             registrationForm.addEventListener("submit", async (e) => {
               e.preventDefault();
 
+              // Validate form data
+              const formData = new FormData(registrationForm);
+              const data = Object.fromEntries(formData.entries());
+
+              // Basic validation
+              if (!data.password || data.password.length < 6) {
+                showToast("Password must be at least 6 characters long", "error");
+                return;
+              }
+
               // Show loading state
               const submitButton = registrationForm.querySelector(
                 'button[type="submit"]'
@@ -1879,18 +1889,50 @@
               submitButton.disabled = true;
               if (loadingOverlay) loadingOverlay.classList.remove("hidden");
 
-              // Simulate network delay
-              setTimeout(() => {
-                   if (loadingOverlay) loadingOverlay.classList.add("hidden");
-                   if (loadingText && loadingSpinner) {
-                      loadingText.classList.remove("hidden");
-                      loadingSpinner.classList.add("hidden");
-                   }
-                   submitButton.disabled = false;
-                   
-                   showToast("Demo Account Created! Redirecting...", "success");
-                   registrationForm.reset();
-              }, 2000);
+              try {
+                // Call real registration API
+                const response = await fetch("/api/business/register", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(data),
+                  credentials: "include"
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                  throw new Error(result.message || "Registration failed");
+                }
+
+                // Store authentication data
+                localStorage.setItem("token", result.token);
+                localStorage.setItem("business", JSON.stringify(result.business));
+                
+                // Set cookie for server-side auth
+                document.cookie = `token=${result.token}; path=/; max-age=86400`;
+
+                showToast("Business registered successfully! Redirecting to dashboard...", "success");
+                registrationForm.reset();
+
+                // Redirect to dashboard after success
+                setTimeout(() => {
+                  window.location.href = "/dashboard.html";
+                }, 2000);
+
+              } catch (error) {
+                console.error("Registration error:", error);
+                showToast(error.message || "Registration failed. Please try again.", "error");
+              } finally {
+                // Reset loading state
+                if (loadingOverlay) loadingOverlay.classList.add("hidden");
+                if (loadingText && loadingSpinner) {
+                  loadingText.classList.remove("hidden");
+                  loadingSpinner.classList.add("hidden");
+                }
+                submitButton.disabled = false;
+              }
             });
         }
       });
