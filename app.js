@@ -9,11 +9,15 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const multer = require("multer");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
+const pino = require("pino");
+dotenv.config();
+
 const Plan = require("./models/plan.model");
 
-const port = 5000;
-
-dotenv.config();
+const port = process.env.PORT || 5000;
 
 //configure mongoose
 mongoose
@@ -25,9 +29,25 @@ mongoose
     console.log("Error connecting to DB", err);
   });
 
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(morgan("combined"));
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests, please try again later." },
+});
+app.use(limiter);
+
 app.use(express.json());
 app.use((req, res, next) => {
-  // Middleware to handle CORS preflight requests
+  // Set Content Security Policy (kept, but helmet also guards)
+  res.header(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://api.paystack.co https://www.paystack.co https://cdn.tailwindcss.com; connect-src 'self' https://api.paystack.co https://www.paystack.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://paystack.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; frame-src 'self' https://checkout.paystack.com;"
+  );
+  
   if (req.method === "OPTIONS") {
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH");
     return res.status(200).json({});
@@ -35,10 +55,9 @@ app.use((req, res, next) => {
     next();
   }
 });
-// cors
 app.use(
   cors({
-    origin: "http://localhost:5000",
+    origin: process.env.FRONTEND_URL || "http://localhost:5000",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     credentials: true,
   })
@@ -63,7 +82,18 @@ const subscriptionsRoutes = require("./routes/subscriptions.routes");
 
 const businessPaymentRoutes = require("./routes/businesPayment.routes");
 const supportRoutes = require("./routes/support.routes");
-//const superAdminRoutes = require("./routes/superAdmin.routes");
+const superAdminRoutes = require("./routes/superAdmin.routes");
+
+// Public plans route (before subscription middleware)
+app.get("/plans", async (req, res) => {
+  try {
+    const Plan = require("./models/plan.model");
+    const plans = await Plan.find({});
+    res.json({ plans });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch plans" });
+  }
+});
 
 app.use("/", paymentsRoutes);
 app.use("/", settingsRoutes);
@@ -72,15 +102,15 @@ app.use("/", inventoryRoutes);
 app.use("/", ownerRoutes);
 app.use("/", salesRoutes);
 app.use("/", reportsRoutes);
-app.use("/", userRoutes);
 app.use("/api/business", businessRoutes);
+app.use("/api/superadmin", superAdminRoutes);
 // public, must be before subscriptionMiddleware
 app.use(subscriptionMiddleware); // protected
 app.use("/", subscriptionsRoutes); // protected
 
 app.use("/api/payment-methods", businessPaymentRoutes);
+app.use("/api/stores", require("./routes/store.routes"));
 //app.use("/", supportRoutes);
-//app.use("/api/superadmin", superAdminRoutes);
 
 // Apply subscription middleware
 
@@ -89,23 +119,89 @@ async function seedPlans() {
     {
       name: "basic",
       price: 2000,
-      description: "Basic Plan",
+      description: "Basic Plan - Perfect for small businesses",
       userLimit: 2,
       roleManagement: false,
+      billingCycle: "monthly",
+      isActive: true,
+      trialDays: 0,
+      features: {
+        maxUsers: 2,
+        maxProducts: 500,
+        maxStores: 1,
+        roleManagement: false,
+        multiStore: false,
+        barcode: false,
+        offlineMode: false,
+        mpesa: true,
+        cardPayments: false,
+        bankPayments: false,
+        printerBluetooth: false,
+        printerNetwork: false,
+        reportsBasic: true,
+        reportsAdvanced: false,
+        reportsAIS: false,
+        loyalty: false,
+        apiAccess: false,
+      },
     },
     {
       name: "Standard",
       price: 3500,
-      description: "Standard Plan",
+      description: "Standard Plan - Best for growing businesses",
       userLimit: 5,
       roleManagement: true,
+      billingCycle: "monthly",
+      isActive: true,
+      trialDays: 0,
+      features: {
+        maxUsers: 5,
+        maxProducts: 0, // 0 = unlimited
+        maxStores: 3,
+        roleManagement: true,
+        multiStore: true,
+        barcode: true,
+        offlineMode: true,
+        mpesa: true,
+        cardPayments: true,
+        bankPayments: false,
+        printerBluetooth: true,
+        printerNetwork: false,
+        reportsBasic: true,
+        reportsAdvanced: true,
+        reportsAIS: false,
+        loyalty: true,
+        apiAccess: false,
+      },
     },
     {
       name: "premium",
       price: 15000,
-      description: "Premium Plan",
-      userLimit: 10,
+      description: "Premium Plan - For large / enterprise businesses",
+      userLimit: 20,
       roleManagement: true,
+      billingCycle: "monthly",
+      isActive: true,
+      trialDays: 0,
+      features: {
+        maxUsers: 20,
+        maxProducts: 0,
+        maxStores: 0, // unlimited
+        roleManagement: true,
+        multiStore: true,
+        barcode: true,
+        offlineMode: true,
+        mpesa: true,
+        cardPayments: true,
+        bankPayments: true,
+        printerBluetooth: true,
+        printerNetwork: true,
+        reportsBasic: true,
+        reportsAdvanced: true,
+        reportsAIS: true,
+        loyalty: true,
+        apiAccess: true,
+      },
     },
     {
       name: "trial",
@@ -113,6 +209,28 @@ async function seedPlans() {
       description: "One month free Trial",
       userLimit: 1,
       roleManagement: false,
+      billingCycle: "monthly",
+      isActive: true,
+      trialDays: 30,
+      features: {
+        maxUsers: 1,
+        maxProducts: 50,
+        maxStores: 1,
+        roleManagement: false,
+        multiStore: false,
+        barcode: false,
+        offlineMode: false,
+        mpesa: false,
+        cardPayments: false,
+        bankPayments: false,
+        printerBluetooth: false,
+        printerNetwork: false,
+        reportsBasic: true,
+        reportsAdvanced: false,
+        reportsAIS: false,
+        loyalty: false,
+        apiAccess: false,
+      },
     },
   ];
   for (const plan of plans) {

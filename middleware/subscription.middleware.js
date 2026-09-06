@@ -4,15 +4,18 @@ const jwt = require("jsonwebtoken");
 module.exports = async function (req, res, next) {
   // Allow public routes and registration endpoint
   const publicRoutes = [
-    "/business/register", // Add this line
+    "/business/register",
+    "/api/business/register",
     "/payments/mpesa/c2b/confirmation",
     "/payments/mpesa/callback",
     "/mpesa/callback",
     "/businesses",
+    "/api/business/businesses",
     "/plans",
     "/subscriptions/status",
     "/subscriptions/details",
-    "/businesses",
+    "/api/superadmin/login",
+    "/api/superadmin/register",
   ];
 
   // Skip subscription check for public routes
@@ -21,7 +24,18 @@ module.exports = async function (req, res, next) {
   }
 
   try {
-    const token = req.cookies.token;
+    // Allow superadmin token to bypass subscription checks
+    const adminToken = req.cookies.adminToken;
+    if (adminToken) {
+      try {
+        const adminSecret = process.env.JWT_SECRET_SUPERADMIN || process.env.JWT_SECRET + "_superadmin";
+        const admin = jwt.verify(adminToken, adminSecret);
+        if (admin.role === "superadmin") return next();
+      } catch (_) {
+        // not a valid admin token, continue to business check
+      }
+    }
+    const token = req.cookies.token || req.header("x-auth-token") || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
       return res

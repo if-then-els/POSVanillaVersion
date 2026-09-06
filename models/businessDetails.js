@@ -9,6 +9,11 @@ const businessDetailsSchema = new mongoose.Schema({
   identificationNumber: { type: String, required: true },
   dateCreated: { type: Date, default: Date.now },
   users: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  status: { type: String, enum: ["active", "pending", "suspended"], default: "active" },
+  logoUrl: { type: String },
+  createdBySuperAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "SuperAdmin" },
 });
+
+businessDetailsSchema.index({ status: 1 });
 
 module.exports = mongoose.model("BusinessDetails", businessDetailsSchema);

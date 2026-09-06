@@ -1,10 +1,64 @@
 /**
- * Authentication functions for POS System
+ * Authentication & RBAC helpers for POS System
  */
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch { return null; }
+}
+
+function getCurrentUser() {
+  const token = localStorage.getItem("token") || getCookie("token");
+  if (!token) return null;
+  return parseJwt(token);
+}
+
+function getCookie(name) {
+  const m = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return m ? decodeURIComponent(m[2]) : null;
+}
+
+function applyRBAC() {
+  const user = getCurrentUser();
+  const role = user?.role || "cashier";
+  document.querySelectorAll("[data-requires-role]").forEach((el) => {
+    const required = el.getAttribute("data-requires-role").split(",").map((s) => s.trim());
+    if (!required.includes(role)) el.style.display = "none";
+    else el.style.display = "";
+  });
+  document.querySelectorAll("[data-requires-feature]").forEach(async (el) => {
+    // features are fetched via /api/business/my-subscription and cached in localStorage
+    const feat = el.getAttribute("data-requires-feature");
+    try {
+      const subStr = localStorage.getItem("subscriptionFeatures");
+      if (!subStr) return;
+      const feats = JSON.parse(subStr);
+      if (!feats[feat]) el.style.display = "none";
+    } catch {}
+  });
+}
+
+async function fetchAndCacheSubscription() {
+  try {
+    const res = await fetch("/api/business/my-subscription", { credentials: "include" });
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem("subscriptionFeatures", JSON.stringify(data.features || {}));
+      localStorage.setItem("subscriptionPlan", data.plan?.name || "");
+    }
+  } catch {}
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchAndCacheSubscription().then(applyRBAC);
+});
 
 // Check if user is authenticated
 function checkAuth() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || getCookie("token");
 
   // If no token, redirect to login page
   if (!token) {
@@ -91,4 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", logout);
   }
+  // apply RBAC on DOM ready (second pass after features cached)
+  setTimeout(applyRBAC, 500);
 });

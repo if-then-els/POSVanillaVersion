@@ -90,8 +90,16 @@ exports.registerBusiness = async (req, res) => {
         name: "trial",
         price: 0,
         description: "Free 30-day trial",
-        userLimit: 2,
+        userLimit: 1,
         roleManagement: false,
+        features: {
+          maxUsers: 1,
+          maxProducts: 50,
+          maxStores: 1,
+          roleManagement: false,
+          mpesa: false,
+          reportsBasic: true,
+        },
       });
     }
     
@@ -183,11 +191,12 @@ exports.getBusinessDetails = async (req, res) => {
   }
 };
 
-exports.getAllBusinesses = async (res, req) => {
+exports.getAllBusinesses = async (req, res) => {
   try {
-    const businesses = await BusinessDetails.find();
+    const businesses = await BusinessDetails.find().select("-password");
     res.json({ businesses });
   } catch (error) {
     console.error("error on fetching all businesses: ", error);
+    res.status(500).json({ message: "Failed to fetch businesses" });
   }
 };

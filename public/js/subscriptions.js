@@ -692,37 +692,48 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Show simple payment method selection modal
     const paymentModal = document.getElementById("payment-options-modal");
     if (paymentModal) {
       paymentModal.classList.remove("hidden");
       showStep("payment-step-3"); // Go directly to payment method selection
       
-      // Populate with current plan details
+      // Set payment action for method update
+      appState.paymentAction = "updatePaymentMethod";
+      
+      // Populate with current business details
       const paystackEmailInput = document.getElementById("paystack-email-input");
-      const paystackAmountInput = document.getElementById("paystack-amount");
-      const mpesaAmountInput = document.getElementById("mpesa-amount");
-
+      
       if (paystackEmailInput) {
         paystackEmailInput.value = appState.currentBusiness.email || "";
       }
 
-      const currentPrice = appState.currentSubscription.price;
-      if (typeof currentPrice === "number" && currentPrice > 0) {
-        if (paystackAmountInput) {
-          paystackAmountInput.value = `KES ${currentPrice.toLocaleString()}`;
-        }
-        if (mpesaAmountInput) {
-          mpesaAmountInput.value = `KES ${currentPrice.toLocaleString()}`;
-        }
-      } else {
-        if (paystackAmountInput) {
-          paystackAmountInput.value = `KES 0 (Trial/Free)`;
-        }
-        if (mpesaAmountInput) {
-          mpesaAmountInput.value = `KES 0 (Trial/Free)`;
-        }
-        showToast("Current subscription is free. No payment required to update method.", "info");
+      // Update UI to show this is for payment method update
+      const paymentStepTitle = document.querySelector("#payment-step-3 h2");
+      if (paymentStepTitle) {
+        paymentStepTitle.textContent = "Update Payment Method";
       }
+
+      // Hide amount display since we're not charging
+      const paystackAmountInput = document.getElementById("paystack-amount");
+      const mpesaAmountInput = document.getElementById("mpesa-amount");
+      const amountLabels = document.querySelectorAll('label[for="paystack-amount"], label[for="mpesa-amount"]');
+      
+      if (paystackAmountInput) {
+        paystackAmountInput.value = "No charge for method update";
+        paystackAmountInput.disabled = true;
+      }
+      if (mpesaAmountInput) {
+        mpesaAmountInput.value = "No charge for method update";
+        mpesaAmountInput.disabled = true;
+      }
+      amountLabels.forEach(label => {
+        if (label.textContent.includes('Amount')) {
+          label.style.display = 'none';
+        }
+      });
+
+      showToast("Select your preferred payment method. No charges will be made.", "info");
     }
   }
 
@@ -1066,11 +1077,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const emailInput = document.getElementById("paystack-email-input");
-      const amountInput = document.getElementById("paystack-amount");
 
       if (!appState.currentBusiness?._id && !appState.currentBusiness?.id) {
         showToast("Business ID not found", "error");
         return;
+      }
+
+      // Handle payment method update differently (no charge)
+      if (appState.paymentAction === "updatePaymentMethod") {
+        return await updatePaymentMethodOnly();
       }
 
       // Determine plan ID and amount based on action
@@ -1092,19 +1107,9 @@ document.addEventListener("DOMContentLoaded", () => {
         amount = paidPlans[0].price;
         planName = paidPlans[0].name;
         actionText = `Activating ${planName} Plan`;
-      } else {
-        // updatePaymentMethod
-        planId =
-          appState.currentSubscription?.plan?._id ||
-          appState.currentSubscription?.plan;
-        amount = appState.currentSubscription?.price;
-        planName =
-          appState.currentSubscription?.plan?.name ||
-          appState.currentSubscription?.plan;
-        actionText = `Updating payment method for ${planName}`;
       }
 
-      if (!planId || (amount && amount <= 0 && appState.paymentAction !== "updatePaymentMethod")) {
+      if (!planId || amount <= 0) {
         showToast("Plan information not available or invalid amount", "error");
         return;
       }
@@ -1182,9 +1187,62 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("Error during Paystack initiation:", error);
-      showToast(error.message || "Failed to initiate payment", "error");
+      showToast(error.message || "Failed to initiate Paystack payment", "error");
     } finally {
       if (processingPopup) processingPopup.classList.add("hidden");
+    }
+  }
+
+  // Function to update payment method only (no charging)
+  async function updatePaymentMethodOnly() {
+    try {
+      const emailInput = document.getElementById("paystack-email-input");
+      const email = emailInput?.value || appState.currentBusiness?.email;
+      
+      if (!email) {
+        showToast("Email is required for payment method update", "error");
+        return;
+      }
+
+      showToast("Updating payment method...", "info");
+
+      // Create a mock reference for Paystack verification (no actual charge)
+      const mockReference = `UPDATE_${appState.currentBusiness.id}_${Date.now()}`;
+
+      const response = await fetch("/subscriptions/update-payment-method", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          paymentMethod: "paystack",
+          paymentDetails: {
+            reference: mockReference,
+            email: email
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to update payment method",
+        );
+      }
+
+      const data = await response.json();
+      
+      showToast("Payment method updated successfully!", "success");
+      
+      // Close modal and refresh subscription details
+      const paymentModal = document.getElementById("payment-options-modal");
+      if (paymentModal) paymentModal.classList.add("hidden");
+      
+      // Refresh subscription details to show updated payment method
+      await fetchSubscriptionDetails();
+      
+    } catch (error) {
+      console.error("Error updating payment method:", error);
+      showToast(error.message || "Failed to update payment method", "error");
     }
   }
 

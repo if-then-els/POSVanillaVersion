@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AI Analytics - SwiftPOS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Theme Script: Prevents FOUC -->
+    <script>
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              inter: ["Inter", "sans-serif"],
+            },
+            colors: {
+              // Matches dashboard.html and settings.html palette exactly
+              primary: {
+                50: "#f8fafc",
+                100: "#f1f5f9",
+                200: "#e2e8f0",
+                300: "#cbd5e1",
+                400: "#94a3b8",
+                500: "#64748b",
+                600: "#475569",
+                700: "#334155",
+                800: "#1e293b",
+                900: "#0f172a",
+                950: "#020617",
+              },
+              accent: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              success: {
+                50: "#f0fdf4",
+                100: "#dcfce7",
+                200: "#bbf7d0",
+                300: "#86efac",
+                400: "#4ade80",
+                500: "#22c55e",
+                600: "#16a34a",
+                700: "#15803d",
+              },
+              warning: {
+                50: "#fffbeb",
+                100: "#fef3c7",
+                400: "#fbbf24",
+                500: "#f59e0b",
+                600: "#d97706",
+              },
+              error: {
+                400: "#f87171",
+                500: "#ef4444",
+                600: "#dc2626",
+              },
+              // Kept for AI distinctness but harmonized
+              ai: {
+                400: "#c084fc",
+                500: "#a855f7",
+                600: "#9333ea",
+              },
+            },
+            animation: {
+              "fade-in": "fadeIn 0.6s ease-out forwards",
+              "slide-up": "slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              "pulse-soft":
+                "pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "float-slow": "float 6s ease-in-out infinite",
+              shimmer: "shimmer 2s linear infinite",
+            },
+            keyframes: {
+              fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+              slideUp: {
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+              pulseSoft: {
+                "0%, 100%": { opacity: "1" },
+                "50%": { opacity: "0.7" },
+              },
+              float: {
+                "0%, 100%": { transform: "translateY(0px)" },
+                "50%": { transform: "translateY(-15px)" },
+              },
+              shimmer: {
+                "0%": { transform: "translateX(-100%)" },
+                "100%": { transform: "translateX(100%)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        /* Light Mode Variables (Matches Dashboard/Settings) */
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(226, 232, 240, 0.6);
+        --glass-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        --card-bg: rgba(255, 255, 255, 0.8);
+        --scroll-track: rgba(241, 245, 249, 0.5);
+        --scroll-thumb: rgba(148, 163, 184, 0.5);
+      }
+
+      .dark {
+        /* Dark Mode Variables (Matches Dashboard/Settings) */
+        --glass-bg: rgba(15, 23, 42, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --glass-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        --card-bg: rgba(30, 41, 59, 0.4);
+        --scroll-track: rgba(15, 23, 42, 0.5);
+        --scroll-thumb: rgba(71, 85, 105, 0.5);
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        overflow-x: hidden;
+      }
+
+      .glass-premium {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+      }
+
+      .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border-color: rgba(59, 130, 246, 0.3); /* Changed to accent blue */
+      }
+
+      /* Adaptive Inputs */
+      .input-premium {
+        @apply w-full bg-white dark:bg-primary-800/50 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white rounded-xl px-4 py-3 text-sm transition-all duration-200 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 outline-none;
+      }
+
+      .ai-gradient-text {
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6, #6366f1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .btn-shine {
+        position: relative;
+        overflow: hidden;
+      }
+      .btn-shine::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+      .btn-shine:hover::after {
+        left: 100%;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--scroll-track);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--glass-border);
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-primary-50 text-primary-900 dark:bg-primary-950 dark:text-white transition-colors duration-300 min-h-screen"
+  >
+    <!-- Animated Background (Matches Dashboard/Settings) -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-primary-950 dark:via-primary-900 dark:to-primary-950 transition-colors duration-500"
+      ></div>
+
+      <div class="absolute inset-0 opacity-30 dark:opacity-20">
+        <div
+          class="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-accent-400/20 dark:bg-accent-500/10 rounded-full blur-3xl animate-float-slower"
+        ></div>
+        <div
+          class="absolute bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-primary-400/20 dark:bg-primary-500/10 rounded-full blur-3xl animate-float-slow"
+          style="animation-delay: 2s"
+        ></div>
+      </div>
+
+      <div
+        class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+        style="
+          background-image: radial-gradient(
+            circle at 1px 1px,
+            currentColor 1px,
+            transparent 0
+          );
+          background-size: 32px 32px;
+        "
+      ></div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <nav
+      class="md:hidden fixed top-0 w-full z-40 glass-premium border-b border-primary-200/50 dark:border-primary-700/50 px-4 h-16 flex justify-between items-center transition-all duration-300"
+    >
+      <div class="flex items-center space-x-3">
+        <div
+          class="w-8 h-8 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center shadow-lg"
+        >
+          <i class="fas fa-brain text-white text-sm"></i>
+        </div>
+        <span
+          class="text-lg font-black tracking-tight text-primary-900 dark:text-white"
+        >
+          Swift<span class="text-accent-500">AI</span>
+        </span>
+      </div>
+      <button
+        id="toggle-sidebar"
+        class="p-2 text-primary-600 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-colors"
+      >
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+    </nav>
+
+    <div
+      class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10"
+    >
+      <!-- Sidebar -->
+      <div
+        id="sidebar"
+        class="fixed inset-y-0 left-0 z-50 w-64 glass-premium transform -translate-x-full md:translate-x-0 transition-transform duration-500 ease-out border-r border-primary-200/50 dark:border-primary-700/50 shadow-2xl md:shadow-none"
+      >
+        <!-- Content loaded via JS -->
+      </div>
+
+      <!-- Overlay -->
+      <div
+        id="overlay"
+        class="fixed inset-0 bg-primary-900/20 dark:bg-black/50 backdrop-blur-sm hidden z-40 transition-opacity duration-300"
+      ></div>
+
+      <!-- Main Content -->
+      <main
+        class="flex-1 overflow-y-auto md:ml-64 p-4 md:p-8 relative scroll-smooth"
+      >
+        <div class="max-w-6xl mx-auto space-y-8 pb-20 animate-slide-up">
+          <!-- Header -->
+          <div
+            class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-primary-200 dark:border-primary-700/50 pb-8 transition-colors duration-300"
+          >
+            <div>
+              <h1
+                class="text-3xl md:text-4xl font-black text-primary-900 dark:text-white tracking-tight mb-2"
+              >
+                <span class="ai-gradient-text">AI Intelligence</span>
+              </h1>
+              <p
+                class="text-primary-500 dark:text-primary-400 text-sm font-medium"
+              >
+                Predictive analytics and business insights powered by machine
+                learning.
+              </p>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <button
+                onclick="toggleTheme()"
+                class="w-10 h-10 flex items-center justify-center rounded-xl glass-card text-primary-500 hover:text-accent-500 dark:text-primary-400 transition-colors"
+              >
+                <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+              </button>
+              <div
+                class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl glass-card text-sm font-bold text-accent-600 dark:text-accent-300 border border-primary-200 dark:border-primary-700"
+              >
+                <i class="fas fa-robot"></i> Model v2.4 Active
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Interaction Section -->
+          <div
+            class="glass-premium rounded-2xl p-6 md:p-8 relative overflow-hidden"
+          >
+            <!-- Decorative Glow -->
+            <div
+              class="absolute top-0 right-0 w-64 h-64 bg-accent-500/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"
+            ></div>
+
+            <h2 class="text-lg font-bold text-primary-900 dark:text-white mb-4">
+              Ask SwiftAI
+            </h2>
+
+            <!-- Query Input -->
+            <form id="ai-query-form" class="relative group z-10">
+              <div
+                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+              >
+                <i class="fas fa-sparkles text-accent-500 animate-pulse"></i>
+              </div>
+              <input
+                type="text"
+                id="ai-query-input"
+                class="w-full pl-12 pr-32 py-4 rounded-xl bg-white dark:bg-black/40 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 outline-none transition-all shadow-sm"
+                placeholder="Ask about trends, predictions, or inventory risks..."
+              />
+              <button
+                type="submit"
+                class="absolute right-2 top-2 bottom-2 px-6 bg-accent-500 hover:bg-accent-600 text-white rounded-lg font-bold text-sm transition-all shadow-lg shadow-accent-500/20 flex items-center gap-2 btn-shine"
+              >
+                <span>Analyze</span>
+                <i class="fas fa-arrow-right"></i>
+              </button>
+            </form>
+
+            <!-- Quick Prompts -->
+            <div class="flex flex-wrap gap-3 mt-4">
+              <button
+                class="quick-prompt px-3 py-1.5 rounded-lg glass-card text-xs font-medium text-primary-600 dark:text-primary-300 hover:border-accent-400 transition-colors"
+              >
+                📉 Predict next week's sales
+              </button>
+              <button
+                class="quick-prompt px-3 py-1.5 rounded-lg glass-card text-xs font-medium text-primary-600 dark:text-primary-300 hover:border-accent-400 transition-colors"
+              >
+                ⚠️ Identify high-risk inventory
+              </button>
+              <button
+                class="quick-prompt px-3 py-1.5 rounded-lg glass-card text-xs font-medium text-primary-600 dark:text-primary-300 hover:border-accent-400 transition-colors"
+              >
+                👥 Customer churn analysis
+              </button>
+            </div>
+
+            <!-- AI Response Area (Hidden by default) -->
+            <div
+              id="ai-response-container"
+              class="hidden mt-8 pt-8 border-t border-primary-200/50 dark:border-primary-700/50 animate-fade-in"
+            >
+              <div class="flex items-start gap-4">
+                <div
+                  class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center flex-shrink-0 shadow-lg"
+                >
+                  <i class="fas fa-brain text-white"></i>
+                </div>
+                <div class="flex-1 space-y-4">
+                  <div class="glass-card rounded-xl p-6 relative">
+                    <h3
+                      class="text-sm font-bold text-primary-900 dark:text-white mb-2"
+                    >
+                      Analysis Result
+                    </h3>
+                    <p
+                      id="ai-response-text"
+                      class="text-sm text-primary-600 dark:text-primary-300 leading-relaxed"
+                    >
+                      <!-- Text injected via JS -->
+                    </p>
+
+                    <!-- Dynamic Suggestion Tags -->
+                    <div id="ai-suggestions" class="flex flex-wrap gap-2 mt-4">
+                      <!-- Tags injected via JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Analytics Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Prediction Chart -->
+            <div class="lg:col-span-2 glass-premium rounded-2xl p-6">
+              <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-primary-900 dark:text-white">
+                  Revenue Forecast
+                </h3>
+                <select
+                  class="bg-transparent text-xs font-medium text-primary-500 dark:text-primary-400 border border-primary-200 dark:border-primary-700 rounded-lg px-2 py-1 outline-none"
+                >
+                  <option>Next 7 Days</option>
+                  <option>Next 30 Days</option>
+                  <option>Next Quarter</option>
+                </select>
+              </div>
+              <div class="relative h-64 w-full">
+                <canvas id="predictionChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Insights Column -->
+            <div class="space-y-6">
+              <!-- Anomaly Detection -->
+              <div
+                class="glass-card rounded-2xl p-6 border-l-4 border-warning-500"
+              >
+                <div class="flex justify-between items-start mb-2">
+                  <h4
+                    class="text-sm font-bold text-primary-900 dark:text-white"
+                  >
+                    Anomaly Detected
+                  </h4>
+                  <span
+                    class="px-2 py-1 bg-warning-100 dark:bg-warning-900/30 text-warning-600 dark:text-warning-400 text-[10px] font-bold rounded-full uppercase"
+                    >Attention</span
+                  >
+                </div>
+                <p class="text-xs text-primary-500 dark:text-primary-400 mb-4">
+                  Unusual spike in returns for "Dairy Products" detected
+                  yesterday (15% vs 2% avg).
+                </p>
+                <button
+                  class="w-full py-2 bg-warning-500/10 hover:bg-warning-500/20 text-warning-600 dark:text-warning-400 text-xs font-bold rounded-lg transition-colors"
+                >
+                  Investigate
+                </button>
+              </div>
+
+              <!-- Inventory Prediction -->
+              <div
+                class="glass-card rounded-2xl p-6 border-l-4 border-accent-500"
+              >
+                <div class="flex justify-between items-start mb-2">
+                  <h4
+                    class="text-sm font-bold text-primary-900 dark:text-white"
+                  >
+                    Stockout Prediction
+                  </h4>
+                  <span
+                    class="px-2 py-1 bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 text-[10px] font-bold rounded-full uppercase"
+                    >High Confidence</span
+                  >
+                </div>
+                <p class="text-xs text-primary-500 dark:text-primary-400 mb-4">
+                  Based on current velocity,
+                  <span class="font-bold text-primary-900 dark:text-white"
+                    >Premium Coffee Beans</span
+                  >
+                  will deplete in 48 hours.
+                </p>
+                <button
+                  class="w-full py-2 bg-accent-500 text-white text-xs font-bold rounded-lg hover:bg-accent-600 transition-colors shadow-lg shadow-accent-500/20"
+                >
+                  Auto-Reorder
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Grid: Customer & Peak Hours -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass-premium rounded-2xl p-6">
+              <h3
+                class="text-lg font-bold text-primary-900 dark:text-white mb-4"
+              >
+                Customer Sentiment
+              </h3>
+              <div class="flex items-center gap-4 mb-4">
+                <div class="text-4xl font-black text-success-500">84%</div>
+                <div class="text-xs text-primary-500 dark:text-primary-400">
+                  Positive sentiment based on recent feedback and return notes.
+                  <br />
+                  <span class="text-success-500 font-bold"
+                    >↑ 4% from last week</span
+                  >
+                </div>
+              </div>
+              <div
+                class="h-2 w-full bg-primary-100 dark:bg-primary-800 rounded-full overflow-hidden"
+              >
+                <div
+                  class="h-full bg-success-500 w-[84%] rounded-full relative"
+                >
+                  <div
+                    class="absolute right-0 top-0 bottom-0 w-2 bg-white/50 animate-pulse"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-premium rounded-2xl p-6">
+              <h3
+                class="text-lg font-bold text-primary-900 dark:text-white mb-4"
+              >
+                Peak Hour Forecast
+              </h3>
+              <div class="flex items-end justify-between h-32 gap-2">
+                <!-- Mock Bar Chart using CSS -->
+                <div
+                  class="w-full bg-primary-100 dark:bg-primary-800 rounded-t-lg relative group"
+                >
+                  <div
+                    class="absolute bottom-0 w-full bg-accent-400/50 rounded-t-lg h-[30%] group-hover:bg-accent-400 transition-colors"
+                  ></div>
+                  <span
+                    class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-primary-400"
+                    >9am</span
+                  >
+                </div>
+                <div
+                  class="w-full bg-primary-100 dark:bg-primary-800 rounded-t-lg relative group"
+                >
+                  <div
+                    class="absolute bottom-0 w-full bg-accent-400/50 rounded-t-lg h-[50%] group-hover:bg-accent-400 transition-colors"
+                  ></div>
+                  <span
+                    class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-primary-400"
+                    >12pm</span
+                  >
+                </div>
+                <div
+                  class="w-full bg-primary-100 dark:bg-primary-800 rounded-t-lg relative group"
+                >
+                  <div
+                    class="absolute bottom-0 w-full bg-accent-500 rounded-t-lg h-[90%] shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                  ></div>
+                  <span
+                    class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-accent-500"
+                    >5pm</span
+                  >
+                </div>
+                <div
+                  class="w-full bg-primary-100 dark:bg-primary-800 rounded-t-lg relative group"
+                >
+                  <div
+                    class="absolute bottom-0 w-full bg-accent-400/50 rounded-t-lg h-[60%] group-hover:bg-accent-400 transition-colors"
+                  ></div>
+                  <span
+                    class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-primary-400"
+                    >8pm</span
+                  >
+                </div>
+              </div>
+              <p
+                class="text-xs text-center text-primary-500 dark:text-primary-400 mt-8"
+              >
+                Predicted busiest time:
+                <span class="font-bold text-primary-900 dark:text-white"
+                  >Today at 17:00</span
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div
+      id="toast-container"
+      class="fixed top-24 right-4 z-[100] space-y-3 pointer-events-none"
+    ></div>
+
+    <!-- Scripts -->
+    <script src="./js/sidebar.js"></script>
+    <script src="./js/accountDetailsBadge.js"></script>
+    <script src="./js/chat2.js"></script>
+    <script src="js/checkSubExpirely.js"></script>
+    <script>
+      // Theme Toggle
+      function toggleTheme() {
+        if (document.documentElement.classList.contains("dark")) {
+          document.documentElement.classList.remove("dark");
+          localStorage.theme = "light";
+        } else {
+          document.documentElement.classList.add("dark");
+          localStorage.theme = "dark";
+        }
+      }
+
+      // 1. Chart.js Initialization (Predictive Chart)
+      document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById("predictionChart").getContext("2d");
+
+        // Gradient for chart - using Accent Color (Blue)
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, "rgba(59, 130, 246, 0.5)");
+        gradient.addColorStop(1, "rgba(59, 130, 246, 0)");
+
+        const chartConfig = {
+          type: "line",
+          data: {
+            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            datasets: [
+              {
+                label: "Actual Revenue",
+                data: [12000, 19000, 15000, 22000, 24000, 28000, null], // Null for future
+                borderColor: "#94a3b8", // Slate-400 for actual
+                backgroundColor: "transparent",
+                borderWidth: 3,
+                pointBackgroundColor: "#94a3b8",
+                tension: 0.4,
+              },
+              {
+                label: "AI Prediction",
+                data: [null, null, null, null, null, 28000, 32000], // Start where actual ends
+                borderColor: "#3b82f6", // Accent Blue
+                backgroundColor: gradient,
+                borderWidth: 3,
+                borderDash: [5, 5], // Dotted line for prediction
+                fill: true,
+                pointBackgroundColor: "#3b82f6",
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: document.documentElement.classList.contains("dark")
+                    ? "#94a3b8"
+                    : "#475569",
+                },
+              },
+            },
+            scales: {
+              y: {
+                grid: {
+                  color: document.documentElement.classList.contains("dark")
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(0,0,0,0.05)",
+                },
+                ticks: {
+                  color: document.documentElement.classList.contains("dark")
+                    ? "#94a3b8"
+                    : "#475569",
+                },
+              },
+              x: {
+                grid: { display: false },
+                ticks: {
+                  color: document.documentElement.classList.contains("dark")
+                    ? "#94a3b8"
+                    : "#475569",
+                },
+              },
+            },
+          },
+        };
+
+        new Chart(ctx, chartConfig);
+      });
+
+      // 2. Mock AI Logic
+      const queryForm = document.getElementById("ai-query-form");
+      const queryInput = document.getElementById("ai-query-input");
+      const responseContainer = document.getElementById(
+        "ai-response-container",
+      );
+      const responseText = document.getElementById("ai-response-text");
+      const suggestionsContainer = document.getElementById("ai-suggestions");
+      const submitBtn = queryForm.querySelector("button");
+
+      // Quick Prompts
+      document.querySelectorAll(".quick-prompt").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          queryInput.value = btn.innerText.substring(2); // Remove emoji
+          queryForm.dispatchEvent(new Event("submit"));
+        });
+      });
+
+      queryForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const query = queryInput.value.trim();
+        if (!query) return;
+
+        // UI Loading State
+        const originalBtnContent = submitBtn.innerHTML;
+        submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
+        submitBtn.disabled = true;
+        responseContainer.classList.add("hidden");
+
+        // Simulate AI Backend Call
+        try {
+          await new Promise((r) => setTimeout(r, 1500)); // Fake network delay
+
+          // Mock Responses based on keywords
+          let response = "";
+          let tags = [];
+
+          if (
+            query.toLowerCase().includes("sales") ||
+            query.toLowerCase().includes("predict")
+          ) {
+            response =
+              "Based on historical data and seasonal trends, **revenue is projected to increase by 14%** next week. Saturday is expected to be the highest performing day.";
+            tags = ["📈 +14% Growth", "🛒 Peak: Saturday"];
+          } else if (
+            query.toLowerCase().includes("risk") ||
+            query.toLowerCase().includes("inventory")
+          ) {
+            response =
+              "I've analyzed your inventory turnover. **Premium Coffee Beans** and **Oat Milk** are at high risk of stockout within 48 hours based on current consumption rates.";
+            tags = ["☕ Coffee Risk", "🥛 Milk Low"];
+          } else {
+            response =
+              "I've analyzed your recent data. Customer retention is stable at **85%**. I recommend running a loyalty campaign this weekend to boost engagement during the predicted lull period.";
+            tags = ["💡 Marketing Opportunity", "👥 Retention Stable"];
+          }
+
+          // Render Response
+          responseText.innerHTML = markedText(response); // Simple formatting
+          suggestionsContainer.innerHTML = tags
+            .map(
+              (tag) =>
+                `<span class="px-3 py-1 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-300 text-xs font-bold border border-accent-200 dark:border-accent-800">${tag}</span>`,
+            )
+            .join("");
+
+          responseContainer.classList.remove("hidden");
+          window.showToast("Analysis complete", "success");
+        } catch (error) {
+          window.showToast("Failed to connect to AI Engine", "error");
+        } finally {
+          submitBtn.innerHTML = originalBtnContent;
+          submitBtn.disabled = false;
+        }
+      });
+
+      // Simple pseudo-markdown parser for bold text
+      function markedText(text) {
+        return text.replace(
+          /\*\*(.*?)\*\*/g,
+          '<strong class="text-primary-900 dark:text-white">$1</strong>',
+        );
+      }
+
+      // Toast Function
+      window.showToast = function (message, type = "info") {
+        const toast = document.createElement("div");
+        const colors = {
+          success:
+            "border-success-500 text-success-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          error:
+            "border-error-500 text-error-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+          info: "border-accent-500 text-primary-700 dark:text-white bg-white/90 dark:bg-primary-800/90",
+        };
+
+        const icons = {
+          success: "fa-check-circle text-success-500",
+          error: "fa-exclamation-circle text-error-500",
+          info: "fa-brain text-accent-500",
+        };
+
+        toast.className = `pointer-events-auto w-80 p-4 rounded-xl shadow-xl backdrop-blur-md border-l-4 transform transition-all duration-500 translate-x-full opacity-0 flex items-start gap-3 ${colors[type]}`;
+        toast.innerHTML = `
+          <i class="fas ${icons[type]} text-lg mt-0.5"></i>
+          <div><p class="text-sm font-semibold">${message}</p></div>
+        `;
+
+        document.getElementById("toast-container").appendChild(toast);
+        requestAnimationFrame(() =>
+          toast.classList.remove("translate-x-full", "opacity-0"),
+        );
+        setTimeout(() => {
+          toast.classList.add("translate-x-full", "opacity-0");
+          setTimeout(() => toast.remove(), 500);
+        }, 4000);
+      };
+    </script>
+  </body>
+</html>

@@ -118,3 +118,33 @@ exports.recentTransactions = async (req, res) => {
     res.status(500).json({ message: "Failed to load transactions" });
   }
 };
+
+exports.profitLoss = async (req, res) => {
+  try {
+    const business = req.user.business;
+    const { from, to } = req.query;
+    const filter = { business };
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to) filter.createdAt.$lte = new Date(to);
+    }
+    const sales = await Sale.find(filter).populate("items.productId");
+    let revenue = 0, cogs = 0;
+    sales.forEach((sale) => {
+      sale.items.forEach((item) => {
+        const price = Number(item.price) || 0;
+        const qty = Number(item.quantity) || 0;
+        const cost = Number(item.costPrice ?? item.productId?.costPrice ?? 0);
+        revenue += price * qty;
+        cogs += cost * qty;
+      });
+    });
+    const grossProfit = revenue - cogs;
+    const margin = revenue ? (grossProfit / revenue) * 100 : 0;
+    res.json({ revenue, cogs, grossProfit, margin: margin.toFixed(2), orders: sales.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to load profit/loss" });
+  }
+};

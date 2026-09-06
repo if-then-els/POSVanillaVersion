@@ -303,6 +303,16 @@
             <!-- Product Selection (Left Column) -->
             <div class="lg:col-span-2 space-y-6">
               
+              <!-- Store Selector (multi-store Premium) -->
+              <div class="glass-premium rounded-xl p-4 flex items-center gap-3 animate-slide-up">
+                <i class="fas fa-store text-accent-500"></i>
+                <label class="text-sm font-semibold text-primary-700 dark:text-primary-300">Store:</label>
+                <select id="storeSelector" class="store-selector flex-1 max-w-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                  <option>Loading stores...</option>
+                </select>
+                <span class="hidden md:inline text-xs text-slate-400">Multi-store: Premium (Basic = 1 store)</span>
+              </div>
+
               <!-- Search & Filter Card -->
               <div id="products-section" class="glass-premium rounded-2xl p-6 animate-slide-up delay-100">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -529,28 +539,11 @@
               <!-- Payment Method -->
               <div>
                 <label class="block text-sm font-semibold text-primary-700 dark:text-primary-300 mb-2">Payment Method</label>
-                <div class="grid grid-cols-3 gap-3">
-                   <label class="cursor-pointer">
-                      <input type="radio" name="paymentMethod" value="cash" checked class="peer hidden" id="payment-cash">
-                      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
-                         <i class="fas fa-money-bill-wave text-xl mb-1"></i>
-                         <span class="text-xs font-bold">Cash</span>
-                      </div>
-                   </label>
-                   <label class="cursor-pointer">
-                      <input type="radio" name="paymentMethod" value="credit" class="peer hidden" id="payment-credit">
-                      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
-                         <i class="fas fa-credit-card text-xl mb-1"></i>
-                         <span class="text-xs font-bold">Card</span>
-                      </div>
-                   </label>
-                   <label class="cursor-pointer">
-                      <input type="radio" name="paymentMethod" value="online" class="peer hidden" id="payment-online">
-                      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
-                         <i class="fas fa-mobile-alt text-xl mb-1"></i>
-                         <span class="text-xs font-bold">M-Pesa</span>
-                      </div>
-                   </label>
+                <div id="payment-methods-container" class="grid grid-cols-3 gap-3">
+                  <!-- Payment methods loaded dynamically -->
+                  <div class="col-span-3 text-center py-4 text-primary-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Loading payment methods...
+                  </div>
                 </div>
               </div>
 
@@ -702,6 +695,7 @@
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
+    <script src="./js/storeSelector.js"></script>
     <script src="./js/sales.js"></script>
     <script src="./js/chat2.js"></script>
     <script src="js/subscriptionChecker.js"></script>

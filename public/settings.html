@@ -379,6 +379,12 @@
                 >
                   <i class="fas fa-user-cog mr-2"></i>Account
                 </button>
+                <button
+                  id="tab-payments"
+                  class="tab-button flex-1 px-4 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-center"
+                >
+                  <i class="fas fa-credit-card mr-2"></i>Payments
+                </button>
               </div>
             </div>
 
@@ -855,6 +861,157 @@
                   </button>
                 </div>
               </form>
+            </div>
+
+            <!-- Payment Methods Tab Content -->
+            <div
+              class="tab-content p-6 md:p-8 hidden animate-fade-in"
+              id="payments-content"
+            >
+              <h3
+                class="text-lg font-bold text-primary-900 dark:text-white mb-2 flex items-center"
+              >
+                <span
+                  class="w-8 h-8 rounded-lg bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 flex items-center justify-center mr-3 text-sm"
+                >
+                  <i class="fas fa-credit-card"></i>
+                </span>
+                Checkout Payment Methods
+              </h3>
+              <p class="text-sm text-primary-500 dark:text-primary-400 mb-6">
+                Configure which payment methods customers can use at checkout.
+              </p>
+
+              <div class="space-y-4 mb-6">
+                <div
+                  id="payment-methods-list"
+                  class="space-y-3"
+                ></div>
+
+                <div
+                  id="no-payment-methods"
+                  class="hidden p-8 text-center rounded-xl bg-primary-50 dark:bg-primary-800/30 border border-dashed border-primary-300 dark:border-primary-700"
+                >
+                  <i class="fas fa-credit-card text-3xl text-primary-300 dark:text-primary-600 mb-3"></i>
+                  <p class="text-sm text-primary-500 dark:text-primary-400">
+                    No payment methods configured yet.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Add Payment Method Button -->
+              <button
+                type="button"
+                id="add-payment-method-btn"
+                class="w-full py-3 px-4 border-2 border-dashed border-primary-300 dark:border-primary-700 rounded-xl text-sm font-bold text-primary-500 dark:text-primary-400 hover:border-accent-500 hover:text-accent-500 transition-colors flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-plus"></i>
+                Add Payment Method
+              </button>
+
+              <!-- Add Payment Method Modal -->
+              <div
+                id="payment-method-modal"
+                class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4"
+              >
+                <div
+                  class="bg-white dark:bg-primary-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                >
+                  <div
+                    class="bg-gradient-to-r from-accent-600 to-accent-500 p-4 flex justify-between items-center"
+                  >
+                    <h3 class="font-bold text-white flex items-center gap-2">
+                      <i class="fas fa-credit-card"></i>
+                      <span id="modal-payment-title">Add Payment Method</span>
+                    </h3>
+                    <button
+                      id="close-payment-modal"
+                      class="text-white/80 hover:text-white hover:bg-white/20 rounded-lg p-1 transition-colors"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <form id="payment-method-form" class="p-6 space-y-4">
+                    <input type="hidden" id="payment-method-id" />
+
+                    <div class="space-y-1.5">
+                      <label
+                        for="payment-type"
+                        class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                        >Payment Type</label
+                      >
+                      <select
+                        id="payment-type"
+                        class="input-premium"
+                        required
+                      >
+                        <option value="">Select payment type</option>
+                        <option value="card">Card Payment</option>
+                        <option value="mobile_money">Mobile Money</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="mpesa_stk">M-Pesa STK Push</option>
+                        <option value="mpesa_paybill">M-Pesa Paybill</option>
+                        <option value="bank">Bank Transfer</option>
+                      </select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label
+                        for="payment-provider"
+                        class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                        >Provider</label
+                      >
+                      <input
+                        id="payment-provider"
+                        type="text"
+                        class="input-premium"
+                        placeholder="e.g., Paystack, Stripe, PayPal"
+                      />
+                    </div>
+
+                    <div class="space-y-1.5">
+                      <label
+                        for="payment-label"
+                        class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                        >Display Label</label
+                      >
+                      <input
+                        id="payment-label"
+                        type="text"
+                        class="input-premium"
+                        placeholder="e.g., Pay with Card, Pay via M-Pesa"
+                      />
+                    </div>
+
+                    <div
+                      id="payment-config-section"
+                      class="hidden space-y-3 p-4 rounded-xl bg-primary-50 dark:bg-primary-800/50"
+                    >
+                      <p class="text-xs font-bold text-primary-500 dark:text-primary-400 uppercase">
+                        Configuration
+                      </p>
+                      <div id="payment-config-fields"></div>
+                    </div>
+
+                    <div class="flex gap-3 pt-4">
+                      <button
+                        type="button"
+                        id="cancel-payment-btn"
+                        class="flex-1 px-4 py-2.5 border border-primary-200 dark:border-primary-700 rounded-xl text-sm font-bold text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        class="flex-1 px-4 py-2.5 bg-accent-500 hover:bg-accent-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-accent-500/20 transition-transform hover:scale-105"
+                      >
+                        <i class="fas fa-save mr-2"></i>Save
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>

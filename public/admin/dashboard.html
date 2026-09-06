@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner Dashboard - SwiftPOS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script>tailwind.config={darkMode:"class"}</script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <nav class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-shield-alt text-white"></i></div>
+      <span class="font-black">SwiftPOS <span class="text-violet-400">Owner</span></span>
+      <span class="hidden md:inline text-xs bg-violet-600 text-white px-2 py-1 rounded-full">SuperAdmin</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="adminEmail" class="text-sm text-slate-400"></span>
+      <button id="logoutBtn" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm"><i class="fas fa-sign-out-alt mr-1"></i> Logout</button>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="kpiGrid">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="text-slate-400 text-xs uppercase">Total Vendors</p>
+        <h3 class="text-2xl font-black mt-1" id="kpiTotalBusinesses">—</h3>
+        <p class="text-xs text-slate-500 mt-1">Registered tenants</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="text-slate-400 text-xs uppercase">Active Subscriptions</p>
+        <h3 class="text-2xl font-black mt-1" id="kpiActiveSubs">—</h3>
+        <p class="text-xs text-emerald-400 mt-1"><i class="fas fa-check-circle"></i> Running</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="text-slate-400 text-xs uppercase">MRR</p>
+        <h3 class="text-2xl font-black mt-1" id="kpiMRR">—</h3>
+        <p class="text-xs text-slate-500 mt-1">Monthly recurring</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+        <p class="text-slate-400 text-xs uppercase">Plans</p>
+        <h3 class="text-2xl font-black mt-1" id="kpiPlans">—</h3>
+        <p class="text-xs text-slate-500 mt-1">Basic/Standard/Premium/Trial</p>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row gap-3 items-end">
+      <div class="flex-1">
+        <label class="text-xs text-slate-400">Search vendors</label>
+        <input id="searchInput" placeholder="business name, email, phone" class="w-full mt-1 px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm focus:border-violet-500 focus:outline-none" />
+      </div>
+      <div>
+        <label class="text-xs text-slate-400">Status</label>
+        <select id="statusFilter" class="w-full mt-1 px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm">
+          <option value="">All</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <button id="searchBtn" class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 rounded-xl text-sm font-semibold"><i class="fas fa-search mr-1"></i> Search</button>
+      <button id="refreshBtn" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm"><i class="fas fa-sync"></i></button>
+    </div>
+
+    <!-- Vendors Table -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h2 class="font-bold">Vendors / Tenants</h2>
+        <span class="text-xs text-slate-400" id="totalLabel">— vendors</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase">
+            <tr>
+              <th class="p-3 text-left">Business</th>
+              <th class="p-3 text-left">Contact</th>
+              <th class="p-3 text-left">Plan</th>
+              <th class="p-3 text-left">Subscription</th>
+              <th class="p-3 text-left">Status</th>
+              <th class="p-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="vendorsTbody" class="divide-y divide-slate-800">
+            <tr><td colspan="6" class="p-8 text-center text-slate-500">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="p-3 flex items-center justify-between border-t border-slate-800">
+        <button id="prevPage" class="px-3 py-2 bg-slate-800 rounded-lg text-xs disabled:opacity-50">Prev</button>
+        <span id="pageLabel" class="text-xs text-slate-400">Page 1 / 1</span>
+        <button id="nextPage" class="px-3 py-2 bg-slate-800 rounded-lg text-xs disabled:opacity-50">Next</button>
+      </div>
+    </div>
+
+    <!-- Plans Editor -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-5">
+      <h2 class="font-bold mb-3">Plans Quick Edit</h2>
+      <div id="plansEditor" class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm"></div>
+      <p class="text-xs text-slate-500 mt-3">Edit is via <code class="bg-slate-800 px-1 rounded">PUT /api/superadmin/plans</code> — change price / features.</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 hidden bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-xl shadow-xl text-sm"></div>
+
+  <script>
+    const API = '/api/superadmin';
+    let page=1, pages=1;
+    function getHeaders(){
+      const t = localStorage.getItem('adminToken');
+      return t ? { 'Authorization':'Bearer '+t, 'Content-Type':'application/json'} : { 'Content-Type':'application/json'};
+    }
+    function toast(msg, ok=true){
+      const el=document.getElementById('toast');
+      el.textContent=msg; el.className='fixed bottom-6 right-6 bg-slate-900 border '+(ok?'border-emerald-500/30':'border-red-500/30')+' text-white px-4 py-3 rounded-xl shadow-xl text-sm';
+      el.classList.remove('hidden'); setTimeout(()=>el.classList.add('hidden'), 3000);
+    }
+    async function requireAuth(){
+      const r = await fetch(API+'/admin', { headers: getHeaders(), credentials:'include' });
+      if(!r.ok){ window.location.href='login.html'; throw new Error('not authed'); }
+      const admin = await r.json();
+      document.getElementById('adminEmail').textContent = admin.email || admin.name || '';
+    }
+    async function loadMetrics(){
+      const r = await fetch(API+'/metrics', { headers: getHeaders(), credentials:'include' });
+      if(!r.ok) return;
+      const d = await r.json();
+      document.getElementById('kpiTotalBusinesses').textContent = d.totalBusinesses;
+      document.getElementById('kpiActiveSubs').textContent = d.activeSubs;
+      document.getElementById('kpiMRR').textContent = 'KES '+ Number(d.mrr).toLocaleString();
+      document.getElementById('kpiPlans').textContent = d.plansCount;
+    }
+    async function loadPlans(){
+      const r = await fetch(API+'/plans', { headers: getHeaders(), credentials:'include' });
+      if(!r.ok) return;
+      const {plans}=await r.json();
+      const c=document.getElementById('plansEditor');
+      c.innerHTML = plans.map(p=>`
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p class="font-bold capitalize">${p.name} <span class="text-slate-400 font-normal">KES ${p.price}</span></p>
+          <p class="text-xs text-slate-500 mt-1">${p.description||''}</p>
+          <details class="mt-2"><summary class="text-xs text-violet-400 cursor-pointer">features</summary><pre class="text-[11px] bg-slate-950 p-2 rounded mt-2 overflow-auto max-h-32">${JSON.stringify(p.features||{}, null, 2)}</pre></details>
+        </div>
+      `).join('');
+    }
+    async function loadVendors(){
+      const search=document.getElementById('searchInput').value.trim();
+      const status=document.getElementById('statusFilter').value;
+      const qs = new URLSearchParams({ page, limit:20, search, status });
+      const r = await fetch(API+'/businesses?'+qs.toString(), { headers: getHeaders(), credentials:'include' });
+      if(!r.ok){ toast('Failed to load vendors', false); return; }
+      const data = await r.json();
+      pages = data.pages || 1;
+      document.getElementById('totalLabel').textContent = data.total+' vendors';
+      document.getElementById('pageLabel').textContent = `Page ${data.page} / ${pages}`;
+      document.getElementById('prevPage').disabled = page<=1;
+      document.getElementById('nextPage').disabled = page>=pages;
+      const tbody=document.getElementById('vendorsTbody');
+      if(!data.businesses.length){ tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-slate-500">No vendors</td></tr>'; return;}
+      tbody.innerHTML = data.businesses.map(b=>{
+        const sub = b.subscription;
+        const plan = sub?.plan;
+        const subStatus = sub ? `${sub.status} → ${new Date(sub.endDate).toLocaleDateString()}` : 'no sub';
+        const statusBadge = b.status==='active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : b.status==='suspended' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+        return `<tr class="hover:bg-white/5">
+          <td class="p-3">
+            <p class="font-semibold">${b.businessName}</p>
+            <p class="text-xs text-slate-500">${b.businessEmail} · ${b.businessLocation||''}</p>
+            <p class="text-xs text-slate-600">${b._id}</p>
+          </td>
+          <td class="p-3 text-xs">${b.businessPhone}<br/><span class="text-slate-500">${b.identificationNumber||''}</span></td>
+          <td class="p-3"><span class="px-2 py-1 rounded-full text-xs border ${plan ? 'bg-violet-500/20 text-violet-300 border-violet-500/30' : 'bg-slate-800 text-slate-400'}">${plan?plan.name:'—'}</span><div class="text-xs text-slate-500">${plan? 'KES '+plan.price : ''}</div></td>
+          <td class="p-3 text-xs">${subStatus}</td>
+          <td class="p-3"><span class="px-2 py-1 rounded-full text-xs border ${statusBadge}">${b.status}</span></td>
+          <td class="p-3 text-right">
+            <div class="flex gap-1 justify-end">
+              <button onclick="toggleStatus('${b._id}','${b.status}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs">${b.status==='active' ? 'Suspend' : 'Activate'}</button>
+              <button onclick="impersonate('${b._id}')" class="px-2 py-1 bg-violet-600 hover:bg-violet-700 rounded text-xs">Impersonate</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    async function toggleStatus(id, cur){
+      const next = cur==='active' ? 'suspended' : 'active';
+      if(!confirm(`Set status to ${next}?`)) return;
+      const r = await fetch(API+'/businesses/'+id+'/status', { method:'PATCH', headers: getHeaders(), body: JSON.stringify({ status: next }), credentials:'include' });
+      if(r.ok){ toast(`Vendor ${next}`); loadVendors(); } else { toast('Failed', false); }
+    }
+    async function impersonate(id){
+      const r = await fetch(API+'/businesses/'+id+'/impersonate', { method:'POST', headers: getHeaders(), credentials:'include' });
+      const data = await r.json();
+      if(!r.ok){ toast(data.message||'Failed', false); return; }
+      // store business token for quick switch
+      localStorage.setItem('impersonateToken', data.token);
+      document.cookie = `token=${data.token}; path=/; max-age=${60*60}`;
+      toast('Impersonation token stored — opening dashboard as vendor');
+      setTimeout(()=> window.open('/dashboard.html','_blank'), 800);
+    }
+    document.getElementById('searchBtn').addEventListener('click', ()=>{ page=1; loadVendors(); });
+    document.getElementById('refreshBtn').addEventListener('click', loadVendors);
+    document.getElementById('prevPage').addEventListener('click', ()=>{ if(page>1){page--; loadVendors();}});
+    document.getElementById('nextPage').addEventListener('click', ()=>{ if(page<pages){page++; loadVendors();}});
+    document.getElementById('searchInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ page=1; loadVendors(); }});
+    document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+      await fetch(API+'/logout', { headers: getHeaders(), credentials:'include' });
+      localStorage.removeItem('adminToken'); document.cookie='adminToken=; path=/; max-age=0';
+      window.location.href='login.html';
+    });
+    (async()=>{ await requireAuth(); await Promise.all([loadMetrics(), loadVendors(), loadPlans()]); })();
+  </script>
+</body>
+</html>

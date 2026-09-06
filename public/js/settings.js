@@ -20,9 +20,10 @@ function init() {
   wireTabs();
   wireLogoUpload();
   wireForms();
+  wirePaymentMethods();
 
   // Fetch everything in parallel → toast on success/failure
-  Promise.all([loadStoreSettings(), loadReceiptSettings(), loadUserSettings()])
+  Promise.all([loadStoreSettings(), loadReceiptSettings(), loadUserSettings(), loadPaymentMethods()])
     .then(() => showToast("Settings loaded successfully!", "success"))
     .catch((err) => {
       console.error(err);
@@ -220,3 +221,275 @@ function showToast(message, type = "info") {
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
+
+/* ─────────────────── Payment Methods ─────────────────── */
+const paymentTypeConfig = {
+  card: {
+    label: "Card Payment",
+    icon: "fa-credit-card",
+    color: "bg-blue-500",
+    fields: [
+      { key: "publicKey", label: "Public Key", placeholder: "pk_..." },
+      { key: "merchantId", label: "Merchant ID", placeholder: "Merchant ID" },
+    ],
+  },
+  mobile_money: {
+    label: "Mobile Money",
+    icon: "fa-mobile-alt",
+    color: "bg-green-500",
+    fields: [
+      { key: "provider", label: "Provider", placeholder: "e.g., MTN, Airtel" },
+      { key: "countryCode", label: "Country Code", placeholder: "e.g., 254" },
+    ],
+  },
+  paypal: {
+    label: "PayPal",
+    icon: "fa-paypal",
+    color: "bg-blue-600",
+    fields: [{ key: "clientId", label: "Client ID", placeholder: "PayPal Client ID" }],
+  },
+  mpesa_till: {
+    label: "M-Pesa Till (Manual Verify)",
+    icon: "fa-landmark",
+    color: "bg-purple-500",
+    fields: [
+      { key: "tillNumber", label: "Till Number", placeholder: "e.g., 123456" },
+      { key: "tillName", label: "Business Name (optional)", placeholder: "Your Business Name" },
+    ],
+  },
+  mpesa_paybill: {
+    label: "M-Pesa Paybill (C2B)",
+    icon: "fa-university",
+    color: "bg-purple-600",
+    fields: [
+      { key: "paybillNumber", label: "Paybill Number", placeholder: "123456" },
+      { key: "accountNumber", label: "Account Number", placeholder: "Account Number" },
+    ],
+  },
+  mpesa_stk: {
+    label: "M-Pesa STK Push",
+    icon: "fa-mobile",
+    color: "bg-purple-700",
+    fields: [
+      { key: "consumerKey", label: "Consumer Key", placeholder: "Consumer Key from Daraja Portal" },
+      { key: "consumerSecret", label: "Consumer Secret", placeholder: "Consumer Secret from Daraja Portal" },
+      { key: "shortcode", label: "Shortcode", placeholder: "174379" },
+      { key: "passkey", label: "Passkey", placeholder: "Passkey from Daraja Portal (LNM Online)" },
+    ],
+    advanced: true,
+  },
+  bank: {
+    label: "Bank Transfer",
+    icon: "fa-university",
+    color: "bg-gray-500",
+    fields: [
+      { key: "bankName", label: "Bank Name", placeholder: "Bank Name" },
+      { key: "accountNumber", label: "Account Number", placeholder: "Account Number" },
+    ],
+  },
+};
+
+function wirePaymentMethods() {
+  const addBtn = document.getElementById("add-payment-method-btn");
+  const modal = document.getElementById("payment-method-modal");
+  const closeBtn = document.getElementById("close-payment-modal");
+  const cancelBtn = document.getElementById("cancel-payment-btn");
+  const form = document.getElementById("payment-method-form");
+  const typeSelect = document.getElementById("payment-type");
+
+  if (!addBtn) return;
+
+  addBtn.addEventListener("click", () => {
+    document.getElementById("modal-payment-title").textContent = "Add Payment Method";
+    document.getElementById("payment-method-id").value = "";
+    form.reset();
+    document.getElementById("payment-config-section").classList.add("hidden");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  });
+
+  const closeModal = () => {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  };
+
+  closeBtn.addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  typeSelect.addEventListener("change", () => {
+    const configSection = document.getElementById("payment-config-section");
+    const configFields = document.getElementById("payment-config-fields");
+    const type = typeSelect.value;
+
+    if (paymentTypeConfig[type]) {
+      configSection.classList.remove("hidden");
+      configFields.innerHTML = paymentTypeConfig[type].fields
+        .map(
+          (field) => `
+        <div class="space-y-1">
+          <label class="block text-xs text-primary-500 dark:text-primary-400">${field.label}</label>
+          <input type="text" name="${field.key}" class="input-premium" placeholder="${field.placeholder}">
+        </div>
+      `
+        )
+        .join("");
+    } else {
+      configSection.classList.add("hidden");
+      configFields.innerHTML = "";
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("payment-method-id").value;
+    const type = document.getElementById("payment-type").value;
+    const provider = document.getElementById("payment-provider").value;
+    const label = document.getElementById("payment-label").value;
+
+    const config = {};
+    const configSection = document.getElementById("payment-config-section");
+    if (!configSection.classList.contains("hidden")) {
+      const inputs = configSection.querySelectorAll('input[name]');
+      inputs.forEach((input) => {
+        if (input.value) config[input.name] = input.value;
+      });
+    }
+
+    const payload = { type, provider, label, config: Object.keys(config).length > 0 ? config : undefined };
+
+    try {
+      let res;
+      if (id) {
+        res = await fetch(`/settings/payment-methods/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch("/settings/payment-methods", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast(id ? "Payment method updated!" : "Payment method added!", "success");
+        closeModal();
+        loadPaymentMethods();
+      } else {
+        showToast(data.message || "Failed to save payment method", "error");
+      }
+    } catch (err) {
+      showToast("An error occurred", "error");
+    }
+  });
+}
+
+async function loadPaymentMethods() {
+  const list = document.getElementById("payment-methods-list");
+  const noMethods = document.getElementById("no-payment-methods");
+  if (!list) return;
+
+  try {
+    const res = await fetch("/settings/payment-methods", { credentials: "include" });
+    const data = await res.json();
+
+    if (!data.methods || data.methods.length === 0) {
+      list.innerHTML = "";
+      noMethods.classList.remove("hidden");
+      return;
+    }
+
+    noMethods.classList.add("hidden");
+    list.innerHTML = data.methods
+      .map((method) => {
+        const config = paymentTypeConfig[method.type] || {
+          label: method.type,
+          icon: "fa-credit-card",
+          color: "bg-gray-500",
+        };
+        return `
+        <div class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-primary-800/30 border border-primary-100 dark:border-primary-700">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg ${config.color} flex items-center justify-center text-white">
+              <i class="fas ${config.icon}"></i>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-primary-900 dark:text-white">${method.label || config.label}</p>
+              <p class="text-xs text-primary-500 dark:text-primary-400">${method.provider || config.label}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="editPaymentMethod('${method._id}', '${method.type}', '${method.provider || ''}', '${method.label || ''}', ${JSON.stringify(method.config || {}).replace(/"/g, "&quot;")})" class="p-2 text-primary-400 hover:text-accent-500 transition-colors">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button onclick="deletePaymentMethod('${method._id}')" class="p-2 text-primary-400 hover:text-red-500 transition-colors">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      })
+      .join("");
+  } catch (err) {
+    console.error("Failed to load payment methods:", err);
+  }
+}
+
+window.editPaymentMethod = function (id, type, provider, label, config) {
+  const modal = document.getElementById("payment-method-modal");
+  document.getElementById("modal-payment-title").textContent = "Edit Payment Method";
+  document.getElementById("payment-method-id").value = id;
+  document.getElementById("payment-type").value = type;
+  document.getElementById("payment-provider").value = provider;
+  document.getElementById("payment-label").value = label;
+
+  const configSection = document.getElementById("payment-config-section");
+  const configFields = document.getElementById("payment-config-fields");
+
+  if (paymentTypeConfig[type]) {
+    configSection.classList.remove("hidden");
+    configFields.innerHTML = paymentTypeConfig[type].fields
+      .map((field) => {
+        const value = config ? config[field.key] || "" : "";
+        return `
+        <div class="space-y-1">
+          <label class="block text-xs text-primary-500 dark:text-primary-400">${field.label}</label>
+          <input type="text" name="${field.key}" class="input-premium" placeholder="${field.placeholder}" value="${value}">
+        </div>
+      `;
+      })
+      .join("");
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+};
+
+window.deletePaymentMethod = async function (id) {
+  if (!confirm("Are you sure you want to remove this payment method?")) return;
+
+  try {
+    const res = await fetch(`/settings/payment-methods/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast("Payment method removed", "success");
+      loadPaymentMethods();
+    } else {
+      showToast(data.message || "Failed to remove payment method", "error");
+    }
+  } catch (err) {
+    showToast("An error occurred", "error");
+  }
+};

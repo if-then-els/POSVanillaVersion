@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const tenantPlugin = require("../utils/tenantPlugin");
 
 const subscriptionSchema = mongoose.Schema({
   business: {
@@ -44,5 +45,9 @@ const subscriptionSchema = mongoose.Schema({
   paystackTransactionId: String,
   mpesaTransactionId: String,
 });
+
+subscriptionSchema.plugin(tenantPlugin);
+subscriptionSchema.index({ business: 1, status: 1 });
+subscriptionSchema.index({ business: 1, endDate: 1 });
 
 module.exports = mongoose.model("Subscription", subscriptionSchema);

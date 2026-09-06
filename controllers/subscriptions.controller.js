@@ -91,34 +91,26 @@ exports.initiatePaystackPayment = async (req, res) => {
       });
     }
 
-    // Convert KES to USD for Paystack
-    const amountInUSD = await convertKESToUSD(amount);
-
-    // Ensure converted amount is still positive for Paystack
-    if (amountInUSD <= 0) {
-      console.error(
-        `Converted amount to USD is zero or negative (${amountInUSD}) for original KES amount (${amount}). Cannot process payment.`,
-      );
-      // Returning a 400 with a specific message for this scenario
-      return res.status(400).json({
-        message:
-          "Converted amount is too low to process payment in USD. Please ensure your KES amount is sufficient after conversion.",
-      });
+    // Paystack expects amount in kobo (smallest currency unit) - KES *100, no USD conversion needed
+    // KES is natively supported if merchant account is KES; fallback to direct KES amount
+    const amountKobo = Math.round(Number(amount) * 100);
+    if (amountKobo <= 0) {
+      return res.status(400).json({ message: "Invalid amount" });
     }
 
     const paystackResponse = await axios.post(
       `${PAYSTACK_BASE_URL}/transaction/initialize`,
       {
         email,
-        amount: Math.round(amountInUSD * 100), // Ensure integer, no decimals
-        currency: "KES", // Explicitly set currency to USD
-        reference: uniqueRef, // Use the newly generated unique reference
+        amount: amountKobo,
+        currency: "KES",
+        reference: uniqueRef,
         callback_url: `${req.protocol}://${req.get("host")}/subscriptions`,
         metadata: {
           businessId,
           planId,
           action,
-          originalAmount: amount, // Store original KES amount
+          originalAmount: amount,
           originalCurrency: "KES",
         },
       },
@@ -135,7 +127,7 @@ exports.initiatePaystackPayment = async (req, res) => {
       metadata: {
         ...paystackResponse.data.metadata,
         amountInKES: amount,
-        amountInUSD: amountInUSD,
+        amountKobo,
       },
     });
   } catch (error) {

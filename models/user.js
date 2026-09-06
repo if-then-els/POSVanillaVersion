@@ -22,11 +22,19 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "inactive", "suspended"],
       default: "active",
     },
+    store: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+    permissions: [{ type: String }],
+    mustChangePassword: { type: Boolean, default: false },
     lastActive: { type: Date },
     avatar: { type: String },
   },
   { timestamps: true }
 );
+
+const tenantPlugin = require("../utils/tenantPlugin");
+userSchema.plugin(tenantPlugin);
+userSchema.index({ business: 1, email: 1 }, { unique: true });
+userSchema.index({ business: 1, role: 1 });
 
 // Password hash middleware
 userSchema.pre("save", async function (next) {

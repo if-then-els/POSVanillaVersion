@@ -4,48 +4,99 @@ const Settings = require("../models/settings");
 const mongoose = require("mongoose");
 
 exports.processSale = async (req, res) => {
+  let session = null;
+  let useTxn = true;
   try {
     const business = req.user.business;
-    // const user = req.user.name;
-    const { items, total, customerName, paymentMethod } = req.body;
+    const cashierId = req.user.id;
+    const { items, total, customerName, paymentMethod, store, offlineId, splitPayments, discount, taxRate } = req.body;
     if (!items || !Array.isArray(items) || items.length === 0 || !business) {
-      return res
-        .status(400)
-        .json({ message: "No sale items or business provided" });
+      return res.status(400).json({ message: "No sale items or business provided" });
     }
 
-    // Check and update inventory
-    for (const item of items) {
-      const product = await Inventory.findById(item.productId, item.business);
-      if (!product) {
-        return res
-          .status(404)
-          .json({ message: `Product not found: ${item.productId}` });
+    if (offlineId) {
+      const existing = await Sale.findOne({ offlineId, business });
+      if (existing) {
+        return res.status(200).json({ message: "Sale already processed (idempotent)", sale: existing, duplicate: true });
       }
-      if (product.productQuantity < item.quantity) {
-        return res
-          .status(400)
-          .json({ message: `Insufficient stock for ${product.productName}` });
-      }
-      product.productQuantity -= item.quantity;
-      await product.save();
     }
 
-    // Save sale
-    const sale = new Sale({
-      items,
-      total,
-      customerName,
-      paymentMethod,
-      business,
-      //user: req.user._id, // Assuming user ID is available in req.user
-    });
-    await sale.save();
+    const allowedMethods = ["cash", "mpesa", "mpesa_stk", "mpesa_paybill", "paystack", "card", "bank", "split", "paypal", "mobile_money"];
+    if (paymentMethod && !allowedMethods.includes(paymentMethod)) {
+      return res.status(400).json({ message: `Invalid paymentMethod: ${paymentMethod}` });
+    }
 
-    res.status(201).json({ message: "Sale processed successfully", sale });
+    let saleResult = null;
+    const doSale = async (sess) => {
+      for (const item of items) {
+        if (!item.productId || !item.quantity || item.quantity <= 0) {
+          throw new Error(`Invalid item: ${JSON.stringify(item)}`);
+        }
+        const q = { _id: item.productId, business };
+        const product = sess ? await Inventory.findOne(q).session(sess) : await Inventory.findOne(q);
+        if (!product) throw Object.assign(new Error(`Product not found: ${item.productId}`), { status: 404 });
+        if (product.productQuantity < item.quantity) {
+          throw Object.assign(new Error(`Insufficient stock for ${product.productName} (have ${product.productQuantity}, need ${item.quantity})`), { status: 400 });
+        }
+        const updOpts = sess ? { new: true, session: sess } : { new: true };
+        const updated = await Inventory.findOneAndUpdate(
+          { _id: item.productId, business, productQuantity: { $gte: item.quantity } },
+          { $inc: { productQuantity: -item.quantity } },
+          updOpts
+        );
+        if (!updated) throw Object.assign(new Error(`Concurrent stock update failed for ${product.productName}`), { status: 409 });
+      }
+      const sale = new Sale({
+        items: items.map((i) => ({ productId: i.productId, quantity: i.quantity, price: i.price, costPrice: i.costPrice })),
+        subtotal: items.reduce((s, i) => s + (Number(i.price) * Number(i.quantity)), 0),
+        discount: discount || 0,
+        taxRate: taxRate || 0,
+        total,
+        customerName,
+        paymentMethod: paymentMethod || "cash",
+        paymentStatus: "paid",
+        splitPayments,
+        offlineId,
+        store: store || undefined,
+        business,
+        cashier: cashierId,
+        receiptNo: `RCT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      });
+      if (sess) await sale.save({ session: sess });
+      else await sale.save();
+      saleResult = sale;
+      try {
+        const AuditLog = require("../models/auditLog.model");
+        const doc = { business, user: cashierId, action: "sale.create", entity: "Sale", entityId: sale._id, details: { total, items: items.length, paymentMethod }, ip: req.ip };
+        if (sess) await AuditLog.create([doc], { session: sess });
+        else await AuditLog.create(doc);
+      } catch (_) {}
+    };
+
+    try {
+      session = await mongoose.startSession();
+      await session.withTransaction(() => doSale(session));
+    } catch (txnErr) {
+      // Fallback if replica set not available
+      if (txnErr.message && txnErr.message.includes("Transaction numbers are only allowed on a replica set")) {
+        console.warn("Replica set not available, falling back to non-transactional sale");
+        useTxn = false;
+        saleResult = null;
+        await doSale(null);
+      } else {
+        throw txnErr;
+      }
+    } finally {
+      if (session) session.endSession();
+    }
+
+    const populated = await Sale.findById(saleResult._id).populate("items.productId");
+    res.status(201).json({ message: "Sale processed successfully", sale: populated });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("processSale error:", error);
+    const status = error.status || 500;
+    res.status(status).json({ message: error.message || "Server error" });
+    if (session) try { session.endSession(); } catch {}
   }
 };
 
@@ -67,8 +118,8 @@ exports.getSales = async (req, res) => {
 exports.getReceipt = async (req, res) => {
   try {
     const { saleId } = req.params;
-    const sale = await Sale.findById(saleId).populate("items.productId");
-    if (!sale) return res.status(404).json({ message: "Sale not found" });
+    const sale = await Sale.findOne({ _id: saleId, business: req.user.business }).populate("items.productId");
+    if (!sale) return res.status(404).json({ message: "Sale not found or not in your business" });
 
     const settings = await Settings.findOne({ business: req.user.business });
     if (!settings) {

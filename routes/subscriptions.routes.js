@@ -26,7 +26,7 @@ router.get(
   subscriptionsController.getSubscriptionDetails
 );
 
-// Get plans
+// Get plans (public route)
 router.get("/plans", async (req, res) => {
   try {
     const plans = await Plan.find({});

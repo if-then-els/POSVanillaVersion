@@ -109,6 +109,12 @@ function loadSidebar() {
       requiresSubscription: true,
     },
     {
+      href: "aiAnalytics.html",
+      icon: "fa-brain",
+      text: "AI Analytics",
+      requiresSubscription: true,
+    },
+    {
       href: "manageSubscriptions.html",
       icon: "fa-bell",
       text: "Subscriptions",

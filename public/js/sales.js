@@ -519,11 +519,18 @@ function openCheckoutModal() {
   cashReceivedInput.value = "";
   cashChangeSpan.textContent = "KES 0.00";
 
-  const defaultPaymentMethod = document.querySelector(
-    'input[name="paymentMethod"][value="online"]'
-  );
-  if (defaultPaymentMethod) {
-    defaultPaymentMethod.checked = true;
+  // Load payment methods if not loaded yet
+  if (configuredPaymentMethods.length === 0) {
+    loadPaymentMethods();
+  }
+
+  // Select cash by default if available, otherwise first option
+  const cashMethod = document.querySelector('input[name="paymentMethod"][value="cash"]');
+  if (cashMethod) {
+    cashMethod.checked = true;
+  } else {
+    const firstMethod = document.querySelector('input[name="paymentMethod"]');
+    if (firstMethod) firstMethod.checked = true;
   }
   processSaleBtn.disabled = false;
   return true;
@@ -538,26 +545,6 @@ document
   ?.addEventListener("click", () => {
     checkoutModal.classList.add("hidden");
   });
-
-document.querySelectorAll('input[name="paymentMethod"]').forEach((radio) => {
-  radio.addEventListener("change", (event) => {
-    if (event.target.value === "cash") {
-      cashPaymentSection.classList.remove("hidden");
-      const total = parseFloat(
-        document
-          .getElementById("checkout-total")
-          .textContent.replace("KES ", "")
-      );
-      const received = parseFloat(cashReceivedInput.value) || 0;
-      const change = received - total;
-      cashChangeSpan.textContent = `KES ${Math.max(0, change).toFixed(2)}`;
-      processSaleBtn.disabled = received < total;
-    } else {
-      cashPaymentSection.classList.add("hidden");
-      processSaleBtn.disabled = false;
-    }
-  });
-});
 
 cashReceivedInput.addEventListener("input", () => {
   const total = parseFloat(
@@ -610,23 +597,304 @@ function renderCheckoutSummary() {
   }
 }
 
-// Function to process sale via API
+// Process online payment (card, mobile money, paypal, m-pesa)
+async function processOnlinePayment(paymentType, config, amount, customerPhone = "") {
+  return new Promise((resolve, reject) => {
+    // Create payment processing modal
+    const modal = document.createElement("div");
+    modal.id = "payment-processing-modal";
+    modal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4";
+    
+    // For M-Pesa, show phone input first
+    const isMpesa = paymentType === "mpesa_stk" || paymentType === "mpesa_till" || paymentType === "mpesa_paybill" || paymentType === "mobile_money";
+    const phoneInputHtml = isMpesa ? `
+      <div id="phone-input-section" class="mb-4">
+        <label class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide mb-2 text-left">Enter Customer Phone Number</label>
+        <div class="relative">
+          <i class="fas fa-phone absolute left-3 top-3 text-primary-400"></i>
+          <input type="tel" id="customer-phone" class="w-full pl-10 pr-4 py-3 rounded-xl input-premium" placeholder="e.g., 254712345678" value="${customerPhone}">
+        </div>
+        <p class="text-xs text-primary-400 mt-2 text-left"><i class="fas fa-info-circle mr-1"></i>An STK push will be sent to this number</p>
+      </div>
+    ` : '';
+
+    modal.innerHTML = `
+      <div class="bg-white dark:bg-primary-900 rounded-2xl shadow-2xl w-full max-w-md p-6 text-center">
+        <div class="mb-4">
+          <div class="w-16 h-16 mx-auto rounded-full bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center">
+            <i class="fas fa-${config?.icon || 'credit-card'} text-2xl text-accent-500"></i>
+          </div>
+        </div>
+        <h3 class="text-lg font-bold text-primary-900 dark:text-white mb-2">Processing Payment</h3>
+        <p class="text-sm text-primary-500 dark:text-primary-400 mb-4">
+          Please ${isMpesa ? 'enter phone number and ' : ''}confirm your ${config?.label || paymentType} payment of <span class="font-bold">KES ${amount.toFixed(2)}</span>
+        </p>
+        
+        ${phoneInputHtml}
+        
+        <div id="payment-status" class="hidden p-3 rounded-lg mb-4 text-left"></div>
+        
+        <div class="flex gap-3">
+          <button id="payment-cancel-btn" class="flex-1 px-4 py-2 border border-primary-200 dark:border-primary-700 rounded-xl text-sm font-bold text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-800">
+            Cancel
+          </button>
+          <button id="payment-confirm-btn" class="flex-1 px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white rounded-xl text-sm font-bold">
+            ${isMpesa ? '<i class="fas fa-sms mr-2"></i>Send STK Push' : '<i class="fas fa-check mr-2"></i>Confirm Payment'}
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Handle cancel
+    modal.querySelector("#payment-cancel-btn").addEventListener("click", () => {
+      modal.remove();
+      reject(new Error("Payment cancelled"));
+    });
+
+    // Handle confirm
+    modal.querySelector("#payment-confirm-btn").addEventListener("click", async () => {
+      const statusDiv = modal.querySelector("#payment-status");
+      const confirmBtn = modal.querySelector("#payment-confirm-btn");
+      
+      // For M-Pesa, validate phone number
+      let phoneNumber = "";
+      if (isMpesa) {
+        const phoneInput = modal.querySelector("#customer-phone");
+        phoneNumber = phoneInput.value.trim().replace(/^0/, "254").replace(/^\+/, "");
+        
+        if (!phoneNumber || phoneNumber.length < 9) {
+          statusDiv.classList.remove("hidden");
+          statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400";
+          statusDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Please enter a valid phone number';
+          return;
+        }
+        
+        // Ensure phone starts with country code
+        if (!phoneNumber.startsWith("254")) {
+          phoneNumber = "254" + phoneNumber;
+        }
+      }
+      
+      try {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        statusDiv.classList.add("hidden");
+        
+            if (isMpesa) {
+          const isC2B = paymentType === "mpesa_till" || paymentType === "mpesa_paybill";
+          const isManualVerify = paymentType === "mpesa_till"; // Till with manual verification
+          
+          // Choose endpoint based on payment type
+          const endpoint = isC2B ? "/api/payments/mpesa/c2b/initiate" : "/api/payments/mpesa/stkpush";
+          
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              phoneNumber,
+              amount: Math.round(amount),
+              paymentType,
+              config: config?.config || {}
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok && result.success) {
+            // Demo mode - instant success
+            if (result.demoMode) {
+              statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400";
+              statusDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Payment completed (demo mode)!';
+              confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Done';
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              modal.remove();
+              resolve({ success: true, phoneNumber });
+              return;
+            }
+            
+            // Manual verification: Show Till and ask for receipt
+            if (isManualVerify) {
+              const tillNumber = config?.config?.tillNumber || "N/A";
+              
+              statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400";
+              statusDiv.innerHTML = `
+                <div class="text-center">
+                  <p class="font-bold mb-2">Customer: Pay KES ${amount} to Till:</p>
+                  <p class="text-3xl font-bold text-purple-600">${tillNumber}</p>
+                  <p class="text-sm mt-2">After paying, customer will receive an M-Pesa SMS with receipt number.</p>
+                </div>
+              `;
+              
+              // Show receipt input
+              const receiptInputDiv = document.createElement("div");
+              receiptInputDiv.className = "mt-3";
+              receiptInputDiv.innerHTML = `
+                <label class="block text-sm font-medium mb-1">Enter M-Pesa Receipt Number:</label>
+                <input type="text" id="mpesa-receipt-input" 
+                  class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600" 
+                  placeholder="e.g., MPG123456789">
+              `;
+              statusDiv.after(receiptInputDiv);
+              
+              confirmBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Verify Payment';
+              confirmBtn.disabled = false;
+              
+              // Override confirm button behavior for manual verify
+              confirmBtn.onclick = async () => {
+                const receiptInput = document.getElementById("mpesa-receipt-input");
+                const receiptNumber = receiptInput?.value?.trim();
+                
+                if (!receiptNumber) {
+                  alert("Please enter the M-Pesa receipt number from the customer's phone");
+                  return;
+                }
+                
+                // Save payment with receipt number
+                try {
+                  const saveRes = await fetch("/api/payments/manual/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                      phoneNumber,
+                      amount: Math.round(amount),
+                      paymentType,
+                      receiptNumber,
+                      tillNumber,
+                    })
+                  });
+                  
+                  const saveResult = await saveRes.json();
+                  
+                  if (saveResult.success) {
+                    statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400";
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Payment recorded successfully!';
+                    confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Done';
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    modal.remove();
+                    resolve({ success: true, phoneNumber, receiptNumber });
+                  } else {
+                    throw new Error(saveResult.message || "Failed to save payment");
+                  }
+                } catch (err) {
+                  alert("Error: " + err.message);
+                }
+              };
+              return; // Exit - wait for manual verify click
+            }
+        } else {
+          // For other payment types (simulated for now)
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400";
+          statusDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Payment successful!';
+          confirmBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Done';
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          modal.remove();
+          resolve({ success: true });
+        }
+      } catch (err) {
+        statusDiv.classList.remove("hidden");
+        statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400";
+        statusDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i>' + err.message;
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = isMpesa ? '<i class="fas fa-sms mr-2"></i>Try Again' : '<i class="fas fa-check mr-2"></i>Try Again';
+      }
+    });
+  });
+}
+
+// Poll for M-Pesa payment status
+async function pollMpesaPayment(checkoutRequestId, phoneNumber, maxAttempts = 30) {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    try {
+      const response = await fetch(`/api/payments/mpesa/status?checkoutRequestId=${checkoutRequestId}&phoneNumber=${phoneNumber}`, {
+        credentials: "include"
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        if (result.paymentStatus === "completed") {
+          return true;
+        } else if (result.paymentStatus === "failed") {
+          return false;
+        }
+        // Otherwise still pending, continue polling
+      }
+    } catch (err) {
+      console.error("Error polling payment status:", err);
+    }
+  }
+  return false; // Timeout
+}
+
+// Poll for C2B payment status
+async function pollC2BPayment(checkoutRequestId, phoneNumber, maxAttempts = 45) {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    try {
+      const response = await fetch(`/api/payments/mpesa/c2b/status/${checkoutRequestId}`, {
+        credentials: "include"
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        if (result.paymentStatus === "completed") {
+          return true;
+        } else if (result.paymentStatus === "failed" || result.paymentStatus === "cancelled") {
+          return false;
+        }
+        // Otherwise still pending, continue polling
+      }
+    } catch (err) {
+      console.error("Error polling C2B payment status:", err);
+    }
+  }
+  return false; // Timeout
+}
+
+// Function to process sale - now store-aware, offlineId idempotent, paymentType normalized
 async function processSale(cartItems, total, customerName, paymentMethod) {
   if (!isSubscriptionActive) {
     showSubscriptionInactiveModal(); // Should not be reached if UI is disabled
     return;
   }
+
+  // Get selected payment method info
+  const selectedPaymentInput = document.querySelector('input[name="paymentMethod"]:checked');
+  const paymentType = selectedPaymentInput ? selectedPaymentInput.value : "cash";
+  const paymentMethodConfig = configuredPaymentMethods.find(m => m.type === paymentType);
+
+  // Normalize mpesa types to tier-allowed values (backend accepts mpesa_stk etc)
+  let effectivePaymentMethod = paymentType === "mobile_money" ? "mpesa_stk" : paymentType;
+
+  // For non-cash payments, show processing modal (mpesa will handle STK push)
+  if (paymentType !== "cash") {
+    await processOnlinePayment(paymentType, paymentMethodConfig, total);
+    effectivePaymentMethod = paymentType === "mobile_money" ? "mpesa_stk" : paymentType;
+  }
+
   const items = cartItems.map((item) => ({
     productId: item._id,
     quantity: item.quantity,
     price: item.productPrice,
   }));
 
+  // store + offline Idempotency
+  const storeId = (typeof getSelectedStoreId === 'function' ? getSelectedStoreId() : "") || "";
+  const offlineId = `off_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+
   try {
     const response = await fetch("/processSale", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items, total, customerName, paymentMethod }),
+      headers: { "Content-Type": "application/json", "Idempotency-Key": offlineId },
+      body: JSON.stringify({ items, total, customerName, paymentMethod: effectivePaymentMethod, store: storeId || undefined, offlineId }),
       credentials: "include",
     });
 
@@ -1078,6 +1346,108 @@ function showSubscriptionInactiveModal() {
     .classList.remove("hidden");
 }
 
+// Payment Methods Configuration
+const paymentTypeConfig = {
+  cash: { label: "Cash", icon: "fa-money-bill-wave", color: "text-green-500" },
+  card: { label: "Card", icon: "fa-credit-card", color: "text-blue-500" },
+  mobile_money: { label: "Mobile Money", icon: "fa-mobile-alt", color: "text-purple-500" },
+  paypal: { label: "PayPal", icon: "fa-paypal", color: "text-blue-600" },
+  mpesa_till: { label: "M-Pesa Till", icon: "fa-landmark", color: "text-purple-500" },
+  mpesa_stk: { label: "M-Pesa STK (Advanced)", icon: "fa-mobile", color: "text-purple-600" },
+  mpesa_paybill: { label: "M-Pesa Paybill", icon: "fa-university", color: "text-purple-700" },
+  bank: { label: "Bank Transfer", icon: "fa-university", color: "text-gray-500" },
+};
+
+let configuredPaymentMethods = [];
+
+// Load payment methods from settings
+async function loadPaymentMethods() {
+  const container = document.getElementById("payment-methods-container");
+  if (!container) return;
+
+  try {
+    const res = await fetch("/settings/payment-methods", { credentials: "include" });
+    const data = await res.json();
+
+    // Always include cash as default
+    configuredPaymentMethods = [
+      { type: "cash", label: "Cash", icon: "fa-money-bill-wave", color: "text-green-500" }
+    ];
+
+    if (data.success && data.methods && data.methods.length > 0) {
+      data.methods.forEach(method => {
+        const config = paymentTypeConfig[method.type] || { label: method.type, icon: "fa-credit-card", color: "text-gray-500" };
+        configuredPaymentMethods.push({
+          type: method.type,
+          label: method.label || config.label,
+          icon: config.icon,
+          color: config.color,
+          config: method.config,
+          provider: method.provider
+        });
+      });
+    }
+
+    renderPaymentMethods();
+  } catch (err) {
+    console.error("Failed to load payment methods:", err);
+    // Fallback to defaults
+    configuredPaymentMethods = [
+      { type: "cash", label: "Cash", icon: "fa-money-bill-wave", color: "text-green-500" },
+      { type: "card", label: "Card", icon: "fa-credit-card", color: "text-blue-500" },
+      { type: "mobile_money", label: "Mobile Money", icon: "fa-mobile-alt", color: "text-purple-500" }
+    ];
+    renderPaymentMethods();
+  }
+}
+
+function renderPaymentMethods() {
+  const container = document.getElementById("payment-methods-container");
+  if (!container) return;
+
+  container.innerHTML = configuredPaymentMethods.map((method, index) => `
+    <label class="cursor-pointer">
+      <input type="radio" name="paymentMethod" value="${method.type}" class="peer hidden" id="payment-${method.type}">
+      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
+        <i class="fas ${method.icon} text-xl mb-1 ${method.color}"></i>
+        <span class="text-xs font-bold">${method.label}</span>
+      </div>
+    </label>
+  `).join("");
+
+  // Add event listeners to new payment method radios
+  document.querySelectorAll('input[name="paymentMethod"]').forEach((radio) => {
+    radio.addEventListener("change", handlePaymentMethodChange);
+  });
+
+  // Select first payment method by default
+  const firstMethod = document.querySelector('input[name="paymentMethod"]');
+  if (firstMethod) firstMethod.checked = true;
+}
+
+function handlePaymentMethodChange(event) {
+  const cashPaymentSection = document.getElementById("cash-payment-section");
+  const cashReceivedInput = document.getElementById("cash-received");
+  const cashChangeSpan = document.getElementById("cash-change");
+  const processSaleBtn = document.getElementById("process-sale-btn");
+
+  if (event.target.value === "cash") {
+    cashPaymentSection.classList.remove("hidden");
+    const total = parseFloat(
+      document
+        .getElementById("checkout-total")
+        .textContent.replace("KES ", "")
+    );
+    const received = parseFloat(cashReceivedInput.value) || 0;
+    const change = received - total;
+    cashChangeSpan.textContent = `KES ${Math.max(0, change).toFixed(2)}`;
+    processSaleBtn.disabled = received < total;
+  } else {
+    cashPaymentSection.classList.add("hidden");
+    processSaleBtn.disabled = false;
+  }
+}
+
 // Initial render on page load
 document.addEventListener("DOMContentLoaded", async () => {
   // First, check subscription status
@@ -1115,7 +1485,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load products and render UI based on subscription status
   loadProductsForSale();
-  // renderCart(); // This call is now redundant here as renderProducts will call renderCart implicitly
+  loadPaymentMethods();
 
   const cartButton = document.getElementById("mobile-cart-button");
   if (cartButton) {

@@ -494,6 +494,12 @@
                     Reporting
                   </li>
                 </ul>
+                <button 
+                  onclick="upgradeToPlan('basic', 2000)"
+                  class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                >
+                  Upgrade to Basic
+                </button>
               </div>
 
               <!-- Standard Plan -->
@@ -538,6 +544,12 @@
                     Integration
                   </li>
                 </ul>
+                <button 
+                  onclick="upgradeToPlan('standard', 3800)"
+                  class="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                >
+                  Upgrade to Standard
+                </button>
               </div>
 
               <!-- Premium Plan -->
@@ -571,6 +583,12 @@
                     Support
                   </li>
                 </ul>
+                <button 
+                  onclick="contactForPremiumPlan()"
+                  class="w-full py-3 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                >
+                  Contact Sales
+                </button>
               </div>
             </div>
           </div>
@@ -965,6 +983,67 @@
     <script src="./js/subscriptions.js"></script>
     <script src="./js/chat2.js"></script>
     <script src="./js/subscriptionChecker.js"></script>
+
+    <script>
+      // Simplified upgrade functions for direct plan upgrades
+      async function upgradeToPlan(planName, price) {
+        try {
+          // Set payment action to upgrade
+          if (window.appState) {
+            window.appState.paymentAction = "upgrade";
+            window.appState.selectedPlan = {
+              _id: planName,
+              name: planName.charAt(0).toUpperCase() + planName.slice(1),
+              price: price
+            };
+          }
+
+          // Show payment modal with Paystack
+          const paymentModal = document.getElementById("payment-options-modal");
+          if (paymentModal) {
+            paymentModal.classList.remove("hidden");
+            
+            // Go to payment method selection
+            const allSteps = document.querySelectorAll('[data-step]');
+            allSteps.forEach(step => step.classList.add('hidden'));
+            const payStep = document.getElementById('payment-step-4-paystack');
+            if (payStep) {
+              payStep.classList.remove('hidden');
+            }
+
+            // Update title
+            const stepTitle = document.querySelector('#payment-step-4-paystack h2');
+            if (stepTitle) {
+              stepTitle.textContent = `Upgrade to ${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan`;
+            }
+
+            // Pre-fill business email
+            const emailInput = document.getElementById("paystack-email-input");
+            if (emailInput && window.currentBusiness?.email) {
+              emailInput.value = window.currentBusiness.email;
+            }
+
+            // Set amount
+            const amountInput = document.getElementById("paystack-amount");
+            if (amountInput) {
+              amountInput.value = `KES ${price.toLocaleString()}`;
+              amountInput.disabled = false;
+            }
+
+            showToast(`Upgrading to ${planName.charAt(0).toUpperCase() + planName.slice(1)} plan...`, "info");
+          }
+        } catch (error) {
+          console.error("Upgrade error:", error);
+          showToast("Failed to start upgrade process", "error");
+        }
+      }
+
+      function contactForPremiumPlan() {
+        showToast("Please contact sales@swiftpos.com for Premium plan pricing", "info");
+        // Alternatively, open email client
+        window.location.href = "mailto:sales@swiftpos.com?subject=Premium Plan Inquiry";
+      }
+    </script>
 
     <script>
       // Theme Toggle Logic

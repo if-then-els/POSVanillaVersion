@@ -243,12 +243,13 @@ exports.getPaymentStatus = async (req, res) => {
   }
 };
 
-// payments.controller.js
 exports.checkMpesaPaymentStatus = async (req, res) => {
   const { checkoutRequestID } = req.body;
-
+  if (!checkoutRequestID) return res.status(400).json({ message: "checkoutRequestID required" });
   try {
     const accessToken = await getAccessToken();
+    const timestamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
+    const password = Buffer.from(`${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`).toString("base64");
     const response = await axios.post(
       "https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query",
       {
@@ -261,12 +262,11 @@ exports.checkMpesaPaymentStatus = async (req, res) => {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-
     res.status(200).json(response.data);
   } catch (error) {
     res.status(500).json({
       message: "Failed to check payment status",
-      error: error.response.data,
+      error: error.response?.data || error.message,
     });
   }
 };
