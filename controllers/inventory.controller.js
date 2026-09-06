@@ -10,10 +10,7 @@ const { verifyToken } = require("../middleware/auth.middleware");
 
 exports.addStock = async (req, res) => {
   try {
-    // Access business ID from req.user.business
-    const business = req.user.business; // <--- CORRECTED: Access req.user.business
-    // console.log("Business ID from request:", business);
-
+    const business = req.user.business;
     const {
       productName,
       productPrice,
@@ -21,6 +18,13 @@ exports.addStock = async (req, res) => {
       productDescription,
       productCategory,
       productBatchNumber,
+      sku,
+      barcode,
+      costPrice,
+      reorderLevel,
+      expiryDate,
+      supplier,
+      store,
     } = req.body;
 
     if (
@@ -34,15 +38,6 @@ exports.addStock = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // const existingProduct = await Inventory.findOne({
-    //   productBatchNumber,
-    //   business, // Ensure the batch number is unique within the same business
-    // });
-
-    // if (existingProduct) {
-    //   return res.status(400).json({ message: "Product Batch already exists" });
-    // }
-
     const newProduct = new Inventory({
       productName,
       productPrice,
@@ -50,14 +45,24 @@ exports.addStock = async (req, res) => {
       productDescription,
       productCategory,
       productBatchNumber,
-      business, // Assign the business ID to the new product
+      sku: sku || undefined,
+      barcode: barcode || undefined,
+      costPrice: costPrice !== undefined ? Number(costPrice) : undefined,
+      reorderLevel: reorderLevel !== undefined ? Number(reorderLevel) : 5,
+      expiryDate: expiryDate || undefined,
+      supplier: supplier || undefined,
+      store: store || undefined,
+      business,
     });
 
     await newProduct.save();
 
-    return res
-      .status(201)
-      .json({ message: "Product added successfully", newProduct });
+    // low-stock immediate check after create (if initial qty <= reorder)
+    if (Number(newProduct.productQuantity) <= Number(newProduct.reorderLevel)) {
+      try { console.warn(`Low stock on create: ${newProduct.productName} qty ${newProduct.productQuantity} <= ${newProduct.reorderLevel}`); } catch {}
+    }
+
+    return res.status(201).json({ message: "Product added successfully", newProduct });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });
@@ -122,17 +127,18 @@ exports.addStockByCsv = async (req, res) => {
 exports.getAllInventory = async (req, res) => {
   try {
     const business = req.user.business;
-    //  console.log("token", req.cookies.token);
-    if (!business) {
-      return res.status(400).json({ message: "Business ID required" });
+    if (!business) return res.status(400).json({ message: "Business ID required" });
+    const { lowStock, store, category, barcode } = req.query;
+    const filter = { business };
+    if (store) filter.store = store;
+    if (category) filter.productCategory = category;
+    if (barcode) filter.barcode = barcode;
+    let products = await Inventory.find(filter).populate("supplier store").sort({ createdAt: -1 });
+    if (lowStock === "true") {
+      products = products.filter(p => Number(p.productQuantity) <= Number(p.reorderLevel ?? 5));
     }
-    const products = await Inventory.find({ business });
-    if (products.length === 0) {
-      return res.status(404).json({ message: "No products found" });
-    }
-    return res
-      .status(200)
-      .json({ message: "Products fetched successfully", products });
+    if (products.length === 0) return res.status(404).json({ message: "No products found", products: [] });
+    return res.status(200).json({ message: "Products fetched successfully", products });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });
@@ -169,47 +175,35 @@ exports.getInventoryById = async (req, res) => {
 
 exports.adjustInventoryQuantity = async (req, res) => {
   try {
-    const { productId, productQuantity } = req.body;
-    const business = req.user.business; // Get business ID
-
+    const { productId, productQuantity, reason } = req.body;
+    const business = req.user.business;
     if (!productId || typeof productQuantity === "undefined") {
-      // Check for productQuantity's existence
-      return res
-        .status(400)
-        .json({ message: "Product ID and Quantity are required" });
+      return res.status(400).json({ message: "Product ID and Quantity are required" });
     }
-    if (!business) {
-      return res.status(400).json({ message: "Business ID required" });
-    }
+    if (!business) return res.status(400).json({ message: "Business ID required" });
 
-    // Find by _id AND business ID
-    const product = await Inventory.findOne({
-      _id: productId,
-      business: business,
-    });
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found or does not belong to this business",
-      });
-    }
+    const product = await Inventory.findOne({ _id: productId, business });
+    if (!product) return res.status(404).json({ message: "Product not found or does not belong to this business" });
 
-    // Ensure productQuantity is a number before adding
     const quantityToAdd = parseInt(productQuantity);
-    if (isNaN(quantityToAdd)) {
-      return res.status(400).json({ message: "Invalid quantity provided." });
-    }
+    if (isNaN(quantityToAdd)) return res.status(400).json({ message: "Invalid quantity provided." });
 
     product.productQuantity += quantityToAdd;
-    if (product.productQuantity < 0) {
-      return res.status(400).json({ message: "Quantity cannot be negative" });
-    }
+    if (product.productQuantity < 0) return res.status(400).json({ message: "Quantity cannot be negative" });
     await product.save();
-    return res.status(200).json({
-      // Corrected typo: ststus -> status
-      message: "Inventory adjusted successfully",
-      productName: product.productName,
-      productQuantity: product.productQuantity,
-    });
+
+    // audit log
+    try {
+      const AuditLog = require("../models/auditLog.model");
+      await AuditLog.create({ business, user: req.user.id, action: "inventory.adjust", entity: "Inventory", entityId: product._id, details: { delta: quantityToAdd, reason, newQty: product.productQuantity }, ip: req.ip });
+    } catch {}
+
+    // low-stock alert (console + could extend to email)
+    if (product.productQuantity <= (product.reorderLevel ?? 5)) {
+      console.warn(`Low stock alert: ${product.productName} qty ${product.productQuantity} <= reorder ${product.reorderLevel}`);
+    }
+
+    return res.status(200).json({ message: "Inventory adjusted successfully", productName: product.productName, productQuantity: product.productQuantity, lowStock: product.productQuantity <= (product.reorderLevel ?? 5) });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });
@@ -527,5 +521,68 @@ exports.exportInventoryPdf = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.lookupByBarcode = async (req, res) => {
+  try {
+    const { barcode } = req.params;
+    const business = req.user.business;
+    if (!barcode) return res.status(400).json({ message: "Barcode required" });
+    const product = await Inventory.findOne({ barcode, business }).populate("supplier store");
+    if (!product) return res.status(404).json({ message: "Product not found for this barcode" });
+    res.json({ product });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Barcode lookup failed" });
+  }
+};
+
+exports.getLowStock = async (req, res) => {
+  try {
+    const business = req.user.business;
+    const products = await Inventory.find({ business }).lean();
+    const low = products.filter(p => Number(p.productQuantity) <= Number(p.reorderLevel ?? 5));
+    res.json({ lowStock: low, count: low.length });
+  } catch (e) {
+    res.status(500).json({ message: "Failed to get low stock" });
+  }
+};
+
+exports.getValuation = async (req, res) => {
+  try {
+    const business = req.user.business;
+    const { store } = req.query;
+    const svc = require("../services/inventoryValuation");
+    const val = await svc.getValuation(business, store);
+    res.json(val);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Valuation failed" });
+  }
+};
+
+exports.stocktake = async (req, res) => {
+  try {
+    const business = req.user.business;
+    const { counts } = req.body; // [{productId, countedQuantity}]
+    if (!Array.isArray(counts)) return res.status(400).json({ message: "counts array required" });
+    const results = [];
+    for (const c of counts) {
+      const prod = await Inventory.findOne({ _id: c.productId, business });
+      if (!prod) { results.push({ productId: c.productId, error: "not found" }); continue; }
+      const diff = Number(c.countedQuantity) - Number(prod.productQuantity);
+      prod.productQuantity = Number(c.countedQuantity);
+      await prod.save();
+      results.push({ productId: c.productId, productName: prod.productName, diff, newQty: prod.productQuantity });
+      try {
+        const AuditLog = require("../models/auditLog.model");
+        await AuditLog.create({ business, user: req.user.id, action: "inventory.stocktake", entity: "Inventory", entityId: prod._id, details: { counted: c.countedQuantity, diff }, ip: req.ip });
+      } catch {}
+    }
+    res.json({ results });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Stocktake failed" });
   }
 };

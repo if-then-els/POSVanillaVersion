@@ -67,10 +67,27 @@ async function loadProducts() {
         productQuantity: item.productQuantity ?? item.quantity,
         productDescription: item.productDescription || item.description,
         productCategory: item.productCategory || "",
+        sku: item.sku || "",
+        barcode: item.barcode || "",
+        costPrice: item.costPrice ?? null,
+        reorderLevel: item.reorderLevel ?? 5,
+        expiryDate: item.expiryDate || null,
+        supplier: item.supplier || null,
+        store: item.store || null,
       }));
     } else {
       products = [];
     }
+    // update valuation + lowStock KPIs if available
+    try {
+      const v = await fetch("/inventory/valuation?store="+encodeURIComponent(document.getElementById("storeFilter")?.value||""), {credentials:"include"}).then(r=>r.json());
+      if (v && v.totalValueWAC !== undefined) {
+        const el = document.getElementById("valuationWAC");
+        if (el) el.textContent = "KES "+Number(v.totalValueWAC).toLocaleString();
+        const lowEl = document.getElementById("kpiLowStock");
+        if (lowEl) lowEl.textContent = v.lowStockCount + " items";
+      }
+    } catch {}
   } catch (error) {
     console.error("Error loading inventory data:", error);
     products = [];
@@ -219,20 +236,29 @@ function handleEditProduct(buttonElement) {
 
   if (currentProduct) {
     document.getElementById("product-name").value = currentProduct.productName;
-    document.getElementById("product-description").value =
-      currentProduct.productDescription;
-    document.getElementById("product-sku").value =
-      currentProduct.productBatchNumber;
-    document.getElementById("product-price").value =
-      currentProduct.productPrice;
-    document.getElementById("product-quantity").value =
-      currentProduct.productQuantity;
-    document.getElementById("product-category").value =
-      currentProduct.productCategory || "";
+    document.getElementById("product-description").value = currentProduct.productDescription;
+    document.getElementById("product-sku").value = currentProduct.productBatchNumber;
+    document.getElementById("product-price").value = currentProduct.productPrice;
+    document.getElementById("product-quantity").value = currentProduct.productQuantity;
+    document.getElementById("product-category").value = currentProduct.productCategory || "";
+    const sku2 = document.getElementById("product-sku2");
+    if (sku2) sku2.value = currentProduct.sku || "";
+    const bc = document.getElementById("product-barcode");
+    if (bc) bc.value = currentProduct.barcode || "";
+    const cp = document.getElementById("product-cost");
+    if (cp) cp.value = currentProduct.costPrice ?? "";
+    const rl = document.getElementById("product-reorder");
+    if (rl) rl.value = currentProduct.reorderLevel ?? 5;
+    const ex = document.getElementById("product-expiry");
+    if (ex) ex.value = currentProduct.expiryDate ? new Date(currentProduct.expiryDate).toISOString().slice(0,10) : "";
+    const st = document.getElementById("product-store");
+    if (st) st.value = currentProduct.store?._id || currentProduct.store || "";
+    const sup = document.getElementById("product-supplier");
+    if (sup) sup.value = currentProduct.supplier?._id || currentProduct.supplier || "";
 
     document.getElementById("modal-title").textContent = "Edit Product";
     document.getElementById("form-error").classList.add("hidden");
-    document.getElementById("form-error").textContent = ""; // Clear previous error messages
+    document.getElementById("form-error").textContent = "";
 
     document.getElementById("product-modal").classList.remove("hidden");
   }
@@ -289,21 +315,24 @@ async function handleDeleteConfirmation() {
 async function handleProductFormSubmit(event) {
   event.preventDefault();
 
-  // Get form values
+  // Get form values (enterprise fields)
   const productData = {
     productName: document.getElementById("product-name").value.trim(),
-    productDescription: document
-      .getElementById("product-description")
-      .value.trim(),
+    productDescription: document.getElementById("product-description").value.trim(),
     productBatchNumber: document.getElementById("product-sku").value.trim(),
-    productPrice: Number.parseFloat(
-      document.getElementById("product-price").value
-    ),
-    productQuantity: Number.parseInt(
-      document.getElementById("product-quantity").value
-    ),
+    productPrice: Number.parseFloat(document.getElementById("product-price").value),
+    productQuantity: Number.parseInt(document.getElementById("product-quantity").value),
     productCategory: document.getElementById("product-category").value.trim(),
+    sku: document.getElementById("product-sku2")?.value.trim() || undefined,
+    barcode: document.getElementById("product-barcode")?.value.trim() || undefined,
+    costPrice: document.getElementById("product-cost")?.value ? Number.parseFloat(document.getElementById("product-cost").value) : undefined,
+    reorderLevel: document.getElementById("product-reorder")?.value ? Number.parseInt(document.getElementById("product-reorder").value) : undefined,
+    expiryDate: document.getElementById("product-expiry")?.value || undefined,
+    store: document.getElementById("product-store")?.value || undefined,
+    supplier: document.getElementById("product-supplier")?.value || undefined,
   };
+  // clean undefined
+  Object.keys(productData).forEach(k => productData[k]===undefined && delete productData[k]);
 
   // Client-side Validation
   const formError = document.getElementById("form-error");
@@ -463,6 +492,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load products initially
   loadProducts();
+  loadSuppliers();
+  loadStoreOptions();
+  initBarcodeScanning();
+  initStoreFilter();
 
   // Add event listener to search input
   const searchInput = document.getElementById("inventory-search");
@@ -694,6 +727,64 @@ async function uploadInventoryFile(file, type) {
     );
     console.error("Upload inventory file error:", error);
   }
+}
+
+// --- Supplier helpers ---
+async function loadSuppliers(){
+  try{
+    const res = await fetch("/api/suppliers", {credentials:"include"});
+    const data = await res.json();
+    const list = document.getElementById("supplierList");
+    const sel = document.getElementById("product-supplier");
+    if (sel) {
+      sel.innerHTML = '<option value="">— No supplier —</option>' + (data.suppliers||[]).map(s=>`<option value="${s._id}">${s.name}</option>`).join("");
+    }
+    if (list) {
+      if (!data.suppliers || !data.suppliers.length) list.textContent = "No suppliers yet.";
+      else list.innerHTML = data.suppliers.map(s=>`<span class="inline-block px-2 py-1 bg-white border rounded mr-1 mb-1">${s.name}</span>`).join("");
+    }
+  } catch {}
+}
+document.getElementById("addSupplierBtn")?.addEventListener("click", async ()=>{
+  const name = document.getElementById("newSupplierName")?.value.trim();
+  if(!name) return;
+  const r = await fetch("/api/suppliers", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"include", body: JSON.stringify({name})});
+  if(r.ok){ document.getElementById("newSupplierName").value=""; loadSuppliers(); showToast("Supplier Added", name, "success"); }
+});
+
+async function loadStoreOptions(){
+  try{
+    const res = await fetch("/api/stores", {credentials:"include"});
+    const data = await res.json();
+    const sel = document.getElementById("product-store");
+    const filter = document.getElementById("storeFilter");
+    if (sel) sel.innerHTML = '<option value="">Default</option>' + (data.stores||[]).map(s=>`<option value="${s._id}">${s.name}</option>`).join("");
+    if (filter) filter.innerHTML = '<option value="">All stores</option>' + (data.stores||[]).map(s=>`<option value="${s._id}">${s.name}</option>`).join("");
+  } catch {}
+}
+function initStoreFilter(){
+  document.getElementById("storeFilter")?.addEventListener("change", ()=> loadProducts());
+}
+function initBarcodeScanning(){
+  const btn = document.getElementById("barcodeBtn");
+  const input = document.getElementById("barcodeInput");
+  if (!btn || !input) return;
+  const doLookup = async ()=>{
+    const code = input.value.trim();
+    if(!code) return;
+    const r = await fetch(`/inventory/barcode/${encodeURIComponent(code)}`, {credentials:"include"});
+    const d = await r.json();
+    if(r.ok && d.product){
+      showToast("Barcode Found", d.product.productName, "success");
+      // highlight product
+      document.getElementById("inventory-search").value = d.product.productName;
+      loadProducts();
+    } else {
+      showToast("Not Found", "No product for barcode "+code, "error");
+    }
+  };
+  btn.addEventListener("click", doLookup);
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); doLookup(); }});
 }
 
 // --- Function to export inventory ---

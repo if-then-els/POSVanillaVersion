@@ -35,6 +35,10 @@ router.post(
   inventoryController.uploadProductByXlsx
 );
 router.get("/getInventory", verifyToken, inventoryController.getAllInventory);
+router.get("/inventory/low-stock", verifyToken, inventoryController.getLowStock);
+router.get("/inventory/valuation", verifyToken, inventoryController.getValuation);
+router.get("/inventory/barcode/:barcode", verifyToken, inventoryController.lookupByBarcode);
+router.post("/inventory/stocktake", verifyToken, authorize("admin","manager","inventory"), inventoryController.stocktake);
 
 router.get(
   "/getInventoryById/:id",

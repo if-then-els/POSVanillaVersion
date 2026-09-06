@@ -370,7 +370,33 @@
             </div>
           </div>
 
-          <!-- Actions Toolbar -->
+           <!-- Valuation & Low Stock Tiles (Standard/Premium) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 animate-slide-up">
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs uppercase text-slate-400">Total Value (WAC)</p>
+              <h3 id="valuationWAC" class="text-xl font-black">KES —</h3>
+              <p class="text-xs text-slate-500 mt-1">Cost based</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs uppercase text-slate-400">Low Stock</p>
+              <h3 id="kpiLowStock" class="text-xl font-black">—</h3>
+              <p class="text-xs text-amber-600">Reorder needed</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs uppercase text-slate-400">Barcode Scan</p>
+              <div class="flex gap-2 mt-2">
+                <input id="barcodeInput" placeholder="Scan or type barcode" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm" />
+                <button id="barcodeBtn" class="px-3 py-2 bg-accent-500 text-white rounded-lg text-sm"><i class="fas fa-barcode"></i></button>
+              </div>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs uppercase text-slate-400">Store Filter</p>
+              <select id="storeFilter" class="store-selector mt-2 w-full px-3 py-2 rounded-lg border bg-white dark:bg-slate-900 text-sm"><option>All stores</option></select>
+              <a href="/admin/dashboard.html" class="text-xs text-violet-400 mt-2 inline-block">Manage stores →</a>
+            </div>
+          </div>
+
+           <!-- Actions Toolbar -->
           <div
             class="flex flex-col lg:flex-row gap-4 mb-6 animate-slide-up delay-100"
           >
@@ -380,7 +406,7 @@
                 type="search"
                 id="inventory-search"
                 class="w-full pl-10 pr-4 py-3 rounded-xl input-premium text-primary-900 dark:text-white placeholder-primary-400"
-                placeholder="Search products by name or SKU..."
+                placeholder="Search products by name, SKU or barcode..."
               />
               <i
                 class="fas fa-search absolute left-3.5 top-3.5 text-primary-400"
@@ -756,7 +782,7 @@
                   </div>
                 </div>
 
-                <div>
+                 <div>
                   <label
                     for="product-quantity"
                     class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5"
@@ -771,6 +797,47 @@
                     placeholder="0"
                     required
                   />
+                </div>
+
+                <!-- Enterprise fields -->
+                <div>
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">SKU</label>
+                  <input id="product-sku2" name="sku" class="w-full px-4 py-3 rounded-xl input-premium" placeholder="SKU-001" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">Barcode</label>
+                  <input id="product-barcode" name="barcode" class="w-full px-4 py-3 rounded-xl input-premium" placeholder="EAN13" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">Cost Price (KES)</label>
+                  <input id="product-cost" name="costPrice" type="number" step="0.01" class="w-full px-4 py-3 rounded-xl input-premium" placeholder="0.00" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">Reorder Level</label>
+                  <input id="product-reorder" name="reorderLevel" type="number" min="0" class="w-full px-4 py-3 rounded-xl input-premium" placeholder="5" value="5" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">Expiry Date</label>
+                  <input id="product-expiry" name="expiryDate" type="date" class="w-full px-4 py-3 rounded-xl input-premium" />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">Store</label>
+                  <select id="product-store" name="store" class="store-selector w-full px-4 py-3 rounded-xl input-premium"><option value="">Default</option></select>
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-bold text-primary-700 dark:text-primary-300 mb-1.5">Supplier</label>
+                  <select id="product-supplier" name="supplier" class="w-full px-4 py-3 rounded-xl input-premium"><option value="">— No supplier —</option></select>
+                  <a href="#" onclick="document.getElementById('supplierSection').scrollIntoView({behavior:'smooth'}); return false;" class="text-xs text-violet-400">Manage suppliers below ↓</a>
+                </div>
+              </div>
+
+              <!-- Suppliers quick panel -->
+              <div id="supplierSection" class="mt-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border">
+                <h4 class="font-bold text-sm mb-2">Suppliers</h4>
+                <div id="supplierList" class="text-sm text-slate-500">Loading...</div>
+                <div class="flex gap-2 mt-3">
+                  <input id="newSupplierName" placeholder="Supplier name" class="flex-1 px-3 py-2 rounded-lg border text-sm" />
+                  <button type="button" id="addSupplierBtn" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm">Add</button>
                 </div>
               </div>
 
