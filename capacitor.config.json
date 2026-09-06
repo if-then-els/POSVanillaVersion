@@ -1,0 +1,14 @@
+{
+  "appId": "com.codecine.swiftpos",
+  "appName": "SwiftPOS",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "Preferences": {},
+    "Network": {}
+  }
+}

@@ -112,6 +112,7 @@ app.use("/api/payment-methods", businessPaymentRoutes);
 app.use("/api/stores", require("./routes/store.routes"));
 app.use("/api/suppliers", require("./routes/supplier.routes"));
 app.use("/api/purchase-orders", require("./routes/purchaseOrder.routes"));
+app.use("/api/ai", require("./routes/ai.routes"));
 //app.use("/", supportRoutes);
 
 // Apply subscription middleware

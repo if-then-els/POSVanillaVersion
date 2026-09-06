@@ -690,7 +690,13 @@
     <!-- Toast Container -->
     <div id="toast-container" class="fixed top-24 right-4 z-[100] space-y-3 pointer-events-none"></div>
 
+    <!-- Offline / Sync banner -->
+    <div id="offlineBanner" class="hidden fixed top-16 left-0 right-0 z-30 bg-amber-500 text-white text-center text-sm py-2">Offline — sales will be queued <button id="syncPendingBtn" class="ml-2 px-2 py-1 bg-white/20 rounded text-xs">Sync now <span id="pendingSyncBadge" class="hidden bg-white text-amber-600 rounded-full px-1.5 ml-1">0</span></button></div>
+
     <!-- Logic Scripts -->
+    <script src="./js/capacitor-bridge.js"></script>
+    <script src="./js/offlineSync.js"></script>
+    <script src="./js/printer.js"></script>
     <script src="./js/sidebar.js"></script>
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>

@@ -6,7 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon app.js",
-    "start": "node app.js"
+    "start": "node app.js",
+    "cap:init": "cap init SwiftPOS com.codecine.swiftpos --web-dir=public",
+    "cap:sync": "cap sync",
+    "cap:android": "cap open android",
+    "cap:ios": "cap open ios",
+    "cap:build": "cap sync && cap copy && echo \"Run npx cap open android to build APK\""
   },
   "repository": {
     "type": "git",

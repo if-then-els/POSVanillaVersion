@@ -886,15 +886,23 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
     price: item.productPrice,
   }));
 
-  // store + offline Idempotency
+  // store + offline Idempotency + offline queue (Standard+ offlineMode but fallback for demo)
   const storeId = (typeof getSelectedStoreId === 'function' ? getSelectedStoreId() : "") || "";
   const offlineId = `off_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+  const payload = { items, total, customerName, paymentMethod: effectivePaymentMethod, store: storeId || undefined, offlineId };
+
+  // if offline, queue instead of failing
+  if (!navigator.onLine && window.OfflineSync) {
+    window.OfflineSync.queueSale(payload);
+    if (window.showToast) window.showToast("Offline — sale queued for sync ("+offlineId+")", "warning");
+    return { queued: true, offlineId };
+  }
 
   try {
     const response = await fetch("/processSale", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Idempotency-Key": offlineId },
-      body: JSON.stringify({ items, total, customerName, paymentMethod: effectivePaymentMethod, store: storeId || undefined, offlineId }),
+      body: JSON.stringify(payload),
       credentials: "include",
     });
 
