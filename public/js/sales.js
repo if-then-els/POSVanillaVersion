@@ -126,6 +126,43 @@ function createParticle() {
 
 setInterval(createParticle, 2000);
 
+// === PRODUCTION CONTEXT: business / plan / role / subscription ===
+function parseJwt(token){
+  try{ const p=token.split(".")[1]; return JSON.parse(atob(p.replace(/-/g,"+").replace(/_/g,"/"))); }catch{ return null; }
+}
+function getToken(){
+  return localStorage.getItem("token") || (document.cookie.match(/(^| )token=([^;]+)/)||[])[2] || "";
+}
+let __salesContext = { business:null, plan:null, role:null, sub:null };
+async function loadSalesContext(){
+  const token = getToken();
+  const payload = parseJwt(token);
+  __salesContext.role = payload?.role || "cashier";
+  try{
+    const r = await fetch("/api/business/business/details", {credentials:"include", headers: token?{Authorization:"Bearer "+token}:{}});
+    if(r.ok){ const d=await r.json(); __salesContext.business=d.business; const el=document.getElementById("ctx-business"); if(el) el.querySelector("span").textContent=d.business.businessName||"Business"; }
+  }catch{}
+  try{
+    const r = await fetch("/api/business/my-subscription", {credentials:"include", headers: token?{Authorization:"Bearer "+token}:{}});
+    if(r.ok){ const d=await r.json(); __salesContext.plan=d.plan; __salesContext.sub=d.subscription; const pel=document.getElementById("ctx-plan"); if(pel && d.plan){ pel.classList.remove("hidden"); pel.querySelector("span").textContent=d.plan.name; }
+      const sel=document.getElementById("ctx-sub"); if(sel && d.subscription){ sel.classList.remove("hidden"); const days=Math.ceil((new Date(d.subscription.endDate)-new Date())/86400000); sel.querySelector("span").textContent= d.subscription.status==="active" ? `Active • ${days}d left` : d.subscription.status; sel.className = d.subscription.status==="active" ? "px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30" : "px-2.5 py-1 rounded-full bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30"; }
+      const bcBadge=document.getElementById("tier-stock-badge"); if(bcBadge && d.plan && !d.plan.features?.barcode) bcBadge.classList.remove("hidden");
+      const payBadge=document.getElementById("payment-tier-badge"); if(payBadge && d.plan && !d.plan.features?.cardPayments) payBadge.classList.remove("hidden");
+      const rel=document.getElementById("ctx-role"); if(rel){ rel.classList.remove("hidden"); rel.querySelector("span").textContent=__salesContext.role; }
+      const sname = localStorage.getItem("selectedStoreId") ? "Store" : "Default Store";
+      const selStore=document.getElementById("ctx-store"); if(selStore) selStore.querySelector("span").textContent=sname;
+      if(localStorage.getItem("adminToken")){ const al=document.getElementById("ctx-admin-link"); if(al) al.classList.remove("hidden"); }
+      const live=document.getElementById("live-indicator"); if(live) live.classList.remove("hidden");
+      try{ const sr=await fetch("/api/settings", {credentials:"include"}); if(sr.ok){ const s=await sr.json(); const tr=document.getElementById("checkout-tax-rate"); if(tr) tr.textContent=(s.taxRate||0)+"%"; const td=document.getElementById("tax-display"); if(td) td.textContent=(s.taxRate||0)+"% (from Settings)"; window.__taxRate=s.taxRate||0; } }catch{}
+      const guard=document.getElementById("checkout-auth-guard");
+      if(["cashier","manager","admin","inventory"].includes(__salesContext.role)===false){
+        if(guard){ guard.classList.remove("hidden"); document.getElementById("guard-msg").textContent="Role '"+__salesContext.role+"' cannot checkout."; document.getElementById("checkout-btn").disabled=true; document.getElementById("mobile-checkout-btn").disabled=true; }
+      }
+    }
+  }catch(e){ console.warn("sales context", e.message); }
+}
+document.addEventListener("DOMContentLoaded", loadSalesContext);
+
 // Mobile cart toggle function
 function toggleMobileCart() {
   const cartPanel = document.getElementById("mobile-cart-panel");
@@ -546,6 +583,17 @@ document
     checkoutModal.classList.add("hidden");
   });
 
+function calcTotals(){
+  const subtotal = cartItems.reduce((s,i)=> s + Number(i.productPrice)*Number(i.quantity), 0);
+  const discRaw = parseFloat(document.getElementById("discount-input")?.value) || 0;
+  const discType = document.getElementById("discount-type")?.value || "kes";
+  const discount = discType==="percent" ? subtotal * (discRaw/100) : discRaw;
+  const discounted = Math.max(0, subtotal - discount);
+  const taxRate = Number(window.__taxRate ?? 0);
+  const tax = discounted * (taxRate/100);
+  const total = discounted + tax;
+  return { subtotal, discount, discounted, tax, taxRate, total };
+}
 cashReceivedInput.addEventListener("input", () => {
   const total = parseFloat(
     document.getElementById("checkout-total").textContent.replace("KES ", "")
@@ -580,9 +628,13 @@ function renderCheckoutSummary() {
   const tax = 0; // Tax set to 0
   const total = subtotal + tax;
 
-  document.getElementById("checkout-total").textContent = `KES ${total.toFixed(
-    2
-  )}`;
+  document.getElementById("checkout-total").textContent = `KES ${total.toFixed(2)}`;
+  const payAmt=document.getElementById("pay-amount");
+  if(payAmt) payAmt.textContent=`KES ${total.toFixed(2)}`;
+  const mpesaPreview=document.getElementById("mpesa-amount-preview");
+  if(mpesaPreview) mpesaPreview.textContent=`KES ${total.toFixed(2)}`;
+  const countEl=document.getElementById("checkout-items-count");
+  if(countEl) countEl.textContent=`${cartItems.length} items`;
 
   cashReceivedInput.value = "";
   cashChangeSpan.textContent = "KES 0.00";
@@ -796,6 +848,7 @@ async function processOnlinePayment(paymentType, config, amount, customerPhone =
           modal.remove();
           resolve({ success: true });
         }
+      }
       } catch (err) {
         statusDiv.classList.remove("hidden");
         statusDiv.className = "p-3 rounded-lg mb-4 text-left bg-error-100 dark:bg-error-900/30 text-error-700 dark:text-error-400";

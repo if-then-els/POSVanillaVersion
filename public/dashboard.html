@@ -351,7 +351,7 @@
                 <h2 class="text-2xl font-bold text-primary-900 dark:text-white mb-1">Recent Transactions</h2>
                 <p class="text-sm text-primary-500 dark:text-primary-400">Overview of your latest financial activity</p>
               </div>
-              <button class="w-full sm:w-auto px-6 py-3 bg-primary-900 dark:bg-white text-white dark:text-primary-900 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2 group">
+              <button id="exportCsvBtn" data-export="csv" class="w-full sm:w-auto px-6 py-3 bg-primary-900 dark:bg-white text-white dark:text-primary-900 rounded-xl font-semibold hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2 group">
                 <i class="fas fa-download group-hover:translate-y-1 transition-transform"></i>
                 Export CSV
               </button>
@@ -502,6 +502,18 @@
           <i class="fas fa-clipboard-list text-lg mb-0.5"></i>
           <span class="text-[10px] font-bold uppercase">Tickets</span>
         </button>
+      </div>
+    </div>
+
+    <!-- Subscription Inactive Modal -->
+    <div id="subscription-inactive-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden flex items-center justify-center">
+      <div class="glass-premium rounded-3xl p-8 max-w-md w-full text-center relative animate-scale-in m-4 bg-white dark:bg-slate-900 border">
+        <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-2">Subscription Expired!</h2>
+        <p class="text-slate-500 dark:text-slate-300 mb-8">Your subscription has expired. Please renew to continue.</p>
+        <a href="/manageSubscriptions.html" class="w-full block py-3.5 bg-violet-600 text-white font-bold rounded-xl">Manage Subscription</a>
       </div>
     </div>
 

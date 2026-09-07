@@ -46,6 +46,18 @@ module.exports = async function (req, res, next) {
     let user;
     try {
       user = jwt.verify(token, process.env.JWT_SECRET);
+      // Backwards compat: inject role if missing
+      if (!user.role && user.id) {
+        try {
+          const User = require("../models/user");
+          const u = await User.findById(user.id).select("role business");
+          if (u) {
+            user.role = u.role;
+            user.business = user.business || u.business;
+          }
+        } catch {}
+        if (!user.role) user.role = "cashier";
+      }
     } catch (err) {
       if (err.name === "TokenExpiredError") {
         return res

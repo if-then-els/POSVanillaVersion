@@ -63,7 +63,7 @@ exports.registerUser = async (req, res) => {
     businessExists.users.push(newUser._id);
     await businessExists.save();
     const token = jwt.sign(
-      { id: newUser._id, business },
+      { id: newUser._id, business, role: newUser.role },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -118,7 +118,7 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
     const token = jwt.sign(
-      { id: user._id, business: user.business },
+      { id: user._id, business: user.business, role: user.role },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",

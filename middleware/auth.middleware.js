@@ -1,17 +1,32 @@
 const jwt = require("jsonwebtoken");
 
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
   const token = req.cookies.token || req.header("x-auth-token") || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
   if (!token) {
     return res.status(401).json({ message: "No token, authorization denied" });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: "Token is not valid" });
     }
-    req.user = user; // Contains { id: user._id, business: user.business, role }
+    // Backwards compat: if token has no role (old login), fetch from DB
+    if (!decoded.role && decoded.id) {
+      try {
+        const User = require("../models/user");
+        const u = await User.findById(decoded.id).select("role business");
+        if (u) {
+          decoded.role = u.role;
+          decoded.business = decoded.business || u.business;
+        }
+      } catch (e) {
+        console.warn("verifyToken role fallback failed", e.message);
+      }
+    }
+    // Default to cashier if still missing (safe fallback for sales)
+    if (!decoded.role) decoded.role = "cashier";
+    req.user = decoded; // Contains { id, business, role }
     next();
   });
 }
