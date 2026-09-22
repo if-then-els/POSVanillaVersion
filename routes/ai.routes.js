@@ -7,7 +7,8 @@ const ai = require("../services/aiService");
 // All AI routes are Premium only (reportsAIS)
 router.get("/insights/forecast", verifyToken, requireFeature("reportsAIS", "AI forecast requires Premium"), async (req,res)=>{
   try{
-    const data = await ai.getOrForecast(req.user.business, true);
+    const days = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
+    const data = await ai.getOrForecast(req.user.business, true, days);
     res.json({ insight: data });
   } catch(e){ console.error(e); res.status(500).json({message:"Forecast failed"}); }
 });
@@ -38,12 +39,20 @@ router.post("/query", verifyToken, requireFeature("reportsAIS"), async (req,res)
 
 router.get("/insights/overview", verifyToken, requireFeature("reportsAIS"), async (req,res)=>{
   try{
+    const horizon = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
+    const idleDays = Math.min(Math.max(Number(req.query.idleDays) || 60, 30), 180);
     const [forecast, dead, anomalies] = await Promise.all([
-      ai.getOrForecast(req.user.business, true),
-      ai.detectDeadStock(req.user.business, 60),
+      ai.getOrForecast(req.user.business, true, horizon),
+      ai.detectDeadStock(req.user.business, idleDays),
       ai.anomalyDetection(req.user.business),
     ]);
-    res.json({ forecast: forecast.forecasts?.slice(0,5), deadStock: dead.deadStock?.slice(0,5), anomalies: anomalies.anomalies?.slice(0,5), counts:{ dead: dead.count, anomalies: anomalies.count } });
+    res.json({
+      forecast: forecast.forecasts?.slice(0,8),
+      deadStock: dead.deadStock?.slice(0,8),
+      anomalies: anomalies.anomalies?.slice(0,8),
+      counts: { dead: dead.count, anomalies: anomalies.count, forecast: forecast.forecasts?.length || 0 },
+      meta: { horizon, idleDays, method: forecast.method, cached: !!forecast.cached },
+    });
   } catch(e){ res.status(500).json({message:"Overview failed"}); }
 });
 

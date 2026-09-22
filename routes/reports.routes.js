@@ -32,6 +32,55 @@ router.get(
   authorize("admin", "manager", "cashier"),
   reportsController.recentTransactions
 );
+router.get(
+  "/reports/kpis",
+  verifyToken,
+  authorize("admin", "manager", "cashier", "inventory"),
+  requireFeature("reportsBasic"),
+  reportsController.kpis
+);
+router.get(
+  "/reports/sales-by-day",
+  verifyToken,
+  authorize("admin", "manager", "cashier", "inventory"),
+  requireFeature("reportsBasic"),
+  reportsController.salesByDay
+);
+router.get(
+  "/reports/sales-by-user",
+  verifyToken,
+  authorize("admin", "manager"),
+  requireFeature("reportsAdvanced"),
+  reportsController.salesByUser
+);
+router.get(
+  "/reports/sales-by-item",
+  verifyToken,
+  authorize("admin", "manager"),
+  requireFeature("reportsAdvanced"),
+  reportsController.salesByItem
+);
+router.get(
+  "/reports/payment-breakdown",
+  verifyToken,
+  authorize("admin", "manager", "cashier"),
+  requireFeature("reportsBasic"),
+  reportsController.paymentBreakdown
+);
+router.get(
+  "/reports/hourly",
+  verifyToken,
+  authorize("admin", "manager", "cashier"),
+  requireFeature("reportsBasic"),
+  reportsController.hourlySales
+);
+router.get(
+  "/reports/consumption",
+  verifyToken,
+  authorize("admin", "manager", "inventory"),
+  requireFeature("reportsAdvanced"),
+  reportsController.consumption
+);
 // Premium AI endpoint placeholder
 router.get(
   "/reports/profit-loss",

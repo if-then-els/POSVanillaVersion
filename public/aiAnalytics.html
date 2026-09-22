@@ -1,138 +1,338 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Analytics - SwiftPOS Premium</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script>
-    tailwind.config={darkMode:"class", theme:{extend:{colors:{primary:{900:"#0f172a"}, accent:{500:"#0ea5e9"}}}}}
-    if (localStorage.theme==='dark' || (!('theme'in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    tailwind.config={darkMode:"class", theme:{extend:{
+      fontFamily:{ inter:["Inter","sans-serif"] },
+      colors:{
+        primary:{50:"#f8fafc",100:"#f1f5f9",200:"#e2e8f0",300:"#cbd5e1",400:"#94a3b8",500:"#64748b",600:"#475569",700:"#334155",800:"#1e293b",900:"#0f172a",950:"#020617"},
+        accent:{50:"#f0f9ff",100:"#e0f2fe",200:"#bae6fd",300:"#7dd3fc",400:"#38bdf8",500:"#0ea5e9",600:"#0284c7",700:"#0369a1",800:"#075985",900:"#0c4a6e"},
+        success:{50:"#f0fdf4",100:"#dcfce7",500:"#22c55e",600:"#16a34a",700:"#15803d"},
+        warning:{50:"#fffbeb",100:"#fef3c7",400:"#fbbf24",500:"#f59e0b",600:"#d97706"}
+      }
+    }}};
+    if (localStorage.theme==='dark' || (!('theme' in localStorage) && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
     else document.documentElement.classList.remove('dark');
   </script>
   <style>
-    .glass-premium{ background: rgba(255,255,255,0.03); backdrop-filter: blur(16px); border:1px solid rgba(255,255,255,0.08); }
-    .card{ background: rgba(30,41,59,0.6); border:1px solid rgba(255,255,255,0.08); }
+    :root{
+      --glass-bg: rgba(255,255,255,0.7); --glass-border: rgba(226,232,240,0.6);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.6);
+      --card-bg: rgba(255,255,255,0.8); --input-bg: rgba(255,255,255,0.5);
+    }
+    .dark{
+      --glass-bg: rgba(15,23,42,0.6); --glass-border: rgba(255,255,255,0.08);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+      --card-bg: rgba(30,41,59,0.4); --input-bg: rgba(15,23,42,0.6);
+    }
+    body{ font-family:"Inter",sans-serif; overflow-x:hidden; }
+    .glass-premium{ background:var(--glass-bg); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid var(--glass-border); box-shadow:var(--glass-shadow); }
+    .glass-card{ background:var(--card-bg); backdrop-filter:blur(12px); border:1px solid var(--glass-border); transition:all 0.4s cubic-bezier(0.16,1,0.3,1); }
+    .input-premium{ background:var(--input-bg); border:1px solid var(--glass-border); backdrop-filter:blur(4px); transition:all 0.2s; }
+    .input-premium:focus{ border-color:#0ea5e9; box-shadow:0 0 0 2px rgba(14,165,233,0.2); outline:none; }
+    ::-webkit-scrollbar{ width:6px; height:6px; }
+    ::-webkit-scrollbar-thumb{ background:rgba(148,163,184,0.5); border-radius:10px; }
+    .skeleton{ position:relative; overflow:hidden; background:rgba(148,163,184,0.15); border-radius:0.5rem; }
+    .skeleton::after{ content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); animation:shimmer 1.4s infinite; }
+    @keyframes shimmer{ from{ transform:translateX(-100%);} to{ transform:translateX(100%);} }
   </style>
 </head>
-<body class="bg-slate-950 text-white min-h-screen">
-  <div class="fixed inset-0 pointer-events-none">
-    <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"></div>
-    <div class="absolute top-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-violet-500/10 rounded-full blur-3xl"></div>
+<body class="bg-primary-50 text-primary-900 dark:bg-primary-950 dark:text-white transition-colors duration-300 min-h-screen">
+
+  <!-- Animated Background -->
+  <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-primary-950 dark:via-primary-900 dark:to-primary-950 transition-colors duration-500"></div>
+    <div class="absolute inset-0 opacity-30 dark:opacity-20">
+      <div class="absolute top-[-10%] right-[-10%] w-[30rem] h-[30rem] bg-violet-500/20 dark:bg-violet-500/10 rounded-full blur-3xl"></div>
+    </div>
+    <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style="background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0); background-size: 32px 32px;"></div>
   </div>
-  <nav class="relative z-20 max-w-7xl mx-auto px-4 py-4 flex items-center justify-between glass-premium rounded-2xl mt-4">
-    <a href="/dashboard.html" class="flex items-center gap-2 font-black"><i class="fas fa-bolt text-violet-400"></i> SwiftPOS <span class="text-accent-500">AI</span> <span class="ml-2 text-xs bg-violet-600 px-2 py-1 rounded-full">Premium</span></a>
-    <div class="flex gap-2">
-      <button onclick="toggleTheme()" class="p-2 rounded-lg bg-white/5"><i class="fas fa-moon"></i></button>
-      <a href="/reports.html" class="px-4 py-2 bg-white/5 rounded-xl text-sm">Reports</a>
-      <a href="/dashboard.html" class="px-4 py-2 bg-violet-600 rounded-xl text-sm">Dashboard</a>
+
+  <!-- Mobile Navigation -->
+  <nav class="md:hidden fixed top-0 w-full z-40 glass-premium border-b border-primary-200/50 dark:border-primary-700/50 px-4 h-16 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center shadow-lg"><i class="fas fa-brain text-white text-sm"></i></div>
+      <span class="text-lg font-black tracking-tight">Swift<span class="text-accent-500">POS</span> <span class="text-xs bg-violet-600 text-white px-2 py-0.5 rounded-full align-middle">AI</span></span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="toggleTheme()" class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800"><i class="fas fa-sun hidden dark:block text-yellow-400"></i><i class="fas fa-moon block dark:hidden text-primary-600"></i></button>
+      <button id="toggle-sidebar" class="p-2 text-primary-600 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg"><i class="fas fa-bars text-xl"></i></button>
     </div>
   </nav>
 
-  <main class="relative z-10 max-w-7xl mx-auto px-4 py-6 space-y-6">
-    <div class="glass-premium rounded-2xl p-6">
-      <h1 class="text-3xl font-black"><i class="fas fa-brain text-violet-400 mr-2"></i>AI Analytics <span class="text-slate-400 text-lg font-normal">— Premium only</span></h1>
-      <p class="text-slate-400 text-sm mt-1">Demand forecast, dead-stock, anomalies + natural-language Q&A. Data never leaves your tenant; heuristic by default, OpenAI if `OPENAI_API_KEY` set.</p>
-      <div id="upgradeBanner" class="hidden mt-4 p-4 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-200 text-sm">
-        <i class="fas fa-lock mr-2"></i> Your plan does not include AI. <a href="/manageSubscriptions.html" class="underline font-bold">Upgrade to Premium</a> to unlock.
-      </div>
-    </div>
+  <div class="flex h-screen overflow-hidden pt-16 md:pt-0 w-full relative z-10">
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 glass-premium transform -translate-x-full md:translate-x-0 transition-transform duration-500 ease-out border-r border-primary-200/50 dark:border-primary-700/50 shadow-2xl md:shadow-none"></div>
+    <div id="overlay" class="fixed inset-0 bg-primary-900/20 dark:bg-black/50 backdrop-blur-sm hidden z-40"></div>
 
-    <!-- Overview tiles -->
-    <div class="grid md:grid-cols-3 gap-4">
-      <div class="card rounded-2xl p-5">
-        <h3 class="font-bold flex items-center gap-2"><i class="fas fa-chart-line text-emerald-400"></i> Forecast (30d)</h3>
-        <div id="forecastList" class="mt-3 space-y-2 text-sm text-slate-300">Loading...</div>
-      </div>
-      <div class="card rounded-2xl p-5">
-        <h3 class="font-bold flex items-center gap-2"><i class="fas fa-box-open text-amber-400"></i> Dead Stock (60d)</h3>
-        <div id="deadList" class="mt-3 space-y-2 text-sm text-slate-300">Loading...</div>
-      </div>
-      <div class="card rounded-2xl p-5">
-        <h3 class="font-bold flex items-center gap-2"><i class="fas fa-exclamation-triangle text-red-400"></i> Anomalies</h3>
-        <div id="anomalyList" class="mt-3 space-y-2 text-sm text-slate-300">Loading...</div>
-      </div>
-    </div>
+    <main class="flex-1 overflow-y-auto md:ml-64 p-4 md:p-8 relative scroll-smooth">
+      <div class="max-w-7xl mx-auto pb-24">
 
-    <!-- NL Query -->
-    <div class="card rounded-2xl p-6">
-      <h3 class="font-bold text-lg"><i class="fas fa-comments text-violet-400 mr-2"></i>Ask your data</h3>
-      <p class="text-xs text-slate-400 mt-1">Examples: “what sold best last week?”, “show profit margin”, “which items are dead stock?”, “forecast next 30 days”</p>
-      <div class="mt-4 flex gap-2">
-        <input id="aiQuery" placeholder="e.g., what sold best last week?" class="flex-1 px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none" />
-        <button id="askBtn" class="px-6 py-3 bg-violet-600 hover:bg-violet-700 rounded-xl font-bold text-sm">Ask <i class="fas fa-paper-plane ml-1"></i></button>
-      </div>
-      <div id="aiAnswer" class="mt-4 hidden p-4 bg-slate-900 border border-slate-700 rounded-xl">
-        <p id="answerText" class="text-sm leading-relaxed"></p>
-        <div id="followUps" class="mt-3 flex flex-wrap gap-2"></div>
-        <p id="cacheBadge" class="text-xs text-slate-500 mt-2"></p>
-      </div>
-      <div id="aiError" class="hidden mt-4 p-3 bg-red-900/30 border border-red-700 rounded-xl text-sm text-red-300"></div>
-    </div>
+        <div class="mb-6">
+          <nav class="flex mb-3" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-2 text-sm">
+              <li class="inline-flex items-center"><a href="/dashboard.html" class="inline-flex items-center text-primary-500 hover:text-accent-500 dark:text-primary-400"><i class="fas fa-home mr-2"></i>Dashboard</a></li>
+              <li><div class="flex items-center"><i class="fas fa-chevron-right text-primary-300 dark:text-primary-600 mx-2 text-xs"></i><span class="text-primary-800 dark:text-primary-200 font-medium">AI Analytics</span></div></li>
+            </ol>
+          </nav>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 class="text-3xl md:text-4xl font-black tracking-tight flex items-center gap-3">AI Analytics <span id="planBadge" class="text-xs bg-violet-600 text-white px-2.5 py-1 rounded-full font-bold">Premium</span></h1>
+              <p class="text-primary-500 dark:text-primary-400 mt-1 font-medium">Demand forecast, dead stock, anomalies + ask your data. Private to your business.</p>
+            </div>
+            <button onclick="toggleTheme()" class="hidden md:flex items-center justify-center w-10 h-10 rounded-xl glass-card text-primary-500 hover:text-accent-500 dark:text-primary-400"><i class="fas fa-sun hidden dark:block text-yellow-400"></i><i class="fas fa-moon block dark:hidden text-primary-600"></i></button>
+          </div>
+        </div>
 
-    <p class="text-xs text-slate-600 text-center">Premium AI is heuristic by default (no external call). Add `OPENAI_API_KEY` in `.env` for LLM-powered free-form answers. All data is tenant-scoped.</p>
-  </main>
+        <!-- Premium gate -->
+        <div id="gateOverlay" class="hidden glass-premium rounded-3xl p-10 text-center">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-violet-600/15 text-violet-500 dark:text-violet-400 flex items-center justify-center text-2xl mb-4"><i class="fas fa-lock"></i></div>
+          <h2 class="text-2xl font-black">Premium feature</h2>
+          <p id="gateText" class="text-sm text-primary-500 dark:text-primary-400 mt-2">AI Analytics requires the Premium plan.</p>
+          <a href="/manageSubscriptions.html" class="inline-block mt-5 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold text-sm">Upgrade to Premium</a>
+          <a href="/reports.html" class="inline-block mt-5 ml-2 px-6 py-3 glass-card rounded-xl font-bold text-sm">Back to Reports</a>
+        </div>
 
+        <div id="aiContent" class="hidden space-y-6">
+          <!-- Controls -->
+          <div class="glass-premium rounded-3xl p-4 flex flex-wrap items-center gap-2 text-xs">
+            <span class="font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider mr-1">Forecast:</span>
+            <div class="flex gap-1" id="horizonBtns">
+              <button data-days="7" class="px-3 py-2 rounded-xl font-bold border border-primary-200 dark:border-primary-700">7d</button>
+              <button data-days="14" class="px-3 py-2 rounded-xl font-bold border border-primary-200 dark:border-primary-700">14d</button>
+              <button data-days="30" class="px-3 py-2 rounded-xl font-bold bg-primary-900 dark:bg-white text-white dark:text-primary-900">30d</button>
+            </div>
+            <span class="font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider ml-3 mr-1">Idle:</span>
+            <div class="flex gap-1" id="idleBtns">
+              <button data-idle="30" class="px-3 py-2 rounded-xl font-bold border border-primary-200 dark:border-primary-700">30d</button>
+              <button data-idle="60" class="px-3 py-2 rounded-xl font-bold bg-primary-900 dark:bg-white text-white dark:text-primary-900">60d</button>
+              <button data-idle="90" class="px-3 py-2 rounded-xl font-bold border border-primary-200 dark:border-primary-700">90d</button>
+            </div>
+            <button id="aiRefresh" class="ml-auto px-4 py-2 rounded-xl glass-card font-bold"><i class="fas fa-rotate mr-1"></i>Refresh</button>
+            <span id="aiMeta" class="w-full text-[11px] text-primary-400"></span>
+          </div>
+
+          <!-- KPI tiles -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="glass-card rounded-2xl p-4"><p class="text-[11px] uppercase text-primary-400 font-bold">Predicted demand</p><h3 id="kpiDemand" class="text-lg font-black">—</h3><p id="kpiDemandSub" class="text-[11px] text-primary-400"></p></div>
+            <div class="glass-card rounded-2xl p-4"><p class="text-[11px] uppercase text-primary-400 font-bold">Products forecasted</p><h3 id="kpiFCount" class="text-lg font-black">—</h3><p class="text-[11px] text-primary-400">with sales history</p></div>
+            <div class="glass-card rounded-2xl p-4"><p class="text-[11px] uppercase text-primary-400 font-bold">Dead stock lines</p><h3 id="kpiDead" class="text-lg font-black">—</h3><p id="kpiDeadSub" class="text-[11px] text-primary-400"></p></div>
+            <div class="glass-card rounded-2xl p-4"><p class="text-[11px] uppercase text-primary-400 font-bold">Anomalies</p><h3 id="kpiAnom" class="text-lg font-black">—</h3><p class="text-[11px] text-primary-400">flagged sales</p></div>
+          </div>
+
+          <!-- Overview cards -->
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="glass-card rounded-2xl p-5">
+              <h3 class="font-bold flex items-center gap-2"><i class="fas fa-chart-line text-emerald-500"></i> Forecast <span id="forecastH" class="text-xs font-normal text-primary-400">(30d)</span></h3>
+              <div id="forecastList" class="mt-3 space-y-2 text-sm">Loading...</div>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <h3 class="font-bold flex items-center gap-2"><i class="fas fa-box-open text-amber-500"></i> Dead Stock <span id="deadH" class="text-xs font-normal text-primary-400">(60d idle)</span></h3>
+              <div id="deadList" class="mt-3 space-y-2 text-sm">Loading...</div>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <h3 class="font-bold flex items-center gap-2"><i class="fas fa-exclamation-triangle text-red-500"></i> Anomalies</h3>
+              <div id="anomalyList" class="mt-3 space-y-2 text-sm">Loading...</div>
+            </div>
+          </div>
+
+          <!-- NL Query -->
+          <div class="glass-card rounded-2xl p-6">
+            <h3 class="font-bold text-lg"><i class="fas fa-comments text-violet-500 mr-2"></i>Ask your data</h3>
+            <div class="mt-2 flex flex-wrap gap-2 text-xs">
+              <button data-q="What sold best last week?" class="px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-800 font-bold hover:opacity-80">What sold best?</button>
+              <button data-q="Show profit margin" class="px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-800 font-bold hover:opacity-80">Profit margin?</button>
+              <button data-q="Which items are dead stock?" class="px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-800 font-bold hover:opacity-80">Dead stock?</button>
+              <button data-q="Forecast next 30 days" class="px-3 py-1.5 rounded-full bg-primary-100 dark:bg-primary-800 font-bold hover:opacity-80">Forecast?</button>
+            </div>
+            <div class="mt-4 flex gap-2">
+              <input id="aiQuery" placeholder="e.g., what sold best last week?" class="flex-1 px-4 py-3 rounded-xl input-premium text-sm placeholder-primary-400" />
+              <button id="askBtn" class="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold text-sm">Ask <i class="fas fa-paper-plane ml-1"></i></button>
+            </div>
+            <div id="aiAnswer" class="mt-4 hidden p-4 rounded-xl bg-primary-50 dark:bg-primary-900/60 border border-primary-200/50 dark:border-primary-700/50">
+              <p id="answerText" class="text-sm leading-relaxed"></p>
+              <div id="followUps" class="mt-3 flex flex-wrap gap-2"></div>
+              <p id="cacheBadge" class="text-xs text-primary-400 mt-2"></p>
+            </div>
+            <div id="aiError" class="hidden mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-500 dark:text-red-300"></div>
+          </div>
+
+          <p class="text-xs text-primary-400 text-center">Smart answers powered by your own sales data. All data stays private to your business.</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container" class="fixed top-24 right-4 z-[100] space-y-3 pointer-events-none"></div>
+
+  <script src="./js/sidebar.js"></script>
   <script src="./js/auth.js"></script>
   <script>
     function toggleTheme(){
       if(document.documentElement.classList.contains('dark')){ document.documentElement.classList.remove('dark'); localStorage.theme='light'; }
       else{ document.documentElement.classList.add('dark'); localStorage.theme='dark'; }
     }
+    // Sidebar mobile toggle (mirrors other pages)
+    (function(){
+      const t=document.getElementById('toggle-sidebar'), sb=document.getElementById('sidebar'), ov=document.getElementById('overlay');
+      t?.addEventListener('click', ()=>{ sb.classList.toggle('-translate-x-full'); ov.classList.toggle('hidden'); });
+      ov?.addEventListener('click', ()=>{ sb.classList.add('-translate-x-full'); ov.classList.add('hidden'); });
+    })();
+    window.showToast = window.showToast || function(message, type="info"){
+      const c=document.getElementById('toast-container'); if(!c) return;
+      const t=document.createElement('div');
+      t.className='pointer-events-auto w-80 p-4 rounded-xl shadow-xl border-l-4 bg-white/90 dark:bg-primary-800/90 '+(type==='error'?'border-red-500':type==='success'?'border-emerald-500':'border-accent-500');
+      t.innerHTML=`<p class="text-sm font-semibold">${message}</p>`;
+      c.appendChild(t); setTimeout(()=>t.remove(), 4000);
+    };
+
+    const AI = { days: 30, idleDays: 60, locked: true };
+    function getAuthToken(){
+      try{ const ls=localStorage.getItem('token'); if(ls) return ls; }catch(_){}
+      const m=document.cookie.match(/(^| )token=([^;]+)/);
+      return m ? decodeURIComponent(m[2]) : "";
+    }
+    function authHeaders(){
+      const t=getAuthToken();
+      return { 'Content-Type':'application/json', ...(t?{Authorization:'Bearer '+t}:{}) };
+    }
     async function fetchJSON(url, opts={}){
-      const r = await fetch(url, { credentials:'include', headers: { 'Content-Type':'application/json', ...(opts.headers||{}) }, ...opts });
+      const r = await fetch(url, { credentials:'include', headers: authHeaders(), ...opts, headers:{...authHeaders(), ...(opts.headers||{})} });
       const j = await r.json().catch(()=>({}));
-      if(!r.ok) throw Object.assign(new Error(j.message||r.statusText), {status:r.status, data:j});
+      if(r.status===401) throw Object.assign(new Error('Session expired — please log in again.'), {status:401});
+      if(!r.ok) throw Object.assign(new Error(j.message||r.statusText), {status:r.status, upgrade:j.upgradeRequired});
       return j;
     }
-    function renderList(el, items, empty){
-      if(!items || !items.length){ el.innerHTML = `<p class="text-slate-500 italic">${empty}</p>`; return; }
-      el.innerHTML = items.map(i => {
-        if(i.productName) return `<div class="flex justify-between bg-white/5 rounded-lg px-3 py-2"><span>${i.productName}</span><span class="text-slate-400">${i.predictedNext30d!==undefined ? '→'+i.predictedNext30d : i.quantity+' units'}</span></div>`;
-        if(i.saleId) return `<div class="bg-white/5 rounded-lg px-3 py-2">Sale ${String(i.saleId).slice(-6)} — KES ${i.total} <span class="text-xs text-slate-400">${i.flag}</span></div>`;
-        return `<div class="bg-white/5 rounded-lg px-3 py-2">${JSON.stringify(i).slice(0,80)}</div>`;
-      }).join("");
+    function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function skeletons(el, n=3){
+      el.innerHTML = Array.from({length:n}, ()=>'<div class="skeleton h-9"></div>').join('');
+    }
+    function paintSeg(id, val, attr){
+      document.querySelectorAll(`#${id} button`).forEach(b=>{
+        const on = String(b.dataset[attr])===String(val);
+        b.className = 'px-3 py-2 rounded-xl font-bold ' + (on ? 'bg-primary-900 dark:bg-white text-white dark:text-primary-900' : 'border border-primary-200 dark:border-primary-700');
+      });
+    }
+
+    // ---- Premium gate ----
+    async function checkPremium(){
+      try{
+        const r = await fetch('/api/business/my-subscription', { credentials:'include', headers: authHeaders() });
+        if(!r.ok) throw { status: r.status };
+        const d = await r.json();
+        const feats = d.plan?.features || d.features || {};
+        const hasAI = feats instanceof Map ? feats.get('reportsAIS') : feats['reportsAIS'];
+        const badge = document.getElementById('planBadge');
+        if (badge && d.plan?.name) badge.textContent = d.plan.name.charAt(0).toUpperCase()+d.plan.name.slice(1);
+        if(hasAI){
+          AI.locked = false;
+          document.getElementById('gateOverlay').classList.add('hidden');
+          document.getElementById('aiContent').classList.remove('hidden');
+          loadOverview();
+        } else lockPage(`Your <b>${esc(d.plan?.name||'current')}</b> plan does not include AI Analytics.`);
+      }catch(e){ lockPage('Could not verify your plan. Log in and try again.'); }
+    }
+    function lockPage(msg){
+      AI.locked = true;
+      document.getElementById('gateText').innerHTML = msg + ' Upgrade to <b>Premium</b> to unlock forecasts, dead-stock and AI Q&A.';
+      document.getElementById('gateOverlay').classList.remove('hidden');
+      document.getElementById('aiContent').classList.add('hidden');
+    }
+
+    // ---- Overview ----
+    function renderForecast(list){
+      const el=document.getElementById('forecastList');
+      if(!list?.length){ el.innerHTML='<p class="text-primary-400 italic text-sm">No forecast — add sales first.</p>'; return; }
+      el.innerHTML = list.map(i=>`
+        <div class="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/60 border border-primary-100 dark:border-primary-800">
+          <div class="flex justify-between gap-2"><span class="font-bold truncate">${esc(i.productName)}</span><span class="font-black text-emerald-500 whitespace-nowrap">→ ${i.predictedNext30d ?? i.predicted ?? '?'} units</span></div>
+          <div class="text-[11px] text-primary-400 mt-1">Sold ${i.soldLast30d ?? '?'} • avg ${i.avgDaily ?? '?'}/day</div>
+          <div class="text-[11px] text-primary-500 mt-0.5">${esc(i.suggestion||'')}</div>
+        </div>`).join('');
+    }
+    function renderDead(list){
+      const el=document.getElementById('deadList');
+      if(!list?.length){ el.innerHTML='<p class="text-emerald-500 text-sm font-bold">No dead stock — healthy movement ✓</p>'; return; }
+      el.innerHTML = list.map(d=>`
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+          <div class="flex justify-between gap-2"><span class="font-bold truncate">${esc(d.productName)}</span><span class="text-xs font-bold text-amber-500 whitespace-nowrap">${d.quantity} units idle</span></div>
+          <div class="text-[11px] text-primary-400 mt-1">${esc(d.suggestion||'')}</div>
+        </div>`).join('');
+    }
+    function renderAnomalies(list){
+      const el=document.getElementById('anomalyList');
+      if(!list?.length){ el.innerHTML='<p class="text-primary-400 italic text-sm">No anomalies detected.</p>'; return; }
+      el.innerHTML = list.map(a=>`
+        <div class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm">
+          <span class="font-bold">${esc(a.flag||'flagged')}</span>
+          ${a.total!==undefined?`<span class="ml-1">• KES ${Number(a.total).toLocaleString()}</span>`:''}
+          ${a.count!==undefined?`<span class="ml-1">• ${a.count} sales</span>`:''}
+          ${a.createdAt?`<div class="text-[11px] text-primary-400">${new Date(a.createdAt).toLocaleString()}</div>`:''}
+          ${a.suggestion?`<div class="text-[11px] text-primary-400">${esc(a.suggestion)}</div>`:''}
+        </div>`).join('');
     }
     async function loadOverview(){
+      if(AI.locked) return;
+      skeletons(document.getElementById('forecastList')); skeletons(document.getElementById('deadList')); skeletons(document.getElementById('anomalyList'));
+      document.getElementById('forecastH').textContent = `(${AI.days}d)`;
+      document.getElementById('deadH').textContent = `(${AI.idleDays}d idle)`;
       try{
-        const data = await fetchJSON('/api/ai/insights/overview');
-        renderList(document.getElementById('forecastList'), data.forecast, 'No forecast — add sales');
-        renderList(document.getElementById('deadList'), data.deadStock, 'No dead stock — healthy');
-        renderList(document.getElementById('anomalyList'), data.anomalies, 'No anomalies');
+        const data = await fetchJSON(`/api/ai/insights/overview?days=${AI.days}&idleDays=${AI.idleDays}`);
+        renderForecast(data.forecast); renderDead(data.deadStock); renderAnomalies(data.anomalies);
+        const demand = (data.forecast||[]).reduce((s,f)=>s+(Number(f.predictedNext30d ?? f.predicted)||0),0);
+        document.getElementById('kpiDemand').textContent = demand.toLocaleString()+' units';
+        document.getElementById('kpiDemandSub').textContent = `next ${AI.days}d${data.meta?.cached?' • cached':''}`;
+        document.getElementById('kpiFCount').textContent = data.counts?.forecast ?? (data.forecast||[]).length;
+        document.getElementById('kpiDead').textContent = data.counts?.dead ?? (data.deadStock||[]).length;
+        document.getElementById('kpiDeadSub').textContent = `${AI.idleDays}d idle window`;
+        document.getElementById('kpiAnom').textContent = data.counts?.anomalies ?? (data.anomalies||[]).length;
+        document.getElementById('aiMeta').textContent = `Method: ${data.meta?.method||'moving_avg'}${data.meta?.cached?' • served from cache':''}`;
       }catch(e){
-        if(e.status===403){
-          document.getElementById('upgradeBanner').classList.remove('hidden');
-          document.getElementById('forecastList').innerHTML = '<p class="text-amber-300">Premium required</p>';
-          document.getElementById('deadList').innerHTML = '<p class="text-amber-300">Premium required</p>';
-          document.getElementById('anomalyList').innerHTML = '<p class="text-amber-300">Premium required</p>';
-        } else {
-          document.getElementById('forecastList').textContent = e.message;
-        }
+        if(e.status===403){ lockPage(e.message||'Premium required.'); return; }
+        const msg = `<p class="text-sm text-red-500">${esc(e.message)} <button onclick="loadOverview()" class="underline font-bold">Retry</button></p>`;
+        document.getElementById('forecastList').innerHTML = msg;
+        document.getElementById('deadList').innerHTML = msg;
+        document.getElementById('anomalyList').innerHTML = msg;
       }
     }
+
+    // ---- Q&A ----
     document.getElementById('askBtn').addEventListener('click', async ()=>{
       const q = document.getElementById('aiQuery').value.trim();
-      if(!q) return;
-      const btn = document.getElementById('askBtn');
-      const err = document.getElementById('aiError');
-      const ansBox = document.getElementById('aiAnswer');
-      err.classList.add('hidden'); ansBox.classList.add('hidden');
+      if(!q || AI.locked) return;
+      const btn=document.getElementById('askBtn'), err=document.getElementById('aiError'), box=document.getElementById('aiAnswer');
+      err.classList.add('hidden'); box.classList.add('hidden');
       btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
       try{
         const res = await fetchJSON('/api/ai/query', { method:'POST', body: JSON.stringify({ question: q }) });
         document.getElementById('answerText').textContent = res.answer;
-        document.getElementById('followUps').innerHTML = (res.followUps||[]).map(f=>`<button class="px-3 py-1 bg-white/10 rounded-full text-xs" onclick="document.getElementById('aiQuery').value='${f.replace(/'/g,"\\'")}'; document.getElementById('askBtn').click()">${f}</button>`).join("");
+        document.getElementById('followUps').innerHTML = (res.followUps||[]).map(f=>`<button class="px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-800 text-xs font-bold" data-f="${esc(f)}">${esc(f)}</button>`).join('');
+        document.querySelectorAll('#followUps button').forEach(b=>b.addEventListener('click', ()=>{ document.getElementById('aiQuery').value=b.dataset.f; document.getElementById('askBtn').click(); }));
         document.getElementById('cacheBadge').textContent = res.cached ? 'served from cache (1d TTL)' : 'fresh — cached for 24h';
-        ansBox.classList.remove('hidden');
+        box.classList.remove('hidden');
       }catch(e){
-        err.textContent = e.message + (e.data?.upgradeRequired ? ' — Upgrade to Premium' : '');
+        err.textContent = e.message + (e.upgrade ? ' — Upgrade to Premium' : '');
         err.classList.remove('hidden');
-        if(e.status===403) document.getElementById('upgradeBanner').classList.remove('hidden');
+        if(e.status===403) lockPage(e.message||'Premium required.');
       }finally{ btn.disabled=false; btn.innerHTML='Ask <i class="fas fa-paper-plane ml-1"></i>'; }
     });
     document.getElementById('aiQuery').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('askBtn').click(); }});
-    loadOverview();
+    document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click', ()=>{ document.getElementById('aiQuery').value=b.dataset.q; document.getElementById('askBtn').click(); }));
+
+    // ---- controls ----
+    document.querySelectorAll('#horizonBtns button').forEach(b=>b.addEventListener('click', ()=>{ AI.days=Number(b.dataset.days); paintSeg('horizonBtns', AI.days, 'days'); loadOverview(); }));
+    document.querySelectorAll('#idleBtns button').forEach(b=>b.addEventListener('click', ()=>{ AI.idleDays=Number(b.dataset.idle); paintSeg('idleBtns', AI.idleDays, 'idle'); loadOverview(); }));
+    document.getElementById('aiRefresh').addEventListener('click', loadOverview);
+
+    if(typeof loadSidebar==='function') loadSidebar();
+    paintSeg('horizonBtns', AI.days, 'days'); paintSeg('idleBtns', AI.idleDays, 'idle');
+    checkPremium();
   </script>
 </body>
 </html>

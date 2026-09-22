@@ -134,7 +134,9 @@ exports.loginUser = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Login successful", user, business });
+      // token also returned for Authorization-header fallback (cookie is httpOnly
+      // and may not travel cross-origin / SameSite-strict contexts)
+      .json({ message: "Login successful", token, user, business });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });

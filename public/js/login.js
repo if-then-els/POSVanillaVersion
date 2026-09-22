@@ -50,6 +50,12 @@ document.addEventListener("DOMContentLoaded", function () {
     login()
       .then((data) => {
         if (data && data.message === "Login successful") {
+          // Persist JWT for Authorization-header fallback (httpOnly cookie
+          // alone fails cross-origin / expired-cookie cases)
+          try {
+            if (data.token) localStorage.setItem("token", data.token);
+            if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+          } catch (_) {}
           // Only show success toast and redirect
           showToast("Login successful! Redirecting...", "success");
           setTimeout(() => {

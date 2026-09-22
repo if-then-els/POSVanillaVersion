@@ -101,7 +101,7 @@ async function naturalQuery(businessId, question) {
         answer = `I can answer: best product, profit/margin, dead stock, forecast. Try: "what sold best last week?"`;
       }
     } else {
-      answer = `I can answer: best product, profit/margin, dead stock, forecast. Try: "what sold best last week?" — set OPENAI_API_KEY for free-form Q&A.`;
+      answer = `I can answer questions about best sellers, profit and margins, dead stock, and demand forecasts. Try: "what sold best last week?"`;
     }
   }
   const toCache = { question: cacheKey, answer, data, followUps: ["Show profit breakdown", "Which items are dead stock?", "Forecast next 30 days"] };
@@ -109,13 +109,14 @@ async function naturalQuery(businessId, question) {
   return { answer, data, followUps: toCache.followUps, cached: false };
 }
 
-async function getOrForecast(businessId, useCache=true) {
-  if (useCache) {
+async function getOrForecast(businessId, useCache=true, days=30) {
+  const horizon = Math.min(Math.max(Number(days) || 30, 7), 90);
+  if (useCache && horizon === 30) {
     const cached = await AIInsight.findOne({ business: businessId, type: "forecast" }).sort({ createdAt: -1 });
     if (cached && cached.expiresAt > new Date()) return { ...cached.payload, cached: true };
   }
-  const payload = await forecastDemand(businessId, 30);
-  await AIInsight.create({ business: businessId, type: "forecast", payload, expiresAt: addDays(new Date(), 1) });
+  const payload = await forecastDemand(businessId, horizon);
+  if (horizon === 30) await AIInsight.create({ business: businessId, type: "forecast", payload, expiresAt: addDays(new Date(), 1) });
   return { ...payload, cached: false };
 }
 
