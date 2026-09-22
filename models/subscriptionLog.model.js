@@ -22,6 +22,9 @@ const SubscriptionLogSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
   discount: Number,
   totalPrice: Number, // Renamed from price to totalPrice for clarity in log
+  price: Number, // Amount charged in merchant currency
+  priceCurrency: String, // Merchant currency the charge was made in
+  paidAmountUSD: Number, // Tier price in USD (source of truth for conversions)
   mpesaTransactionId: { type: String },
   paystackTransactionId: { type: String }, // New: Paystack transaction ID for logs
 });

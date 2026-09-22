@@ -514,7 +514,7 @@ function renderCart() {
   mobileClearCartBtn.disabled = !isSubscriptionActive || cartItems.length === 0;
 }
 
-// Checkout Modal Logic
+// === Express Checkout: 1 screen, minimal typing, safe by default ===
 const checkoutModal = document.getElementById("checkout-modal");
 const checkoutCancelBtn = document.getElementById("checkout-cancel");
 const checkoutForm = document.getElementById("checkout-form");
@@ -522,131 +522,145 @@ const processSaleBtn = document.getElementById("process-sale-btn");
 const cashPaymentSection = document.getElementById("cash-payment-section");
 const cashReceivedInput = document.getElementById("cash-received");
 const cashChangeSpan = document.getElementById("cash-change");
+let __isProcessing = false;
+let __mpesaMode = "stk";
+let __printAfter = false;
 
-document
-  .getElementById("checkout-btn")
-  ?.addEventListener("click", function (e) {
-    e.preventDefault();
-    openCheckoutModal();
-  });
-
-document
-  .getElementById("mobile-checkout-btn")
-  ?.addEventListener("click", function (e) {
-    e.preventDefault();
-    openCheckoutModal();
-  });
-
-function openCheckoutModal() {
-  if (!isSubscriptionActive) {
-    showSubscriptionInactiveModal();
-    return;
-  }
-  console.log("Current cart items:", cartItems);
-  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  if (itemCount === 0) {
-    showToast("Your cart is empty. Add items to checkout.", "warning");
-    return false;
-  }
-
-  checkoutModal.classList.remove("hidden");
-  renderCheckoutSummary();
-  cashPaymentSection.classList.add("hidden");
-  cashReceivedInput.value = "";
-  cashChangeSpan.textContent = "KES 0.00";
-
-  // Load payment methods if not loaded yet
-  if (configuredPaymentMethods.length === 0) {
-    loadPaymentMethods();
-  }
-
-  // Select cash by default if available, otherwise first option
-  const cashMethod = document.querySelector('input[name="paymentMethod"][value="cash"]');
-  if (cashMethod) {
-    cashMethod.checked = true;
-  } else {
-    const firstMethod = document.querySelector('input[name="paymentMethod"]');
-    if (firstMethod) firstMethod.checked = true;
-  }
-  processSaleBtn.disabled = false;
-  return true;
+function formatKES(n){ return `KES ${Number(n||0).toFixed(2)}`; }
+function getSelectedPaymentType(){
+  return document.querySelector('input[name="paymentMethod"]:checked')?.value
+    || localStorage.getItem("lastPaymentMethod") || "cash";
+}
+function parseTotalFromUI(){
+  const t = calcTotals();
+  return t.total;
 }
 
-checkoutCancelBtn.addEventListener("click", () => {
-  checkoutModal.classList.add("hidden");
-});
+document.getElementById("checkout-btn")?.addEventListener("click", (e)=>{ e.preventDefault(); openCheckoutModal(); });
+document.getElementById("mobile-checkout-btn")?.addEventListener("click", (e)=>{ e.preventDefault(); openCheckoutModal(); });
 
-document
-  .getElementById("checkout-modal-backdrop")
-  ?.addEventListener("click", () => {
-    checkoutModal.classList.add("hidden");
-  });
+function openCheckoutModal() {
+  if (!isSubscriptionActive) { showSubscriptionInactiveModal(); return; }
+  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  if (itemCount === 0) { showToast("Your cart is empty. Add items to checkout.", "warning"); return false; }
+  if (configuredPaymentMethods.length === 0) { loadPaymentMethods(); }
+  // Defaults: Walk-in so cashier types nothing for 90% of sales
+  const nameEl = document.getElementById("customer-name");
+  if (nameEl && !nameEl.value) nameEl.value = "Walk-in";
+  const discEl = document.getElementById("discount-input");
+  // keep discount if cashier set it, else 0
+  checkoutModal.classList.remove("hidden");
+  document.getElementById("checkout-form")?.scrollTo?.(0,0);
+  // Offline hint
+  document.getElementById("offline-queue-note")?.classList.toggle("hidden", navigator.onLine);
+  // Restore last method (faster repeat sales), fallback cash
+  const last = localStorage.getItem("lastPaymentMethod") || "cash";
+  const want = document.querySelector(`input[name="paymentMethod"][value="${last}"]`)
+    ? last : (document.querySelector('input[name="paymentMethod"][value="cash"]') ? "cash"
+    : document.querySelector('input[name="paymentMethod"]')?.value || "cash");
+  setPaymentMethod(want, { silentToast: true });
+  renderCheckoutSummary();
+  // Focus for speed: cash input if cash, else phone
+  setTimeout(()=>{
+    if (want === "cash") cashReceivedInput?.focus();
+    else if (String(want).startsWith("mpesa")) document.getElementById("mpesa-phone-inline")?.focus();
+  }, 80);
+  return true;
+}
+function closeCheckoutModal(){
+  if (__isProcessing) return; // safety: don't lose an in-flight payment
+  checkoutModal.classList.add("hidden");
+  hideMpesaStatus();
+}
+checkoutCancelBtn?.addEventListener("click", closeCheckoutModal);
+document.getElementById("checkout-cancel-2")?.addEventListener("click", closeCheckoutModal);
+document.getElementById("checkout-modal-backdrop")?.addEventListener("click", closeCheckoutModal);
+document.addEventListener("keydown", (e)=>{
+  if (checkoutModal?.classList.contains("hidden")) return;
+  if (e.key === "Escape") closeCheckoutModal();
+});
 
 function calcTotals(){
   const subtotal = cartItems.reduce((s,i)=> s + Number(i.productPrice)*Number(i.quantity), 0);
-  const discRaw = parseFloat(document.getElementById("discount-input")?.value) || 0;
+  let discRaw = parseFloat(document.getElementById("discount-input")?.value) || 0;
+  if (discRaw < 0) discRaw = 0;
   const discType = document.getElementById("discount-type")?.value || "kes";
-  const discount = discType==="percent" ? subtotal * (discRaw/100) : discRaw;
+  let discount = discType==="percent" ? subtotal * (Math.min(discRaw,100)/100) : Math.min(discRaw, subtotal);
+  if (!isFinite(discount)) discount = 0;
   const discounted = Math.max(0, subtotal - discount);
   const taxRate = Number(window.__taxRate ?? 0);
   const tax = discounted * (taxRate/100);
-  const total = discounted + tax;
+  const total = Math.max(0, discounted + tax);
   return { subtotal, discount, discounted, tax, taxRate, total };
 }
-cashReceivedInput.addEventListener("input", () => {
-  const total = parseFloat(
-    document.getElementById("checkout-total").textContent.replace("KES ", "")
-  );
-  const received = parseFloat(cashReceivedInput.value) || 0;
-  const change = received - total;
-  cashChangeSpan.textContent = `KES ${Math.max(0, change).toFixed(2)}`;
-  processSaleBtn.disabled = received < total;
-});
+
+function updatePayButton(){
+  if (!processSaleBtn) return;
+  if (__isProcessing) { processSaleBtn.disabled = true; return; }
+  const { total } = calcTotals();
+  const type = getSelectedPaymentType();
+  if (type === "cash") {
+    const rec = parseFloat(cashReceivedInput?.value) || 0;
+    processSaleBtn.disabled = !(rec >= total && total > 0);
+  } else if (type === "split") {
+    const sum = getSplitSum();
+    processSaleBtn.disabled = !(Math.abs(sum - total) < 0.01 && total > 0);
+  } else if (String(type).startsWith("mpesa") && __mpesaMode === "stk") {
+    const phone = (document.getElementById("mpesa-phone-inline")?.value || document.getElementById("customer-phone")?.value || "").trim();
+    processSaleBtn.disabled = !(normalizeKEPhone(phone) && total > 0);
+  } else if (String(type).startsWith("mpesa") && __mpesaMode === "code") {
+    const code = document.getElementById("mpesa-code-input")?.value?.trim();
+    processSaleBtn.disabled = !(code && code.length >= 4 && total > 0);
+  } else {
+    processSaleBtn.disabled = !(total > 0);
+  }
+}
 
 function renderCheckoutSummary() {
-  const checkoutItemsContainer = document.getElementById("checkout-items");
-  if (!checkoutItemsContainer) return;
-
-  checkoutItemsContainer.innerHTML = "";
-  let subtotal = 0;
-
-  cartItems.forEach((item) => {
-    const itemTotal = item.productPrice * item.quantity;
-    subtotal += itemTotal;
-    const itemHtml = `
-        <div class="flex justify-between items-center py-2">
-          <span class="text-gray-300">${item.productName} (x${
-      item.quantity
-    })</span>
-          <span class="text-white">KES ${itemTotal.toFixed(2)}</span>
-        </div>
-      `;
-    checkoutItemsContainer.innerHTML += itemHtml;
-  });
-
-  const tax = 0; // Tax set to 0
-  const total = subtotal + tax;
-
-  document.getElementById("checkout-total").textContent = `KES ${total.toFixed(2)}`;
-  const payAmt=document.getElementById("pay-amount");
-  if(payAmt) payAmt.textContent=`KES ${total.toFixed(2)}`;
-  const mpesaPreview=document.getElementById("mpesa-amount-preview");
-  if(mpesaPreview) mpesaPreview.textContent=`KES ${total.toFixed(2)}`;
-  const countEl=document.getElementById("checkout-items-count");
-  if(countEl) countEl.textContent=`${cartItems.length} items`;
-
-  cashReceivedInput.value = "";
-  cashChangeSpan.textContent = "KES 0.00";
-
-  const selectedPaymentMethod = document.querySelector(
-    'input[name="paymentMethod"]:checked'
-  )?.value;
-  if (selectedPaymentMethod === "cash") {
-    processSaleBtn.disabled = true;
-  } else {
-    processSaleBtn.disabled = false;
+  const box = document.getElementById("checkout-items");
+  if (box) {
+    box.innerHTML = cartItems.map((item)=>{
+      const t = Number(item.productPrice)*Number(item.quantity);
+      return `<div class="flex justify-between items-center py-1.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
+        <span class="text-slate-700 dark:text-slate-200 font-medium truncate mr-2">${escapeHtml(item.productName)} <span class="text-slate-400 font-normal">× ${item.quantity}</span></span>
+        <span class="font-bold text-slate-900 dark:text-white whitespace-nowrap">${formatKES(t)}</span></div>`;
+    }).join("") || `<div class="text-center text-slate-400 py-4">Empty</div>`;
   }
+  const { subtotal, discount, tax, taxRate, total } = calcTotals();
+  const set = (id, v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  set("checkout-total", formatKES(total));
+  set("checkout-subtotal", formatKES(subtotal));
+  set("checkout-discount", `-${formatKES(discount).replace("KES ","KES ")}`);
+  set("checkout-tax", formatKES(tax));
+  set("checkout-tax-rate", `${taxRate}%`);
+  set("pay-amount", formatKES(total));
+  set("mpesa-amount-preview", formatKES(total));
+  const itemCount = cartItems.reduce((s,i)=> s+Number(i.quantity),0);
+  set("checkout-items-count", `${itemCount} ${itemCount===1?"item":"items"}`);
+  const saveBadge = document.getElementById("checkout-save-badge");
+  if (saveBadge) {
+    saveBadge.classList.toggle("hidden", !(discount>0));
+    set("checkout-save-amount", formatKES(discount));
+  }
+  // auto-fill helper amounts (only if empty — don't overwrite cashier typing)
+  const mpesaAmt = document.getElementById("mpesa-amount-inline");
+  if (mpesaAmt && !mpesaAmt.value) mpesaAmt.value = total.toFixed(2);
+  const bankAmt = document.getElementById("bank-amount-inline");
+  if (bankAmt) bankAmt.value = total.toFixed(2);
+  // cash change live
+  const rec = parseFloat(cashReceivedInput?.value) || 0;
+  if (cashChangeSpan) cashChangeSpan.textContent = `Change: ${formatKES(Math.max(0, rec - total))}`;
+  updateSplitTotalUI();
+  updatePayButton();
+}
+function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function normalizeKEPhone(raw){
+  if(!raw) return "";
+  let p = String(raw).trim().replace(/[\s\-()]/g,"").replace(/^\+/,"");
+  if (/^0/.test(p)) p = "254"+p.slice(1);
+  if (/^[17]\d{8}$/.test(p)) p = "254"+p;
+  if (!/^254[17]\d{8}$/.test(p)) return "";
+  return p;
 }
 
 // Process online payment (card, mobile money, paypal, m-pesa)
@@ -655,7 +669,7 @@ async function processOnlinePayment(paymentType, config, amount, customerPhone =
     // Create payment processing modal
     const modal = document.createElement("div");
     modal.id = "payment-processing-modal";
-    modal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4";
+    modal.className = "fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4";
     
     // For M-Pesa, show phone input first
     const isMpesa = paymentType === "mpesa_stk" || paymentType === "mpesa_till" || paymentType === "mpesa_paybill" || paymentType === "mobile_money";
@@ -912,37 +926,139 @@ async function pollC2BPayment(checkoutRequestId, phoneNumber, maxAttempts = 45) 
   return false; // Timeout
 }
 
-// Function to process sale - now store-aware, offlineId idempotent, paymentType normalized
+// === Inline payment helpers (no second modal — everything stays in checkout) ===
+function showMpesaStatus(text, pct){
+  const box = document.getElementById("mpesa-status");
+  if (!box) return;
+  box.classList.remove("hidden");
+  const t = document.getElementById("mpesa-status-text");
+  if (t) t.textContent = text;
+  const p = document.getElementById("mpesa-progress");
+  if (p && pct != null) p.style.width = pct + "%";
+}
+function hideMpesaStatus(){
+  document.getElementById("mpesa-status")?.classList.add("hidden");
+}
+function getSplitSum(){
+  return [...document.querySelectorAll("#split-rows input[data-split-amount]")]
+    .reduce((s,i)=> s + (parseFloat(i.value)||0), 0);
+}
+function updateSplitTotalUI(){
+  const el = document.getElementById("split-total");
+  if (!el) return;
+  const { total } = calcTotals();
+  el.textContent = `${formatKES(getSplitSum())} / ${formatKES(total)}`;
+}
+function addSplitRow(method, amount){
+  const rows = document.getElementById("split-rows");
+  if (!rows) return;
+  const { total } = calcTotals();
+  const row = document.createElement("div");
+  row.className = "flex gap-2";
+  row.innerHTML = `
+    <select data-split-method class="px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold">
+      <option value="cash"${method==="cash"?" selected":""}>Cash</option>
+      <option value="mpesa_stk"${String(method).startsWith("mpesa")?" selected":""}>M-Pesa</option>
+      <option value="card"${method==="card"?" selected":""}>Card</option>
+      <option value="bank"${method==="bank"?" selected":""}>Bank</option>
+    </select>
+    <input data-split-amount type="number" min="0" step="0.01" placeholder="0.00" value="${amount ?? ""}"
+      class="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
+    <button type="button" data-split-remove class="px-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500">✕</button>`;
+  rows.appendChild(row);
+  row.querySelector("[data-split-amount]").addEventListener("input", ()=>{ updateSplitTotalUI(); updatePayButton(); });
+  row.querySelector("[data-split-method]").addEventListener("change", updatePayButton);
+  row.querySelector("[data-split-remove]").addEventListener("click", ()=>{ row.remove(); updateSplitTotalUI(); updatePayButton(); });
+  updateSplitTotalUI(); updatePayButton();
+}
+async function processMpesaInline(paymentType, config, amount){
+  // Code mode: just record code, no STK call
+  if (__mpesaMode === "code") {
+    const code = document.getElementById("mpesa-code-input")?.value?.trim().toUpperCase();
+    const phoneRaw = document.getElementById("mpesa-phone-inline")?.value || document.getElementById("customer-phone")?.value || "";
+    const phone = normalizeKEPhone(phoneRaw) || phoneRaw.trim();
+    if (!code || code.length < 4) throw new Error("Enter the M-Pesa code from customer SMS");
+    try {
+      await fetch("/api/payments/manual/save", {
+        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        body: JSON.stringify({ phoneNumber: phone || "254700000000", amount: Math.round(amount), paymentType, receiptNumber: code })
+      });
+    } catch(_) { /* non-blocking: sale still records code */ }
+    return { success: true, receiptNumber: code, phoneNumber: phone };
+  }
+  // STK mode: single phone field, inline progress, real polling
+  const phoneRaw = document.getElementById("mpesa-phone-inline")?.value || document.getElementById("customer-phone")?.value || "";
+  const phoneNumber = normalizeKEPhone(phoneRaw);
+  if (!phoneNumber) throw new Error("Enter valid M-Pesa phone e.g. 2547XXXXXXXX");
+  const isC2B = paymentType === "mpesa_till" || paymentType === "mpesa_paybill";
+  const endpoint = isC2B ? "/api/payments/mpesa/c2b/initiate" : "/api/payments/mpesa/stkpush";
+  showMpesaStatus("Sending STK push to " + phoneNumber + "...", 30);
+  const res = await fetch(endpoint, {
+    method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+    body: JSON.stringify({ phoneNumber, amount: Math.round(amount), paymentType, config: config?.config || {} })
+  });
+  const result = await res.json().catch(()=> ({}));
+  if (!res.ok || !result.success) throw new Error(result.message || "STK push failed. Try Code instead.");
+  if (result.demoMode || result.paymentStatus === "completed" || String(result.checkoutRequestId||"").startsWith("DEMO_")) {
+    showMpesaStatus("Payment confirmed ✓", 100);
+    return { success: true, phoneNumber, demo: true };
+  }
+  const cid = result.checkoutRequestId;
+  showMpesaStatus("Waiting for customer PIN...", 60);
+  const ok = isC2B ? await pollC2BPayment(cid, phoneNumber) : await pollMpesaPayment(cid, phoneNumber, 20);
+  if (!ok) throw new Error("Not confirmed yet — ask customer to enter PIN or use Code instead.");
+  showMpesaStatus("Payment confirmed ✓", 100);
+  return { success: true, phoneNumber, checkoutRequestId: cid };
+}
+// Legacy second-modal flow kept for compat but no longer used (single-screen checkout uses processMpesaInline)
+async function processOnlinePaymentLegacy(){ throw new Error("deprecated"); }
+
+// Function to process sale - express: single POST, idempotent, no second modal
 async function processSale(cartItems, total, customerName, paymentMethod) {
   if (!isSubscriptionActive) {
-    showSubscriptionInactiveModal(); // Should not be reached if UI is disabled
+    showSubscriptionInactiveModal();
     return;
   }
-
-  // Get selected payment method info
   const selectedPaymentInput = document.querySelector('input[name="paymentMethod"]:checked');
   const paymentType = selectedPaymentInput ? selectedPaymentInput.value : "cash";
   const paymentMethodConfig = configuredPaymentMethods.find(m => m.type === paymentType);
-
-  // Normalize mpesa types to tier-allowed values (backend accepts mpesa_stk etc)
   let effectivePaymentMethod = paymentType === "mobile_money" ? "mpesa_stk" : paymentType;
+  let mpesaReceipt = "";
+  let splitPayments = undefined;
 
-  // For non-cash payments, show processing modal (mpesa will handle STK push)
-  if (paymentType !== "cash") {
-    await processOnlinePayment(paymentType, paymentMethodConfig, total);
-    effectivePaymentMethod = paymentType === "mobile_money" ? "mpesa_stk" : paymentType;
+  // Per-method inline verification (stays inside checkout modal)
+  if (String(paymentType).startsWith("mpesa")) {
+    const r = await processMpesaInline(paymentType, paymentMethodConfig, total);
+    mpesaReceipt = r.receiptNumber || r.checkoutRequestId || "";
+    if (paymentType === "mobile_money") effectivePaymentMethod = "mpesa_stk";
+  }
+  if (paymentType === "split") {
+    const rows = [...document.querySelectorAll("#split-rows > div")];
+    splitPayments = rows.map(r=>({
+      method: r.querySelector("[data-split-method]")?.value || "cash",
+      amount: parseFloat(r.querySelector("[data-split-amount]")?.value) || 0
+    })).filter(s=>s.amount>0);
+    const sum = splitPayments.reduce((s,x)=>s+x.amount,0);
+    if (Math.abs(sum - total) > 0.01) throw new Error(`Split must sum to ${formatKES(total)} (now ${formatKES(sum)})`);
+    effectivePaymentMethod = "split";
   }
 
+  const { discount, taxRate } = calcTotals();
+  const customerPhone = document.getElementById("customer-phone")?.value?.trim() || document.getElementById("mpesa-phone-inline")?.value?.trim() || "";
+  const customerEmail = document.getElementById("customer-email")?.value?.trim() || "";
+  const bankRef = document.getElementById("bank-ref")?.value?.trim() || "";
   const items = cartItems.map((item) => ({
     productId: item._id,
     quantity: item.quantity,
     price: item.productPrice,
   }));
 
-  // store + offline Idempotency + offline queue (Standard+ offlineMode but fallback for demo)
   const storeId = (typeof getSelectedStoreId === 'function' ? getSelectedStoreId() : "") || "";
   const offlineId = `off_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-  const payload = { items, total, customerName, paymentMethod: effectivePaymentMethod, store: storeId || undefined, offlineId };
+  const tenderedRaw = parseFloat(document.getElementById("cash-received")?.value);
+  const amountTendered = effectivePaymentMethod === "cash" && isFinite(tenderedRaw) ? tenderedRaw : undefined;
+  const changeGiven = amountTendered != null ? Math.max(0, amountTendered - total) : undefined;
+  const payload = { items, total, customerName, customerPhone, customerEmail, paymentMethod: effectivePaymentMethod, mpesaReceipt, bankRef, splitPayments, discount, taxRate, amountTendered, changeGiven, store: storeId || undefined, offlineId };
 
   // if offline, queue instead of failing
   if (!navigator.onLine && window.OfflineSync) {
@@ -961,12 +1077,11 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
 
     const data = await response.json();
     if (response.ok && data.sale && data.sale._id) {
-      // Fetch receipt details from backend
-      const receiptRes = await fetch(`/receipt/${data.sale._id}`);
-      const receiptData = await receiptRes.json();
-      if (receiptRes.ok && receiptData.sale) {
-        showReceipt(receiptData.sale);
-      }
+      // Stored receipt copy lives in DB; open the canonical receipt page
+      // (receipt.html loads GET /receipt/:id with real business info).
+      // Only auto-open when cashier asked for print, else refresh list silently.
+      try { await loadRecentReceipts(); } catch (_) {}
+      if (__printAfter) { showReceiptById(data.sale._id); }
       return data;
     } else {
       throw new Error(data.message || "Sale failed");
@@ -977,10 +1092,18 @@ async function processSale(cartItems, total, customerName, paymentMethod) {
   }
 }
 
-// Function to show receipt (re-added)
+// Canonical receipt view: single source of truth is the STORED copy
+// (GET /receipt/:id). Opens receipt.html which renders real business info,
+// cashier, time and receipt number. Keeps accountability + reprint.
+function showReceiptById(saleId) {
+  window.open(`/receipt.html?saleId=${encodeURIComponent(saleId)}`, "_blank", "width=420,height=700");
+}
 async function showReceipt(sale) {
+  if (sale && (sale._id || sale._id === 0)) { showReceiptById(sale._id); return; }
+  if (typeof sale === "string") { showReceiptById(sale); return; }
+  // legacy fallback below is deprecated (kept for compat, not used)
   // Fetch settings
-  const settingsRes = await fetch("/api/settings");
+  const settingsRes = await fetch("/api/settings", { credentials: "include" });
   const settings = await settingsRes.json();
 
   const receiptWindow = window.open("", "Receipt", "width=400,height=600");
@@ -1286,51 +1409,77 @@ async function showReceipt(sale) {
   receiptWindow.document.close();
 }
 
+// Express submit: 1 tap Pay, guarded against double-click, safe defaults
 checkoutForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const customerName = document.getElementById("customer-name").value;
-  const paymentMethod = document.querySelector(
-    'input[name="paymentMethod"]:checked'
-  ).value;
-  const total = parseFloat(
-    document.getElementById("checkout-total").textContent.replace("KES ", "")
-  );
+  if (__isProcessing) return;
+  const nameEl = document.getElementById("customer-name");
+  const customerName = (nameEl?.value?.trim() || "Walk-in");
+  const paymentMethod = getSelectedPaymentType();
+  const { total } = calcTotals();
+  if (!(total > 0)) { showToast("Cart total is zero.", "error"); return; }
 
-  if (!customerName) {
-    showToast("Customer Name is required.", "error");
-    return;
-  }
-
+  // Fast client-side guards (server re-validates stock + totals)
   if (paymentMethod === "cash") {
-    const received = parseFloat(cashReceivedInput.value) || 0;
-    if (received < total) {
-      showToast("Cash received is less than total amount.", "error");
-      return;
-    }
+    const received = parseFloat(cashReceivedInput?.value) || 0;
+    if (received < total) { showToast(`Need ${formatKES(total)} — received ${formatKES(received)}. Tap Exact.`, "error"); cashReceivedInput?.focus(); return; }
+  }
+  if (String(paymentMethod).startsWith("mpesa") && __mpesaMode === "stk") {
+    const phone = normalizeKEPhone(document.getElementById("mpesa-phone-inline")?.value || document.getElementById("customer-phone")?.value || "");
+    if (!phone) { showToast("Enter M-Pesa phone 2547XXXXXXXX", "error"); document.getElementById("mpesa-phone-inline")?.focus(); return; }
+  }
+  if (String(paymentMethod).startsWith("mpesa") && __mpesaMode === "code") {
+    if (!document.getElementById("mpesa-code-input")?.value?.trim()) { showToast("Enter M-Pesa code", "error"); return; }
+  }
+  if (paymentMethod === "split") {
+    if (Math.abs(getSplitSum() - total) > 0.01) { showToast(`Split must equal ${formatKES(total)}. Tap Auto-split.`, "error"); return; }
   }
 
+  __isProcessing = true;
+  __printAfter = document.getElementById("print-receipt-check")?.checked || __printAfter;
+  processSaleBtn.disabled = true;
+  document.getElementById("pay-spinner")?.classList.remove("hidden");
   try {
-    const response = await processSale(
-      cartItems,
-      total,
-      customerName,
-      paymentMethod
-    );
-    if (response && response.message) {
-      showToast("Sale Successful", response.message, "success");
+    const response = await processSale(cartItems, total, customerName, paymentMethod);
+    localStorage.setItem("lastPaymentMethod", paymentMethod);
+    if (response?.queued) {
+      showToast("Offline — sale queued, will sync.", "warning");
     } else {
-      showToast("Sale Successful", "Sale processed successfully", "success");
+      showToast("Sale complete ✓ Change: " + formatKES(Math.max(0, (parseFloat(cashReceivedInput?.value)||total) - total)), "success");
     }
-    cartItems = []; // Clear cart after successful sale
-    loadProductsForSale(); // Re-fetch products to update stock
+    cartItems = [];
+    // keep customer Walk-in for next sale, clear tendered/code/ref but keep method memory
+    if (cashReceivedInput) cashReceivedInput.value = "";
+    const mc = document.getElementById("mpesa-code-input"); if (mc) mc.value = "";
+    const br = document.getElementById("bank-ref"); if (br) br.value = "";
+    document.getElementById("discount-input") && (document.getElementById("discount-input").value = "");
+    hideMpesaStatus();
+    loadProductsForSale();
     renderCart();
-    checkoutModal.classList.add("hidden");
-    checkoutForm.reset();
+    renderCheckoutSummary();
+    closeCheckoutModalUnsafe();
+    // Print only if asked (was 2 buttons before — now 1 checkbox)
+    if (__printAfter && response?.sale?._id) {
+      __printAfter = false;
+      const chk = document.getElementById("print-receipt-check"); if (chk) chk.checked = false;
+      try {
+        if (window.printSaleReceipt) await window.printSaleReceipt(response.sale._id);
+        else showReceiptById(response.sale._id);
+      } catch(_){}
+    }
   } catch (error) {
-    showToast("Failed to process sale. Please try again.", "error");
+    hideMpesaStatus();
+    const msg = error?.message || "Payment failed";
+    if (msg.toLowerCase().includes("cancelled")) showToast("Payment cancelled.", "warning");
+    else showToast(msg, "error");
     console.error("Sale processing error:", error);
+  } finally {
+    __isProcessing = false;
+    document.getElementById("pay-spinner")?.classList.add("hidden");
+    updatePayButton();
   }
 });
+function closeCheckoutModalUnsafe(){ __isProcessing = false; checkoutModal.classList.add("hidden"); hideMpesaStatus(); updatePayButton(); }
 
 // Clear Cart Button
 document.getElementById("clear-cart-btn")?.addEventListener("click", () => {
@@ -1462,51 +1611,148 @@ async function loadPaymentMethods() {
   }
 }
 
+function shortPayLabel(t){
+  const m = { cash:"Cash", mpesa_stk:"M-Pesa", mpesa_till:"M-Pesa", mpesa_paybill:"M-Pesa", mobile_money:"M-Pesa", card:"Card", paystack:"Card", bank:"Bank", split:"Split", paypal:"Card" };
+  return m[t] || t;
+}
 function renderPaymentMethods() {
   const container = document.getElementById("payment-methods-container");
   if (!container) return;
+  // Collapse to 5 express choices max (faster than full settings list)
+  const order = ["cash","mpesa_stk","mobile_money","mpesa_till","mpesa_paybill","card","paystack","bank","split"];
+  const seen = new Set();
+  const express = [];
+  for (const t of order) {
+    const found = configuredPaymentMethods.find(m=>m.type===t);
+    if (found && !seen.has(shortPayLabel(t))) { express.push(found); seen.add(shortPayLabel(t)); }
+  }
+  if (!express.find(m=>m.type==="cash")) express.unshift({ type:"cash", label:"Cash", icon:"fa-money-bill-wave", color:"text-green-500" });
+  if (!express.find(m=>shortPayLabel(m.type)==="M-Pesa")) express.splice(1,0,{ type:"mpesa_stk", label:"M-Pesa", icon:"fa-mobile-alt", color:"text-purple-500" });
+  if (!express.find(m=>shortPayLabel(m.type)==="Card")) express.push({ type:"card", label:"Card", icon:"fa-credit-card", color:"text-blue-500" });
+  if (!express.find(m=>shortPayLabel(m.type)==="Bank")) express.push({ type:"bank", label:"Bank", icon:"fa-university", color:"text-gray-500" });
+  const trimmed = express.slice(0,5);
+  // ensure split toggle exists as small link (not a big tile) — keep backend compat
+  if (!configuredPaymentMethods.find(m=>m.type==="split")) configuredPaymentMethods.push({ type:"split", label:"Split", icon:"fa-columns", color:"text-violet-500" });
 
-  container.innerHTML = configuredPaymentMethods.map((method, index) => `
+  container.innerHTML = trimmed.map((method) => {
+    const short = shortPayLabel(method.type);
+    const val = method.type === "card" || short==="Card" ? (configuredPaymentMethods.find(m=>m.type===method.type)?.type || "card")
+      : short==="M-Pesa" ? (configuredPaymentMethods.find(m=>String(m.type).startsWith("mpesa"))?.type || "mpesa_stk")
+      : short==="Bank" ? "bank" : short==="Cash" ? "cash" : method.type;
+    const icon = method.icon || (short==="Cash"?"fa-money-bill-wave":short==="M-Pesa"?"fa-mobile-alt":short==="Card"?"fa-credit-card":"fa-university");
+    return `
     <label class="cursor-pointer">
-      <input type="radio" name="paymentMethod" value="${method.type}" class="peer hidden" id="payment-${method.type}">
-      <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/50 dark:bg-primary-800/50 peer-checked:border-accent-500 peer-checked:bg-accent-50 dark:peer-checked:bg-accent-900/20 peer-checked:text-accent-600 dark:peer-checked:text-accent-400 transition-all hover:bg-primary-50 dark:hover:bg-primary-800">
-        <i class="fas ${method.icon} text-xl mb-1 ${method.color}"></i>
-        <span class="text-xs font-bold">${method.label}</span>
+      <input type="radio" name="paymentMethod" value="${val}" class="peer hidden" id="payment-${val}">
+      <div class="flex flex-col items-center justify-center py-3 px-1 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 dark:peer-checked:bg-emerald-900/20 transition-all hover:border-slate-300">
+        <i class="fas ${icon} text-xl mb-1"></i>
+        <span class="text-xs font-black">${short}</span>
       </div>
-    </label>
-  `).join("");
+    </label>`;
+  }).join("") + `
+    <button type="button" id="split-toggle-link" class="col-span-full text-[11px] text-violet-600 dark:text-violet-400 font-bold hover:underline py-1">Need split? Tap for Cash + M-Pesa →</button>`;
 
-  // Add event listeners to new payment method radios
   document.querySelectorAll('input[name="paymentMethod"]').forEach((radio) => {
     radio.addEventListener("change", handlePaymentMethodChange);
   });
+  document.getElementById("split-toggle-link")?.addEventListener("click", ()=> setPaymentMethod("split"));
 
-  // Select first payment method by default
-  const firstMethod = document.querySelector('input[name="paymentMethod"]');
-  if (firstMethod) firstMethod.checked = true;
+  const last = localStorage.getItem("lastPaymentMethod") || "cash";
+  const pick = container.querySelector(`input[value="${last}"]`) || container.querySelector('input[value="cash"]') || container.querySelector('input');
+  if (pick) { pick.checked = true; }
+}
+function setPaymentMethod(type, opts={}){
+  let radio = document.querySelector(`input[name="paymentMethod"][value="${type}"]`);
+  if (!radio && type === "split") {
+    // inject split radio if express tiles trimmed it
+    const c = document.getElementById("payment-methods-container");
+    if (c && !c.querySelector('input[value="split"]')) {
+      const lab = document.createElement("label");
+      lab.className = "hidden";
+      lab.innerHTML = `<input type="radio" name="paymentMethod" value="split" class="peer hidden"><div></div>`;
+      c.appendChild(lab);
+      lab.querySelector("input").addEventListener("change", handlePaymentMethodChange);
+    }
+    radio = document.querySelector('input[name="paymentMethod"][value="split"]');
+  }
+  if (!radio) radio = document.querySelector('input[name="paymentMethod"]');
+  if (radio) { radio.checked = true; handlePaymentMethodChange({ target: radio, silent: opts.silentToast }); }
 }
 
 function handlePaymentMethodChange(event) {
-  const cashPaymentSection = document.getElementById("cash-payment-section");
-  const cashReceivedInput = document.getElementById("cash-received");
-  const cashChangeSpan = document.getElementById("cash-change");
-  const processSaleBtn = document.getElementById("process-sale-btn");
+  const val = event.target.value;
+  const silent = event.silent;
+  const cashSec = document.getElementById("cash-payment-section");
+  const mpesaSec = document.getElementById("mpesa-section");
+  const bankSec = document.getElementById("bank-section");
+  const splitSec = document.getElementById("split-payment-section");
 
-  if (event.target.value === "cash") {
-    cashPaymentSection.classList.remove("hidden");
-    const total = parseFloat(
-      document
-        .getElementById("checkout-total")
-        .textContent.replace("KES ", "")
-    );
-    const received = parseFloat(cashReceivedInput.value) || 0;
-    const change = received - total;
-    cashChangeSpan.textContent = `KES ${Math.max(0, change).toFixed(2)}`;
-    processSaleBtn.disabled = received < total;
-  } else {
-    cashPaymentSection.classList.add("hidden");
-    processSaleBtn.disabled = false;
+  // Soft tier guard: warn once, fall back to cash (safety without blocking flow)
+  const plan = __salesContext.plan;
+  const feat = (k)=> plan?.features?.[k] ?? plan?.features?.get?.(k);
+  const needUpgrade =
+    ((val==="bank"||val==="split") && plan && !feat("bankPayments")) ? "Bank/Split needs Premium — using Cash for now"
+    : ((val==="card"||val==="paystack") && plan && !feat("cardPayments") && !feat("bankPayments")) ? "Card needs Standard+ — using Cash for now"
+    : (String(val).startsWith("mpesa") && String(val)!=="mobile_money" && plan && !feat("mpesa") && !feat("mobileMoney")) ? "M-Pesa not on your plan — using Cash for now"
+    : "";
+  if (needUpgrade) {
+    if (!silent && window.showToast) showToast(needUpgrade, "warning");
+    if (plan && (val==="bank"||val==="split"||val==="card"||String(val).startsWith("mpesa"))) {
+      // only downgrade if plan is known and blocks; otherwise allow (e.g. plan not loaded yet)
+      const hasAnyBlock = (val==="bank"||val==="split") ? !feat("bankPayments") : true;
+      if (hasAnyBlock && plan?.name && plan.name !== "Trial") {
+        event.target.checked = false;
+        const c = document.querySelector('input[name="paymentMethod"][value="cash"]');
+        if (c) { c.checked = true; return handlePaymentMethodChange({ target: c, silent: true }); }
+      }
+    }
   }
+
+  if(cashSec) cashSec.classList.add("hidden");
+  if(mpesaSec) mpesaSec.classList.add("hidden");
+  if(bankSec) bankSec.classList.add("hidden");
+  if(splitSec) splitSec.classList.add("hidden");
+  hideMpesaStatus();
+
+  const { total } = calcTotals();
+  if (val === "cash") {
+    cashSec?.classList.remove("hidden");
+    if (cashReceivedInput && !cashReceivedInput.value) { /* leave empty — Exact is 1 tap */ }
+  } else if (val === "split") {
+    splitSec?.classList.remove("hidden");
+    const rows = document.getElementById("split-rows");
+    if (rows && !rows.children.length) { addSplitRow("cash", total.toFixed(2)); addSplitRow("mpesa_stk", ""); }
+    updateSplitTotalUI();
+  } else if (String(val).startsWith("mpesa") || val === "mobile_money") {
+    mpesaSec?.classList.remove("hidden");
+    applyMpesaModeUI();
+    // sync phone + amount so cashier types once
+    const custPhone = document.getElementById("customer-phone")?.value || "";
+    const inline = document.getElementById("mpesa-phone-inline");
+    if (inline && !inline.value && custPhone) inline.value = custPhone;
+    const preview = document.getElementById("mpesa-amount-preview");
+    if (preview) preview.textContent = formatKES(total);
+    const amtInline = document.getElementById("mpesa-amount-inline");
+    if (amtInline && !amtInline.value) amtInline.value = total.toFixed(2);
+  } else {
+    // card / bank / paystack: single optional ref, Pay immediately
+    bankSec?.classList.remove("hidden");
+    const lbl = bankSec?.querySelector("label");
+    if (lbl) lbl.innerHTML = `<i class="fas fa-credit-card mr-1"></i> ${escapeHtml(val)} ref <span class="font-normal normal-case">(optional — tap Pay)</span>`;
+  }
+  renderCheckoutSummary();
+  // focus next input for speed
+  if (val === "cash") setTimeout(()=> cashReceivedInput?.focus(), 60);
+}
+function applyMpesaModeUI(){
+  const stk = document.getElementById("mpesa-stk-fields");
+  const code = document.getElementById("mpesa-code-fields");
+  const bStk = document.getElementById("mpesa-mode-stk");
+  const bCode = document.getElementById("mpesa-mode-code");
+  const isCode = __mpesaMode === "code";
+  stk?.classList.toggle("hidden", isCode);
+  code?.classList.toggle("hidden", !isCode);
+  if (bStk) bStk.className = "flex-1 py-2 rounded-lg text-xs font-black " + (!isCode ? "bg-violet-600 text-white" : "text-slate-500");
+  if (bCode) bCode.className = "flex-1 py-2 rounded-lg text-xs font-bold " + (isCode ? "bg-violet-600 text-white" : "text-slate-500");
 }
 
 // Initial render on page load
@@ -1547,6 +1793,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load products and render UI based on subscription status
   loadProductsForSale();
   loadPaymentMethods();
+  initExpressCheckoutWiring();
+  initReceiptsFilterWiring();
+  loadRecentReceipts();
+  document.getElementById("refresh-receipts-btn")?.addEventListener("click", loadRecentReceipts);
 
   const cartButton = document.getElementById("mobile-cart-button");
   if (cartButton) {
@@ -1572,3 +1822,176 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
+
+// === Stored receipts: date-sortable + grouped by day (no more one large table) ===
+const receiptsFilter = { range: "today", from: "", to: "", sort: "newest" };
+function receiptsRangeToDates(){
+  const d = new Date();
+  const iso = (x)=> x.toISOString().slice(0,10);
+  if (receiptsFilter.range === "today") { const t = iso(d); return { from: t, to: t }; }
+  if (receiptsFilter.range === "yesterday") { const y = new Date(d); y.setDate(y.getDate()-1); const t = iso(y); return { from: t, to: t }; }
+  if (receiptsFilter.range === "week") { const w = new Date(d); w.setDate(w.getDate()-6); return { from: iso(w), to: iso(d) }; }
+  if (receiptsFilter.range === "month") { const m = new Date(d.getFullYear(), d.getMonth(), 1); return { from: iso(m), to: iso(d) }; }
+  return { from: receiptsFilter.from || "", to: receiptsFilter.to || "" }; // all / custom
+}
+async function loadRecentReceipts(){
+  const box = document.getElementById("recent-receipts");
+  if (!box) return;
+  const { from, to } = receiptsRangeToDates();
+  const sort = receiptsFilter.sort || "newest";
+  box.innerHTML = `<div class="py-4 text-center text-slate-400"><i class="fas fa-spinner fa-spin mr-1"></i>Loading receipts…</div>`;
+  try {
+    const params = new URLSearchParams({ limit: "300", sort });
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    const res = await fetch(`/getSales?${params}`, { credentials: "include" });
+    if (!res.ok) throw new Error("load failed");
+    const data = await res.json();
+    let sales = data.sales || [];
+    // client fallback filter (if server ignores params on old deploy)
+    if (from || to) {
+      const f = from ? new Date(from + "T00:00:00") : null;
+      const t = to ? new Date(to + "T23:59:59") : null;
+      sales = sales.filter(s=>{ const c = new Date(s.createdAt); return (!f || c >= f) && (!t || c <= t); });
+    }
+    sales.sort((a,b)=> sort === "oldest" ? new Date(a.createdAt)-new Date(b.createdAt) : new Date(b.createdAt)-new Date(a.createdAt));
+    const countEl = document.getElementById("receipts-count");
+    const grand = sales.reduce((s,x)=> s + Number(x.total||0), 0);
+    if (countEl) countEl.textContent = `${sales.length} receipt${sales.length===1?"":"s"} • KES ${grand.toFixed(2)}${from||to ? ` • ${from||"…"} → ${to||"…"}` : ""}`;
+    if (!sales.length) {
+      box.innerHTML = `<div class="py-4 text-center text-slate-400">No receipts in this period — try another date.</div>`;
+      return;
+    }
+    // Group by day so long lists stay scannable
+    const groups = {};
+    sales.forEach(s=>{ const k = new Date(s.createdAt).toLocaleDateString("en-KE", { weekday:"short", year:"numeric", month:"short", day:"numeric" }); (groups[k] = groups[k] || []).push(s); });
+    box.innerHTML = Object.entries(groups).map(([day, rows])=>{
+      const dayTotal = rows.reduce((s,x)=> s + Number(x.total||0), 0);
+      return `<div class="mb-3 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+        <div class="px-3 py-2 bg-slate-50 dark:bg-slate-800 flex justify-between text-xs font-black text-slate-500 uppercase tracking-wide">
+          <span>${escHtml(day)} • ${rows.length} sale${rows.length===1?"":"s"}</span><span>KES ${dayTotal.toFixed(2)}</span>
+        </div>
+        <div class="divide-y divide-slate-100 dark:divide-slate-800">${rows.map(s=>{
+          const cashier = s.cashierName || s.cashier?.name || s.cashier?.email || "Staff";
+          const receiptNo = s.receiptNo || "";
+          const when = new Date(s.createdAt).toLocaleTimeString("en-KE", { hour:"2-digit", minute:"2-digit" });
+          return `<div class="px-3 py-2 flex items-center gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-slate-800 dark:text-slate-100 truncate">${escHtml(receiptNo)} <span class="font-normal text-slate-400">• ${escHtml(when)}</span></div>
+              <div class="text-xs text-slate-400 truncate">${escHtml(s.customerName||"Walk-in")} • Served by ${escHtml(cashier)} • ${escHtml(s.paymentMethod||"cash")}</div>
+            </div>
+            <div class="font-black whitespace-nowrap">KES ${Number(s.total||0).toFixed(2)}</div>
+            <button class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold" onclick="showReceiptById('${s._id}')"><i class="fas fa-print mr-1"></i>Reprint</button>
+          </div>`;
+        }).join("")}</div>
+      </div>`;
+    }).join("");
+  } catch (e) {
+    box.innerHTML = `<div class="py-4 text-center text-slate-400">Could not load receipts.</div>`;
+  }
+}
+function initReceiptsFilterWiring(){
+  const presets = document.getElementById("receipts-presets");
+  const activeCls = ["bg-slate-900","dark:bg-white","text-white","dark:text-slate-900"];
+  presets?.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      receiptsFilter.range = b.dataset.range;
+      receiptsFilter.from = ""; receiptsFilter.to = "";
+      document.getElementById("receipts-from").value = "";
+      document.getElementById("receipts-to").value = "";
+      presets.querySelectorAll("button").forEach(x=> x.className = "px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800");
+      b.className = "px-2.5 py-1.5 rounded-lg font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900";
+      loadRecentReceipts();
+    });
+  });
+  const syncCustom = ()=>{
+    receiptsFilter.from = document.getElementById("receipts-from")?.value || "";
+    receiptsFilter.to = document.getElementById("receipts-to")?.value || "";
+    if (receiptsFilter.from || receiptsFilter.to) receiptsFilter.range = "custom";
+    loadRecentReceipts();
+  };
+  document.getElementById("receipts-from")?.addEventListener("change", syncCustom);
+  document.getElementById("receipts-to")?.addEventListener("change", syncCustom);
+  document.getElementById("receipts-sort")?.addEventListener("change", (e)=>{ receiptsFilter.sort = e.target.value; loadRecentReceipts(); });
+}
+function escHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+// === Express wiring: every control that was dead now works, totals stay in sync ===
+function initExpressCheckoutWiring(){
+  // Cash tendered live
+  document.getElementById("cash-received")?.addEventListener("input", ()=>{
+    const { total } = calcTotals();
+    const rec = parseFloat(document.getElementById("cash-received").value) || 0;
+    const cc = document.getElementById("cash-change");
+    if (cc) cc.textContent = `Change: ${formatKES(Math.max(0, rec - total))}`;
+    updatePayButton();
+  });
+  // Quick cash: Exact = 1 tap pay-ready; +N tops up
+  document.querySelectorAll(".cash-quick").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const { total } = calcTotals();
+      const input = document.getElementById("cash-received");
+      if (!input) return;
+      const kind = btn.dataset.cash;
+      if (kind === "exact") input.value = total.toFixed(2);
+      else {
+        const cur = parseFloat(input.value) || 0;
+        const base = cur > 0 ? cur : total;
+        input.value = (base + Number(kind)).toFixed(2);
+        if (cur === 0) input.value = (total + Number(kind)).toFixed(2);
+      }
+      input.dispatchEvent(new Event("input"));
+      updatePayButton();
+    });
+  });
+  // Customer shortcuts
+  document.getElementById("customer-walkin")?.addEventListener("click", ()=>{
+    document.getElementById("customer-name").value = "Walk-in";
+  });
+  document.getElementById("customer-clear")?.addEventListener("click", ()=>{
+    document.getElementById("customer-name").value = "";
+    document.getElementById("customer-name")?.focus();
+  });
+  // Phone sync: type once, works for STK
+  const custPhone = document.getElementById("customer-phone");
+  const inlinePhone = document.getElementById("mpesa-phone-inline");
+  custPhone?.addEventListener("input", ()=>{ if (inlinePhone && !document.activeElement?.isSameNode(inlinePhone)) inlinePhone.value = custPhone.value; updatePayButton(); });
+  inlinePhone?.addEventListener("input", ()=>{ if (custPhone && !document.activeElement?.isSameNode(custPhone)) custPhone.value = inlinePhone.value; updatePayButton(); });
+  document.getElementById("mpesa-code-input")?.addEventListener("input", updatePayButton);
+  // Discount live recalc (collapsed, optional)
+  document.getElementById("discount-input")?.addEventListener("input", renderCheckoutSummary);
+  document.getElementById("discount-type")?.addEventListener("change", renderCheckoutSummary);
+  // M-Pesa mode toggle
+  document.querySelectorAll("[data-mpesa-mode]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      __mpesaMode = b.dataset.mpesaMode;
+      applyMpesaModeUI();
+      updatePayButton();
+      if (__mpesaMode === "stk") document.getElementById("mpesa-phone-inline")?.focus();
+      else document.getElementById("mpesa-code-input")?.focus();
+    });
+  });
+  // Split controls
+  document.getElementById("add-split")?.addEventListener("click", ()=> addSplitRow("cash", ""));
+  document.getElementById("split-auto")?.addEventListener("click", ()=>{
+    const { total } = calcTotals();
+    const rows = [...document.querySelectorAll("#split-rows > div")];
+    if (!rows.length) { addSplitRow("cash", total.toFixed(2)); return; }
+    const sumOthers = rows.slice(0, -1).reduce((s,r)=> s + (parseFloat(r.querySelector("[data-split-amount]")?.value)||0), 0);
+    const last = rows[rows.length-1].querySelector("[data-split-amount]");
+    if (last) last.value = Math.max(0, total - sumOthers).toFixed(2);
+    updateSplitTotalUI(); updatePayButton();
+  });
+  // Items toggle
+  document.getElementById("checkout-items-toggle")?.addEventListener("click", ()=>{
+    document.getElementById("checkout-items-wrap")?.classList.toggle("hidden");
+  });
+  // Pay & Print compat: old second button now just arms print checkbox + submits
+  document.getElementById("process-print-btn")?.addEventListener("click", ()=>{
+    __printAfter = true;
+    const chk = document.getElementById("print-receipt-check"); if (chk) chk.checked = true;
+    document.getElementById("checkout-form")?.requestSubmit();
+  });
+  window.addEventListener("online", ()=> document.getElementById("offline-queue-note")?.classList.add("hidden"));
+  window.addEventListener("offline", ()=> document.getElementById("offline-queue-note")?.classList.remove("hidden"));
+}

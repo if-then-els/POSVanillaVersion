@@ -1,33 +1,63 @@
 /**
  * Printer helpers - ESC/POS + browser fallback
- * Tier: bluetooth -> Standard+, network -> Premium; fallback PDF always allowed.
+ * Receipt data comes from GET /receipt/:id which returns the STORED copy:
+ * { sale, business, store, settings }. Business block is real BusinessDetails,
+ * never hardcoded placeholders.
  */
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function fmtKES(n){ return `KES ${Number(n||0).toFixed(2)}`; }
+function fmtDateTime(iso){
+  try { return new Date(iso).toLocaleString("en-KE", { year:"numeric", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" }); }
+  catch { return String(iso||""); }
+}
 
-async function fetchReceiptHtml(saleId) {
+async function fetchReceiptData(saleId) {
   const res = await fetch(`/receipt/${saleId}`, { credentials: "include" });
   if (!res.ok) throw new Error("receipt fetch failed");
-  const data = await res.json();
-  // build minimal printable HTML
+  return res.json();
+}
+
+async function fetchReceiptHtml(saleId) {
+  const data = await fetchReceiptData(saleId);
   const sale = data.sale;
-  const store = data.store;
+  const biz = data.business || {};
+  const store = data.store || {};
+  const settings = data.settings || {};
+  const currency = settings.currency || "KES";
+  const money = (n)=> `${currency} ${Number(n||0).toFixed(2)}`;
+  const receiptNo = sale.receiptNo || sale.receiptNumber || "";
+  const cashier = sale.cashierName || sale.cashier?.name || "Staff";
+  const role = sale.cashierRole || sale.cashier?.role || "";
   return `
     <html><head><meta charset="utf-8"><style>
-      body{font-family: monospace; padding: 16px; color:#111}
-      h1{font-size:18px; text-align:center} .line{border-top:1px dashed #999; margin:8px 0}
-      table{width:100%; font-size:13px} .right{text-align:right}
-      .footer{text-align:center; font-size:11px; color:#666; margin-top:12px}
+      body{font-family: monospace; padding: 16px; color:#111; max-width:320px; margin:0 auto}
+      h1{font-size:17px; text-align:center; margin:0} .c{text-align:center; font-size:11px; color:#333}
+      .line{border-top:1px dashed #999; margin:8px 0}
+      table{width:100%; font-size:12px; border-collapse:collapse} .right{text-align:right}
+      .tot{font-size:12px} .tot div{display:flex; justify-content:space-between; margin:2px 0}
+      .grand{display:flex; justify-content:space-between; font-weight:bold; font-size:14px}
+      .footer{text-align:center; font-size:10px; color:#666; margin-top:10px}
+      .meta{font-size:11px}
     </style></head><body>
-      <h1>${store?.storeName || "SwiftPOS"}</h1>
-      <div style="text-align:center; font-size:11px">${store?.storeAddress || ""} ${store?.storePhone || ""}</div>
+      ${settings.logoUrl ? `<div class="c"><img src="${esc(settings.logoUrl)}" style="max-width:90px"/></div>` : ""}
+      <h1>${esc(biz.name || "Receipt")}</h1>
+      ${store.name ? `<div class="c">${esc(store.name)}${store.location ? " • "+esc(store.location) : ""}</div>` : ""}
+      <div class="c">${esc(biz.address || "")}</div>
+      <div class="c">${esc(biz.phone || "")}${biz.email ? " • "+esc(biz.email) : ""}</div>
       <div class="line"></div>
-      <div style="font-size:11px">Receipt: ${sale._id} • ${new Date(sale.createdAt).toLocaleString()}<br/>Customer: ${sale.customerName || "Walk-in"} • ${sale.paymentMethod || "cash"}</div>
+      <div class="meta">Receipt: <b>${esc(receiptNo)}</b><br/>Date: ${esc(fmtDateTime(sale.createdAt))}<br/>Served by: ${esc(cashier)}${role ? " ("+esc(role)+")" : ""}<br/>Customer: ${esc(sale.customerName || "Walk-in")}<br/>Payment: ${esc(sale.paymentMethod || "cash")}${sale.mpesaReceipt ? " • Ref "+esc(sale.mpesaReceipt) : ""}${sale.bankRef ? " • Ref "+esc(sale.bankRef) : ""}</div>
       <div class="line"></div>
-      <table>${sale.items.map(i=>`<tr><td>${i.productName} x${i.quantity}</td><td class="right">KES ${(i.price*i.quantity).toFixed(2)}</td></tr>`).join("")}</table>
+      <table>${(sale.items||[]).map(i=>`<tr><td>${esc(i.productName)} x${i.quantity}</td><td class="right">${money(i.price*i.quantity)}</td></tr>`).join("")}</table>
       <div class="line"></div>
-      <div style="display:flex; justify-content:space-between; font-weight:bold"><span>Total</span><span>KES ${sale.total.toFixed(2)}</span></div>
-      ${store?.footerText ? `<div class="footer">${store.footerText}</div>` : ""}
-      <div class="footer">Thank you — powered by SwiftPOS</div>
-      ${sale.receiptNo ? `<div style="text-align:center; margin-top:8px"><img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(sale.receiptNo)}" /></div>` : ""}
+      <div class="tot">
+        <div><span>Subtotal</span><span>${money(sale.subtotal)}</span></div>
+        ${(sale.discount||0) ? `<div><span>Discount</span><span>-${money(sale.discount)}</span></div>` : ""}
+        <div><span>Tax (${sale.taxRate||0}%)</span><span>${money(sale.taxAmount)}</span></div>
+      </div>
+      <div class="grand"><span>TOTAL</span><span>${money(sale.grandTotal ?? sale.total)}</span></div>
+      ${settings.footerText ? `<div class="footer">${esc(settings.footerText)}</div>` : ""}
+      <div class="footer">Thank you for your business!</div>
+      ${receiptNo ? `<div class="c" style="margin-top:8px"><img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(receiptNo)}" /><div>${esc(receiptNo)}</div></div>` : ""}
     </body></html>
   `;
 }
@@ -49,6 +79,8 @@ async function printSale(saleId) {
     return false;
   }
 }
+async function printSaleReceipt(saleId){ return printSale(saleId); }
 
 // expose
-window.Printer = { printSale, fetchReceiptHtml };
+window.Printer = { printSale, printSaleReceipt, fetchReceiptHtml, fetchReceiptData };
+window.printSaleReceipt = printSaleReceipt;

@@ -5,28 +5,13 @@ const Plan = require("../models/plan.model");
 const axios = require("axios");
 const crypto = require("crypto");
 const auth = require("../middleware/auth.middleware");
+const currencyService = require("../services/currencyService");
 require("dotenv").config();
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+const PAYSTACK_PUBLIC_KEY = process.env.PAYSTACK_PUBLIC_KEY;
+const PAYSTACK_CURRENCY = (process.env.PAYSTACK_CURRENCY || "NGN").toUpperCase();
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
-
-// Add a conversion helper for KES to USD
-const convertKESToUSD = async (kesAmount) => {
-  // Fetch dynamic exchange rate
-  const getExchangeRate = async () => {
-    try {
-      const exchangeRate = await axios.get(
-        "https://api.exchangerate-api.com/v4/latest/USD",
-      );
-      return exchangeRate.data.rates.KES;
-    } catch (error) {
-      console.error("Error fetching exchange rate:", error);
-      return 130; // Fallback to a default rate
-    }
-  };
-  const exchangeRate = await getExchangeRate();
-  return Math.round(kesAmount / exchangeRate); // Convert KES to USD
-};
 
 // Placeholder for sendExpiryReminderEmail - YOU WILL NEED TO IMPLEMENT THIS
 async function sendExpiryReminderEmail(email, data) {
@@ -51,7 +36,7 @@ async function sendExpiryReminderEmail(email, data) {
 // Controller to initiate Paystack payment
 exports.initiatePaystackPayment = async (req, res) => {
   try {
-    const { businessId, planId, amount, email, action } = req.body; // Removed 'reference' from req.body as we will generate it here
+    const { businessId, planId, email, action, paymentMethod } = req.body; // Removed 'reference' from req.body as we will generate it here
 
     // Generate a truly unique reference using a timestamp and a random string
     // This makes it virtually impossible for duplicates.
@@ -60,18 +45,10 @@ exports.initiatePaystackPayment = async (req, res) => {
       .toString("hex")}`; // Increased random bytes for even more uniqueness
 
     // Validation checks
-    if (
-      !businessId ||
-      !planId ||
-      amount === undefined ||
-      amount === null ||
-      !email ||
-      !action
-    ) {
+    if (!businessId || !planId || !email || !action) {
       console.error("Missing required fields for Paystack initiation:", {
         businessId,
         planId,
-        amount,
         email,
         action,
       });
@@ -80,9 +57,19 @@ exports.initiatePaystackPayment = async (req, res) => {
         .json({ message: "Missing required fields for Paystack initiation" });
     }
 
-    if (amount <= 0) {
+    // Plans are priced in USD. The charge amount is computed server-side from
+    // the plan's USD price (never trust the client amount), converted to the
+    // merchant's supported currency, then to its smallest unit (kobo/cents).
+    // Paystack does NOT support KES.
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({ message: "Plan not found" });
+    }
+
+    const usdPrice = Number(plan.price) || 0;
+    if (usdPrice <= 0) {
       console.warn(
-        `Attempt to initiate Paystack payment for amount <= 0 (${amount}). Bypassing Paystack.`,
+        `Attempt to initiate Paystack payment for free plan (${plan.name}). Bypassing Paystack.`,
       );
       return res.status(200).json({
         status: true,
@@ -91,27 +78,37 @@ exports.initiatePaystackPayment = async (req, res) => {
       });
     }
 
-    // Paystack expects amount in kobo (smallest currency unit) - KES *100, no USD conversion needed
-    // KES is natively supported if merchant account is KES; fallback to direct KES amount
-    const amountKobo = Math.round(Number(amount) * 100);
-    if (amountKobo <= 0) {
-      return res.status(400).json({ message: "Invalid amount" });
+    const amountKobo = await currencyService.convertUSDToMinor(
+      usdPrice,
+      PAYSTACK_CURRENCY,
+    );
+    if (amountKobo == null || amountKobo <= 0) {
+      console.error(
+        `Could not convert USD ${usdPrice} to ${PAYSTACK_CURRENCY} for plan ${plan.name}.`,
+      );
+      return res.status(503).json({
+        message: "Could not determine the payment amount. Please retry.",
+      });
     }
+    const amountCharge = amountKobo / 100; // major units in merchant currency
 
     const paystackResponse = await axios.post(
       `${PAYSTACK_BASE_URL}/transaction/initialize`,
       {
         email,
         amount: amountKobo,
-        currency: "KES",
+        currency: PAYSTACK_CURRENCY,
         reference: uniqueRef,
         callback_url: `${req.protocol}://${req.get("host")}/subscriptions`,
         metadata: {
           businessId,
           planId,
+          planName: plan.name,
           action,
-          originalAmount: amount,
-          originalCurrency: "KES",
+          usdAmount: usdPrice,
+          originalAmount: amountCharge,
+          originalCurrency: PAYSTACK_CURRENCY,
+          paymentMethod: paymentMethod || "paystack",
         },
       },
       {
@@ -124,9 +121,13 @@ exports.initiatePaystackPayment = async (req, res) => {
 
     res.status(200).json({
       ...paystackResponse.data,
+      publicKey: PAYSTACK_PUBLIC_KEY,
+      currency: PAYSTACK_CURRENCY,
+      amountCharge,
+      amountKobo,
       metadata: {
         ...paystackResponse.data.metadata,
-        amountInKES: amount,
+        amountInUnit: amountCharge,
         amountKobo,
       },
     });
@@ -157,6 +158,10 @@ exports.verifyPaystackPayment = async (req, res) => {
 
   const event = req.body;
 
+  // Map the payment channel selected on the frontend to a value the model accepts
+  const mapStoredPaymentMethod = (channel) =>
+    channel === "card" ? "card" : "paystack";
+
   // 2. Only process successful charge events
   if (event.event === "charge.success" && event.data.status === "success") {
     try {
@@ -165,15 +170,15 @@ exports.verifyPaystackPayment = async (req, res) => {
       const businessId = metadata.businessId;
       const planId = metadata.planId;
       const action = metadata.action;
-      const originalAmountKES = metadata.originalAmount;
+      const originalAmount = metadata.originalAmount;
+      const storedPaymentMethod = mapStoredPaymentMethod(metadata.paymentMethod);
+      const chargedAmountMajor = event.data.amount / 100; // in merchant currency
 
       console.log(
         `Paystack Webhook: Received successful charge for reference ${reference}, action: ${action}`,
       );
       console.log(
-        `Original amount (KES): ${originalAmountKES}, Processed amount (USD): ${
-          event.data.amount / 100
-        }`,
+        `Charged amount (${event.data.currency}): ${chargedAmountMajor}`,
       );
 
       // Optional: Verify the transaction directly with Paystack API for double-checking
@@ -218,8 +223,8 @@ exports.verifyPaystackPayment = async (req, res) => {
           subscription.startDate = now;
           subscription.endDate = endDate;
           subscription.status = "active";
-          subscription.price = plan.price; // Store original plan price in KES
-          subscription.paymentMethod = "paystack";
+          subscription.price = chargedAmountMajor; // charged amount in merchant currency
+          subscription.paymentMethod = storedPaymentMethod;
           subscription.paystackReference = reference;
           subscription.lastPaymentDate = now;
           subscription.nextBillingDate = endDate;
@@ -230,11 +235,12 @@ exports.verifyPaystackPayment = async (req, res) => {
             plan: planId,
             action: actionType,
             date: now,
-            paymentMethod: "paystack",
-            price: plan.price, // Store original plan price in KES
+            paymentMethod: storedPaymentMethod,
+            price: chargedAmountMajor,
+            priceCurrency: event.data.currency,
             paystackReference: reference,
             status: "completed",
-            paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
+            paidAmountUSD: plan.price, // Tier price is stored in USD
           });
         } else {
           subscription = await Subscription.create({
@@ -244,8 +250,8 @@ exports.verifyPaystackPayment = async (req, res) => {
             endDate: endDate,
             status: "active",
             autoRenew: true,
-            price: plan.price, // Store original plan price in KES
-            paymentMethod: "paystack",
+            price: chargedAmountMajor, // charged amount in merchant currency
+            paymentMethod: storedPaymentMethod,
             lastPaymentDate: now,
             nextBillingDate: endDate,
             paystackReference: reference,
@@ -256,11 +262,12 @@ exports.verifyPaystackPayment = async (req, res) => {
             plan: planId,
             action: actionType,
             date: now,
-            paymentMethod: "paystack",
-            price: plan.price, // Store original plan price in KES
+            paymentMethod: storedPaymentMethod,
+            price: chargedAmountMajor,
+            priceCurrency: event.data.currency,
             paystackReference: reference,
             status: "completed",
-            paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
+            paidAmountUSD: plan.price, // Tier price is stored in USD
           });
         }
         console.log(
@@ -286,7 +293,7 @@ exports.verifyPaystackPayment = async (req, res) => {
           );
         }
 
-        subscription.paymentMethod = "paystack";
+        subscription.paymentMethod = storedPaymentMethod;
         subscription.paystackReference = reference;
         subscription.lastPaymentDate = new Date();
         await subscription.save();
@@ -296,11 +303,11 @@ exports.verifyPaystackPayment = async (req, res) => {
           plan: subscription.plan,
           action: "payment_method_updated",
           date: new Date(),
-          paymentMethod: "paystack",
-          price: originalAmountKES, // Log original KES amount here
+          paymentMethod: storedPaymentMethod,
+          price: originalAmount,
           paystackReference: reference,
           status: "completed",
-          paidAmountUSD: event.data.amount / 100, // Log the amount paid in USD
+          paidAmountUSD: event.data.amount / 100,
         });
         console.log(
           `Paystack Webhook: Payment method updated for business ${businessId}.`,
@@ -527,6 +534,25 @@ exports.getSubscriptionDetails = async (req, res) => {
         .status(404)
         .json({ message: "No active subscription found for this business." });
     }
+
+    // Attach the current plan's price in the caller's display currency.
+    // Plan prices are stored in USD; convert for display only.
+    const currency = req.query.currency || "";
+    let displayPrice = null;
+    let displayCurrency = undefined;
+    if (currency && subscription.plan && subscription.plan.price) {
+      const converted = await currencyService.convertUSD(
+        subscription.plan.price,
+        currency,
+      );
+      if (converted != null) {
+        displayCurrency = String(currency).toUpperCase();
+        displayPrice = currencyService.roundForDisplay(converted, displayCurrency);
+      }
+    }
+    subscription.displayPrice = displayPrice;
+    subscription.displayCurrency = displayCurrency;
+
     res.status(200).json({ subscription });
   } catch (error) {
     console.error("Error in getSubscriptionDetails:", error);
@@ -537,6 +563,7 @@ exports.getSubscriptionDetails = async (req, res) => {
 exports.getSubscriptionHistory = async (req, res) => {
   try {
     const businessId = req.user.business;
+    const currency = req.query.currency || "";
 
     const history = await SubscriptionLog.find({ business: businessId })
       .populate("plan", "name")
@@ -549,7 +576,31 @@ exports.getSubscriptionHistory = async (req, res) => {
         .json({ message: "No subscription history found.", history: [] });
     }
 
-    res.status(200).json({ history });
+    // Convert each entry's paid amount (stored in USD) into the caller's
+    // display currency. Falls back to the stored price when no USD amount
+    // was recorded (legacy entries).
+    const mapped = await Promise.all(
+      history.map(async (entry) => {
+        const usdSource =
+          entry.paidAmountUSD != null && entry.paidAmountUSD > 0
+            ? entry.paidAmountUSD
+            : entry.price;
+        const converted = currency
+          ? await currencyService.convertUSD(usdSource, currency)
+          : null;
+        if (converted == null) {
+          return { ...entry, displayPrice: null, displayCurrency: undefined };
+        }
+        const displayCurrency = String(currency).toUpperCase();
+        return {
+          ...entry,
+          displayPrice: currencyService.roundForDisplay(converted, displayCurrency),
+          displayCurrency,
+        };
+      }),
+    );
+
+    res.status(200).json({ history: mapped });
   } catch (error) {
     console.error("Error fetching subscription history:", error);
     res.status(500).json({ message: "Error fetching subscription history" });

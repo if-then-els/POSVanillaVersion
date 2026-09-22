@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="dark scroll-smooth">
   <head>
     <meta charset="UTF-8" />
@@ -71,7 +71,8 @@
               "scale-in": "scaleIn 0.6s ease-out",
               "float-slow": "float 6s ease-in-out infinite",
               "float-slower": "float 8s ease-in-out infinite",
-              "pulse-soft": "pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "pulse-soft":
+                "pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
               "bounce-soft": "bounceSoft 2s infinite",
               "border-flow": "borderFlow 3s linear infinite",
               morph: "morph 10s ease-in-out infinite",
@@ -125,7 +126,8 @@
         /* Light Mode Variables */
         --glass-bg: rgba(255, 255, 255, 0.85);
         --glass-border: rgba(226, 232, 240, 0.8);
-        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        --glass-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
         --input-bg: rgba(248, 250, 252, 0.8);
         --scroll-thumb: rgba(148, 163, 184, 0.5);
         --scroll-track: rgba(241, 245, 249, 0.5);
@@ -135,7 +137,8 @@
         /* Dark Mode Variables */
         --glass-bg: rgba(255, 255, 255, 0.03);
         --glass-border: rgba(255, 255, 255, 0.08);
-        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        --glass-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         --input-bg: rgba(255, 255, 255, 0.04);
         --scroll-thumb: rgba(255, 255, 255, 0.1);
         --scroll-track: rgba(255, 255, 255, 0.05);
@@ -167,10 +170,14 @@
       }
       .card-hover:hover {
         transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.1),
+          0 4px 8px rgba(0, 0, 0, 0.05);
       }
       .dark .card-hover:hover {
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(0, 0, 0, 0.2);
+        box-shadow:
+          0 20px 40px rgba(0, 0, 0, 0.3),
+          0 4px 8px rgba(0, 0, 0, 0.2);
       }
 
       /* Premium Button */
@@ -189,7 +196,9 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.2);
         transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
+        transition:
+          width 0.6s,
+          height 0.6s;
       }
       .btn-premium:hover::before {
         width: 300px;
@@ -203,15 +212,19 @@
         background-clip: padding-box, border-box;
         background-origin: padding-box, border-box;
         /* Default Light Mode Gradient */
-        background-image: linear-gradient(#f8fafc, #f8fafc),
+        background-image:
+          linear-gradient(#f8fafc, #f8fafc),
           linear-gradient(90deg, #94a3b8, #cbd5e1, #94a3b8);
-        background-size: 100% 100%, 200% 100%;
+        background-size:
+          100% 100%,
+          200% 100%;
         animation: borderFlow 3s linear infinite;
       }
-      
+
       .dark .border-animated {
         /* Dark Mode Gradient */
-        background-image: linear-gradient(#0f172a, #0f172a),
+        background-image:
+          linear-gradient(#0f172a, #0f172a),
           linear-gradient(90deg, #475569, #64748b, #475569);
       }
 
@@ -253,10 +266,20 @@
         animation: dots 1.5s steps(4, end) infinite;
       }
       @keyframes dots {
-        0%, 20% { content: ""; }
-        40% { content: "."; }
-        60% { content: ".."; }
-        80%, 100% { content: "..."; }
+        0%,
+        20% {
+          content: "";
+        }
+        40% {
+          content: ".";
+        }
+        60% {
+          content: "..";
+        }
+        80%,
+        100% {
+          content: "...";
+        }
       }
 
       /* Scrollbar */
@@ -282,14 +305,20 @@
     </style>
   </head>
 
-  <body class="bg-primary-50 text-primary-900 dark:bg-primary-900 dark:text-primary-100 transition-colors duration-300">
+  <body
+    class="bg-primary-50 text-primary-900 dark:bg-primary-900 dark:text-primary-100 transition-colors duration-300"
+  >
     <!-- Animated Background -->
     <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
       <!-- Light Mode Gradient -->
-      <div class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:hidden"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:hidden"
+      ></div>
       <!-- Dark Mode Gradient -->
-      <div class="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-950 to-primary-900 hidden dark:block"></div>
-      
+      <div
+        class="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-950 to-primary-900 hidden dark:block"
+      ></div>
+
       <div class="absolute inset-0 opacity-20 dark:opacity-20">
         <div
           class="absolute top-20 left-10 w-64 h-64 bg-accent-400/10 dark:bg-accent-500/5 rounded-full animate-float-slower animate-morph"
@@ -325,7 +354,10 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-20 items-center">
           <!-- Logo -->
-          <div class="flex items-center space-x-2 cursor-pointer" onclick="window.scrollTo(0,0)">
+          <div
+            class="flex items-center space-x-2 cursor-pointer"
+            onclick="window.scrollTo(0, 0)"
+          >
             <div class="flex-shrink-0">
               <div
                 class="w-10 h-10 bg-gradient-to-br from-accent-500 to-accent-600 rounded-xl flex items-center justify-center shadow-lg group hover:scale-110 transition-transform duration-300"
@@ -333,8 +365,11 @@
                 <i class="fas fa-bolt text-white text-lg"></i>
               </div>
             </div>
-            <span class="text-2xl font-black tracking-tight text-primary-900 dark:text-white"
-              >Swift<span class="text-accent-500 dark:text-accent-400">POS</span></span
+            <span
+              class="text-2xl font-black tracking-tight text-primary-900 dark:text-white"
+              >Swift<span class="text-accent-500 dark:text-accent-400"
+                >POS</span
+              ></span
             >
           </div>
 
@@ -380,15 +415,15 @@
 
           <!-- Buttons & Theme Toggle -->
           <div class="hidden md:flex items-center space-x-4">
-             <!-- Theme Toggle Button -->
-             <button
-             id="theme-toggle"
-             class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800 transition-colors"
-             aria-label="Toggle Dark Mode"
-           >
-             <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
-             <i class="fas fa-moon block dark:hidden text-primary-600"></i>
-           </button>
+            <!-- Theme Toggle Button -->
+            <button
+              id="theme-toggle"
+              class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800 transition-colors"
+              aria-label="Toggle Dark Mode"
+            >
+              <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+              <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+            </button>
 
             <a
               href="login.html"
@@ -406,14 +441,14 @@
 
           <!-- Mobile Menu Button -->
           <div class="md:hidden flex items-center space-x-4">
-             <!-- Theme Toggle Mobile -->
-             <button
-             id="theme-toggle-mobile"
-             class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800 transition-colors"
-           >
-             <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
-             <i class="fas fa-moon block dark:hidden text-primary-600"></i>
-           </button>
+            <!-- Theme Toggle Mobile -->
+            <button
+              id="theme-toggle-mobile"
+              class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800 transition-colors"
+            >
+              <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+              <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+            </button>
 
             <button
               type="button"
@@ -427,7 +462,10 @@
       </div>
 
       <!-- Mobile menu -->
-      <div class="md:hidden hidden border-t border-primary-200 dark:border-primary-800" id="mobile-menu">
+      <div
+        class="md:hidden hidden border-t border-primary-200 dark:border-primary-800"
+        id="mobile-menu"
+      >
         <div class="glass-premium px-4 py-3 space-y-2">
           <a
             href="#features"
@@ -449,7 +487,9 @@
             class="block px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 hover:text-accent-600 dark:hover:text-white hover:bg-primary-100 dark:hover:bg-primary-800/50 rounded-lg transition-colors duration-200"
             >FAQ</a
           >
-          <div class="pt-3 border-t border-primary-200 dark:border-primary-700 space-y-2">
+          <div
+            class="pt-3 border-t border-primary-200 dark:border-primary-700 space-y-2"
+          >
             <a
               href="login.html"
               class="block px-4 py-3 text-base font-medium text-primary-700 dark:text-primary-300 hover:text-accent-600 dark:hover:text-white hover:bg-primary-100 dark:hover:bg-primary-800/50 rounded-lg transition-colors duration-200"
@@ -478,7 +518,8 @@
             <div
               class="w-2 h-2 bg-accent-500 rounded-full animate-pulse-soft mr-3"
             ></div>
-            <span class="text-sm font-medium tracking-wide text-primary-700 dark:text-primary-200"
+            <span
+              class="text-sm font-medium tracking-wide text-primary-700 dark:text-primary-200"
               >Now with AI-Powered Analytics</span
             >
           </div>
@@ -487,8 +528,12 @@
           <h1
             class="text-5xl md:text-7xl lg:text-8xl font-black mb-8 tracking-tight"
           >
-            <span class="block text-primary-900 dark:text-primary-100">Revolutionary</span>
-            <span class="block text-accent-500 dark:text-accent-400 mt-2">POS System</span>
+            <span class="block text-primary-900 dark:text-primary-100"
+              >Revolutionary</span
+            >
+            <span class="block text-accent-500 dark:text-accent-400 mt-2"
+              >POS System</span
+            >
           </h1>
 
           <!-- Subheadline -->
@@ -502,7 +547,8 @@
             <span class="text-accent-600 dark:text-accent-400 font-semibold"
               >seamless integrations</span
             >, and
-            <span class="text-accent-600 dark:text-accent-400 font-semibold">next-gen features</span
+            <span class="text-accent-600 dark:text-accent-400 font-semibold"
+              >next-gen features</span
             >.
           </p>
 
@@ -539,7 +585,9 @@
               >
                 0
               </div>
-              <div class="text-primary-500 dark:text-primary-400 text-sm tracking-wide font-medium">
+              <div
+                class="text-primary-500 dark:text-primary-400 text-sm tracking-wide font-medium"
+              >
                 Active Users
               </div>
             </div>
@@ -550,7 +598,11 @@
               >
                 0
               </div>
-              <div class="text-primary-500 dark:text-primary-400 text-sm tracking-wide font-medium">% Uptime</div>
+              <div
+                class="text-primary-500 dark:text-primary-400 text-sm tracking-wide font-medium"
+              >
+                % Uptime
+              </div>
             </div>
             <div class="text-center">
               <div
@@ -559,7 +611,9 @@
               >
                 0
               </div>
-              <div class="text-primary-500 dark:text-primary-400 text-sm tracking-wide font-medium">
+              <div
+                class="text-primary-500 dark:text-primary-400 text-sm tracking-wide font-medium"
+              >
                 Hour Support
               </div>
             </div>
@@ -587,15 +641,20 @@
         <div class="text-center mb-20 scroll-reveal">
           <div class="inline-flex items-center space-x-2 mb-4">
             <div class="w-12 h-0.5 bg-accent-500"></div>
-            <span class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
+            <span
+              class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
               >FEATURES</span
             >
             <div class="w-12 h-0.5 bg-accent-500"></div>
           </div>
-          <h2 class="text-4xl md:text-5xl font-black mb-6 tracking-tight text-primary-900 dark:text-white">
+          <h2
+            class="text-4xl md:text-5xl font-black mb-6 tracking-tight text-primary-900 dark:text-white"
+          >
             Powerful Features
           </h2>
-          <p class="text-xl text-primary-600 dark:text-primary-300 max-w-2xl mx-auto">
+          <p
+            class="text-xl text-primary-600 dark:text-primary-300 max-w-2xl mx-auto"
+          >
             Everything you need to run your business efficiently, powered by
             cutting-edge technology
           </p>
@@ -609,10 +668,14 @@
             >
               <i class="fas fa-shopping-cart text-accent-500 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100">
+            <h3
+              class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100"
+            >
               Lightning Checkout
             </h3>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed"
+            >
               Process sales in seconds with our intuitive interface. Accept
               payments via cash, card, mobile money, and crypto.
             </p>
@@ -636,10 +699,14 @@
             >
               <i class="fas fa-brain text-accent-500 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100">
+            <h3
+              class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100"
+            >
               AI Analytics
             </h3>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed"
+            >
               Get intelligent insights with machine learning. Predict trends,
               optimize inventory, and boost profits.
             </p>
@@ -663,10 +730,14 @@
             >
               <i class="fas fa-boxes text-accent-500 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100">
+            <h3
+              class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100"
+            >
               Smart Inventory
             </h3>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed"
+            >
               Real-time stock tracking with automated reorder alerts. Never run
               out of your best-selling items again.
             </p>
@@ -690,10 +761,14 @@
             >
               <i class="fas fa-mobile-alt text-accent-500 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100">
+            <h3
+              class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100"
+            >
               Mobile First
             </h3>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed"
+            >
               Works seamlessly on any device. Take your POS anywhere with
               offline mode and cloud sync.
             </p>
@@ -717,10 +792,14 @@
             >
               <i class="fas fa-users text-accent-500 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100">
+            <h3
+              class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100"
+            >
               Customer 360
             </h3>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed"
+            >
               Complete customer profiles with purchase history, preferences, and
               automated loyalty rewards.
             </p>
@@ -744,10 +823,14 @@
             >
               <i class="fas fa-plug text-accent-500 text-2xl"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100">
+            <h3
+              class="text-2xl font-bold mb-4 text-primary-900 dark:text-primary-100"
+            >
               Integrations
             </h3>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 leading-relaxed"
+            >
               Connect with 500+ apps including accounting software, e-commerce
               platforms, and marketing tools.
             </p>
@@ -770,15 +853,20 @@
         <div class="text-center mb-20 scroll-reveal">
           <div class="inline-flex items-center space-x-2 mb-4">
             <div class="w-12 h-0.5 bg-accent-500"></div>
-            <span class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
+            <span
+              class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
               >PRICING</span
             >
             <div class="w-12 h-0.5 bg-accent-500"></div>
           </div>
-          <h2 class="text-4xl md:text-5xl font-black mb-6 tracking-tight text-primary-900 dark:text-white">
+          <h2
+            class="text-4xl md:text-5xl font-black mb-6 tracking-tight text-primary-900 dark:text-white"
+          >
             Simple Pricing
           </h2>
-          <p class="text-xl text-primary-600 dark:text-primary-300 max-w-2xl mx-auto mb-12">
+          <p
+            class="text-xl text-primary-600 dark:text-primary-300 max-w-2xl mx-auto mb-12"
+          >
             Choose the perfect plan for your business. Start free, scale as you
             grow.
           </p>
@@ -788,13 +876,22 @@
           <!-- Basic Plan -->
           <div class="glass-premium rounded-2xl p-8 scroll-reveal card-hover">
             <div class="text-center mb-8">
-              <h3 class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-2">Basic</h3>
-              <p class="text-primary-500 dark:text-primary-400 mb-6">Perfect for small businesses</p>
+              <h3
+                class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-2"
+              >
+                Basic
+              </h3>
+              <p class="text-primary-500 dark:text-primary-400 mb-6">
+                Perfect for small businesses
+              </p>
               <div class="mb-8">
-                <span class="text-5xl font-black text-primary-900 dark:text-primary-100"
+                <span
+                  class="text-5xl font-black text-primary-900 dark:text-primary-100"
                   >KSH 2,000</span
                 >
-                <span class="text-primary-500 dark:text-primary-400">/month</span>
+                <span class="text-primary-500 dark:text-primary-400"
+                  >/month</span
+                >
               </div>
               <a
                 href="#register"
@@ -804,23 +901,33 @@
               </a>
             </div>
             <ul class="space-y-4">
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>2 Users Maximum, no role management</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Up to 500 products</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Basic reporting</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Cash Payment processing</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Email support</span>
               </li>
@@ -840,13 +947,22 @@
               </span>
             </div>
             <div class="text-center mb-8">
-              <h3 class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-2">Standard</h3>
-              <p class="text-primary-500 dark:text-primary-400 mb-6">Best for growing businesses</p>
+              <h3
+                class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-2"
+              >
+                Standard
+              </h3>
+              <p class="text-primary-500 dark:text-primary-400 mb-6">
+                Best for growing businesses
+              </p>
               <div class="mb-8">
-                <span class="text-5xl font-black text-primary-900 dark:text-primary-100"
+                <span
+                  class="text-5xl font-black text-primary-900 dark:text-primary-100"
                   >KSH 3,800</span
                 >
-                <span class="text-primary-500 dark:text-primary-400">/month</span>
+                <span class="text-primary-500 dark:text-primary-400"
+                  >/month</span
+                >
               </div>
               <a
                 href="#register"
@@ -856,31 +972,45 @@
               </a>
             </div>
             <ul class="space-y-4">
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Everything in Starter and:</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Up to 10 Accounts with Role Management</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Unlimited products</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Online/Mobile Payments (M-Pesa)</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Advanced reporting</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>AI Analytics</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Priority support (Chat & Email)</span>
               </li>
@@ -893,10 +1023,18 @@
             style="animation-delay: 0.2s"
           >
             <div class="text-center mb-8">
-              <h3 class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-2">Premium</h3>
-              <p class="text-primary-500 dark:text-primary-400 mb-6">For large businesses</p>
+              <h3
+                class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-2"
+              >
+                Premium
+              </h3>
+              <p class="text-primary-500 dark:text-primary-400 mb-6">
+                For large businesses
+              </p>
               <div class="mb-8">
-                <div class="text-3xl font-black text-primary-900 dark:text-primary-100 mb-2">
+                <div
+                  class="text-3xl font-black text-primary-900 dark:text-primary-100 mb-2"
+                >
                   KSH 8,700+
                 </div>
                 <p class="text-primary-500 dark:text-primary-400 text-sm">
@@ -911,31 +1049,45 @@
               </a>
             </div>
             <ul class="space-y-4">
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Everything in Basic and:</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Unlimited registers</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Unlimited products</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Custom Online Payments</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Custom reporting</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>Multi-location support</span>
               </li>
-              <li class="flex items-start text-primary-700 dark:text-primary-200">
+              <li
+                class="flex items-start text-primary-700 dark:text-primary-200"
+              >
                 <i class="fas fa-check text-accent-500 mt-1 mr-3"></i>
                 <span>24/7 dedicated support</span>
               </li>
@@ -952,23 +1104,30 @@
           <div class="text-center mb-10">
             <div class="inline-flex items-center space-x-2 mb-4">
               <div class="w-8 h-0.5 bg-accent-500"></div>
-              <span class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
+              <span
+                class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
                 >GET STARTED</span
               >
               <div class="w-8 h-0.5 bg-accent-500"></div>
             </div>
-            <h2 class="text-4xl font-black mb-4 tracking-tight text-primary-900 dark:text-white">
+            <h2
+              class="text-4xl font-black mb-4 tracking-tight text-primary-900 dark:text-white"
+            >
               Start Your Journey
             </h2>
             <p class="text-xl text-primary-600 dark:text-primary-300 mb-6">
               Join thousands of businesses already using SwiftPOS
             </p>
             <div class="flex flex-wrap justify-center gap-4 mt-4">
-              <div class="flex items-center text-accent-500 dark:text-accent-400">
+              <div
+                class="flex items-center text-accent-500 dark:text-accent-400"
+              >
                 <i class="fas fa-check-circle mr-2"></i>
                 <span class="text-sm">30-day free trial</span>
               </div>
-              <div class="flex items-center text-accent-500 dark:text-accent-400">
+              <div
+                class="flex items-center text-accent-500 dark:text-accent-400"
+              >
                 <i class="fas fa-check-circle mr-2"></i>
                 <span class="text-sm">No credit card required</span>
               </div>
@@ -978,7 +1137,8 @@
           <form id="registration-form" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+                <label
+                  class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                   >Business Name</label
                 >
                 <input
@@ -986,13 +1146,14 @@
                   id="businessName"
                   name="businessName"
                   required
-                  style="background-color: var(--input-bg);"
+                  style="background-color: var(--input-bg)"
                   class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                   placeholder="Your Business Name"
                 />
               </div>
               <div>
-                <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+                <label
+                  class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                   >Business Location</label
                 >
                 <input
@@ -1000,7 +1161,7 @@
                   id="businessLocation"
                   name="businessLocation"
                   required
-                  style="background-color: var(--input-bg);"
+                  style="background-color: var(--input-bg)"
                   class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                   placeholder="City, Country"
                 />
@@ -1009,7 +1170,8 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+                <label
+                  class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                   >Business Email</label
                 >
                 <input
@@ -1017,13 +1179,14 @@
                   id="businessEmail"
                   name="businessEmail"
                   required
-                  style="background-color: var(--input-bg);"
+                  style="background-color: var(--input-bg)"
                   class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                   placeholder="business@example.com"
                 />
               </div>
               <div>
-                <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+                <label
+                  class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                   >Phone Number</label
                 >
                 <input
@@ -1031,7 +1194,7 @@
                   id="businessPhone"
                   name="businessPhone"
                   required
-                  style="background-color: var(--input-bg);"
+                  style="background-color: var(--input-bg)"
                   class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                   placeholder="+254 700 000 000"
                 />
@@ -1039,7 +1202,8 @@
             </div>
 
             <div>
-              <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+              <label
+                class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                 >Owners ID Number</label
               >
               <input
@@ -1047,7 +1211,7 @@
                 id="identificationNumber"
                 name="identificationNumber"
                 required
-                style="background-color: var(--input-bg);"
+                style="background-color: var(--input-bg)"
                 class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                 placeholder=""
               />
@@ -1055,7 +1219,8 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+                <label
+                  class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                   >Admin Username</label
                 >
                 <input
@@ -1063,13 +1228,14 @@
                   id="adminUsername"
                   name="adminUsername"
                   required
-                  style="background-color: var(--input-bg);"
+                  style="background-color: var(--input-bg)"
                   class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                   placeholder="Admin Username"
                 />
               </div>
               <div>
-                <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+                <label
+                  class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                   >Admin Email</label
                 >
                 <input
@@ -1077,7 +1243,7 @@
                   id="adminEmail"
                   name="adminEmail"
                   required
-                  style="background-color: var(--input-bg);"
+                  style="background-color: var(--input-bg)"
                   class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                   placeholder="admin@example.com"
                 />
@@ -1085,7 +1251,8 @@
             </div>
 
             <div>
-              <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+              <label
+                class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                 >Admin Phone</label
               >
               <input
@@ -1093,14 +1260,15 @@
                 id="adminPhone"
                 name="adminPhone"
                 required
-                style="background-color: var(--input-bg);"
+                style="background-color: var(--input-bg)"
                 class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                 placeholder="+254 700 000 001"
               />
             </div>
 
             <div>
-              <label class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
+              <label
+                class="block text-primary-700 dark:text-primary-300 text-sm font-semibold mb-3"
                 >Password</label
               >
               <input
@@ -1108,7 +1276,7 @@
                 id="password"
                 name="password"
                 required
-                style="background-color: var(--input-bg);"
+                style="background-color: var(--input-bg)"
                 class="w-full px-4 py-3.5 border border-primary-200 dark:border-primary-700 rounded-xl text-primary-900 dark:text-primary-100 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 focus-premium transition-all duration-200"
                 placeholder="Create a secure password"
               />
@@ -1120,7 +1288,9 @@
                 required
                 class="w-4 h-4 text-accent-500 bg-white dark:bg-primary-800 border-primary-300 dark:border-primary-700 rounded focus:ring-accent-500 focus:ring-2 mt-1 focus-premium"
               />
-              <label class="ml-3 text-sm text-primary-600 dark:text-primary-300">
+              <label
+                class="ml-3 text-sm text-primary-600 dark:text-primary-300"
+              >
                 I agree to the
                 <a
                   href="#"
@@ -1147,7 +1317,9 @@
               </span>
             </button>
 
-            <p class="text-center text-primary-500 dark:text-primary-400 text-sm">
+            <p
+              class="text-center text-primary-500 dark:text-primary-400 text-sm"
+            >
               Already have an account?
               <a
                 href="login.html"
@@ -1166,12 +1338,15 @@
         <div class="text-center mb-16 scroll-reveal">
           <div class="inline-flex items-center space-x-2 mb-4">
             <div class="w-12 h-0.5 bg-accent-500"></div>
-            <span class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
+            <span
+              class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
               >FAQ</span
             >
             <div class="w-12 h-0.5 bg-accent-500"></div>
           </div>
-          <h2 class="text-4xl md:text-5xl font-black mb-6 tracking-tight text-primary-900 dark:text-white">
+          <h2
+            class="text-4xl md:text-5xl font-black mb-6 tracking-tight text-primary-900 dark:text-white"
+          >
             Frequently Asked
           </h2>
           <p class="text-xl text-primary-600 dark:text-primary-300">
@@ -1316,14 +1491,19 @@
         <div class="glass-premium rounded-2xl p-12 md:p-16 scroll-reveal">
           <div class="inline-flex items-center space-x-2 mb-6">
             <div class="w-16 h-0.5 bg-accent-500"></div>
-            <span class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
+            <span
+              class="text-accent-500 dark:text-accent-400 text-sm font-semibold tracking-wider"
               >READY TO TRANSFORM</span
             >
             <div class="w-16 h-0.5 bg-accent-500"></div>
           </div>
           <h2 class="text-4xl md:text-6xl font-black mb-8 tracking-tight">
-            <span class="block text-primary-900 dark:text-primary-100">Ready to Transform</span>
-            <span class="block text-accent-500 dark:text-accent-400 mt-4">Your Business?</span>
+            <span class="block text-primary-900 dark:text-primary-100"
+              >Ready to Transform</span
+            >
+            <span class="block text-accent-500 dark:text-accent-400 mt-4"
+              >Your Business?</span
+            >
           </h2>
           <p
             class="text-xl text-primary-600 dark:text-primary-300 mb-10 max-w-3xl mx-auto leading-relaxed"
@@ -1358,7 +1538,9 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-16 relative border-t border-primary-200 dark:border-primary-800">
+    <footer
+      class="py-16 relative border-t border-primary-200 dark:border-primary-800"
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div class="col-span-1 md:col-span-2">
@@ -1368,11 +1550,16 @@
               >
                 <i class="fas fa-bolt text-white text-xl"></i>
               </div>
-              <span class="text-3xl font-black tracking-tight text-primary-900 dark:text-white"
-                >Swift<span class="text-accent-500 dark:text-accent-400">POS</span></span
+              <span
+                class="text-3xl font-black tracking-tight text-primary-900 dark:text-white"
+                >Swift<span class="text-accent-500 dark:text-accent-400"
+                  >POS</span
+                ></span
               >
             </div>
-            <p class="text-primary-600 dark:text-primary-300 mb-6 max-w-md leading-relaxed">
+            <p
+              class="text-primary-600 dark:text-primary-300 mb-6 max-w-md leading-relaxed"
+            >
               The revolutionary cloud POS system that transforms how businesses
               operate. Powered by AI, built for the future.
             </p>
@@ -1413,7 +1600,11 @@
           </div>
 
           <div>
-            <h3 class="text-lg font-bold text-primary-900 dark:text-primary-100 mb-6">Product</h3>
+            <h3
+              class="text-lg font-bold text-primary-900 dark:text-primary-100 mb-6"
+            >
+              Product
+            </h3>
             <ul class="space-y-4">
               <li>
                 <a
@@ -1454,7 +1645,11 @@
           </div>
 
           <div>
-            <h3 class="text-lg font-bold text-primary-900 dark:text-primary-100 mb-6">Support</h3>
+            <h3
+              class="text-lg font-bold text-primary-900 dark:text-primary-100 mb-6"
+            >
+              Support
+            </h3>
             <ul class="space-y-4">
               <li>
                 <a
@@ -1498,7 +1693,7 @@
         <div class="border-t border-primary-200 dark:border-primary-700 pt-8">
           <div class="flex flex-col md:flex-row justify-between items-center">
             <p class="text-primary-500 dark:text-primary-400 text-sm">
-              © 2024 SwiftPOS. All rights reserved.
+              © 2026 SwiftPOS | Codecine Creations. All rights reserved.
             </p>
             <div class="flex space-x-6 mt-4 md:mt-0">
               <a
@@ -1532,7 +1727,12 @@
         class="bg-gradient-to-r from-accent-500 to-accent-600 text-white p-4 rounded-t-2xl flex justify-between items-center"
       >
         <h2 class="text-lg font-semibold">Support</h2>
-        <button id="closeChat" class="text-white text-xl hover:text-primary-200">&times;</button>
+        <button
+          id="closeChat"
+          class="text-white text-xl hover:text-primary-200"
+        >
+          &times;
+        </button>
       </div>
 
       <!-- Body & Tabs -->
@@ -1545,7 +1745,9 @@
             class="bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-lg p-3 space-y-1"
           >
             <h3 class="text-base font-semibold">Hi Guest 👋</h3>
-            <p class="text-sm text-primary-600 dark:text-primary-300">How can we help?</p>
+            <p class="text-sm text-primary-600 dark:text-primary-300">
+              How can we help?
+            </p>
           </div>
 
           <!-- Status -->
@@ -1555,7 +1757,9 @@
           >
             <p class="font-semibold">
               Status:
-              <span class="text-accent-500 dark:text-accent-400">All systems operational</span>
+              <span class="text-accent-500 dark:text-accent-400"
+                >All systems operational</span
+              >
             </p>
             <p class="text-xs text-primary-500 dark:text-primary-400">
               Updated on: <span id="currentDate"></span>
@@ -1563,7 +1767,9 @@
           </div>
 
           <!-- Send Button -->
-          <div class="bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-lg p-3">
+          <div
+            class="bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-lg p-3"
+          >
             <button
               id="openMessage"
               class="w-full flex items-center justify-between px-4 py-2 bg-accent-500 hover:bg-accent-600 rounded-lg text-sm font-medium transition text-white"
@@ -1632,7 +1838,9 @@
           <div
             class="mt-3 bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-lg p-3 text-center"
           >
-            <p class="text-xs text-primary-500 dark:text-primary-400 mb-2">Rate this conversation:</p>
+            <p class="text-xs text-primary-500 dark:text-primary-400 mb-2">
+              Rate this conversation:
+            </p>
             <div class="flex justify-center gap-3 text-xl">
               <button title="Terrible 😠" class="hover:scale-110 transition">
                 😠
@@ -1718,7 +1926,7 @@
       // --- THEME TOGGLE LOGIC ---
       const themeToggleBtn = document.getElementById("theme-toggle");
       const themeToggleMobile = document.getElementById("theme-toggle-mobile");
-      
+
       function toggleTheme() {
         if (document.documentElement.classList.contains("dark")) {
           document.documentElement.classList.remove("dark");
@@ -1764,14 +1972,25 @@
       const navbar = document.getElementById("navbar");
       window.addEventListener("scroll", () => {
         if (window.scrollY > 100) {
-          navbar.classList.add("bg-white/90", "dark:bg-primary-900/90", "shadow-lg");
+          navbar.classList.add(
+            "bg-white/90",
+            "dark:bg-primary-900/90",
+            "shadow-lg",
+          );
           // Remove transparent border when scrolled to add definition
           navbar.classList.remove("border-transparent");
           navbar.classList.add("border-primary-200", "dark:border-primary-800");
         } else {
-          navbar.classList.remove("bg-white/90", "dark:bg-primary-900/90", "shadow-lg");
+          navbar.classList.remove(
+            "bg-white/90",
+            "dark:bg-primary-900/90",
+            "shadow-lg",
+          );
           navbar.classList.add("border-transparent");
-          navbar.classList.remove("border-primary-200", "dark:border-primary-800");
+          navbar.classList.remove(
+            "border-primary-200",
+            "dark:border-primary-800",
+          );
         }
       });
 
@@ -1860,80 +2079,86 @@
       document.addEventListener("DOMContentLoaded", function () {
         const registrationForm = document.getElementById("registration-form");
         const loadingOverlay = document.getElementById("loading-overlay");
-        
+
         if (registrationForm) {
-            registrationForm.addEventListener("submit", async (e) => {
-              e.preventDefault();
+          registrationForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-              // Validate form data
-              const formData = new FormData(registrationForm);
-              const data = Object.fromEntries(formData.entries());
+            // Validate form data
+            const formData = new FormData(registrationForm);
+            const data = Object.fromEntries(formData.entries());
 
-              // Basic validation
-              if (!data.password || data.password.length < 6) {
-                showToast("Password must be at least 6 characters long", "error");
-                return;
+            // Basic validation
+            if (!data.password || data.password.length < 6) {
+              showToast("Password must be at least 6 characters long", "error");
+              return;
+            }
+
+            // Show loading state
+            const submitButton = registrationForm.querySelector(
+              'button[type="submit"]',
+            );
+            const loadingText = submitButton.querySelector(".loading-text");
+            const loadingSpinner =
+              submitButton.querySelector(".loading-spinner");
+
+            if (loadingText && loadingSpinner) {
+              loadingText.classList.add("hidden");
+              loadingSpinner.classList.remove("hidden");
+            }
+            submitButton.disabled = true;
+            if (loadingOverlay) loadingOverlay.classList.remove("hidden");
+
+            try {
+              // Call real registration API
+              const response = await fetch("/api/business/register", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+                credentials: "include",
+              });
+
+              const result = await response.json();
+
+              if (!response.ok) {
+                throw new Error(result.message || "Registration failed");
               }
 
-              // Show loading state
-              const submitButton = registrationForm.querySelector(
-                'button[type="submit"]'
+              // Store authentication data
+              localStorage.setItem("token", result.token);
+              localStorage.setItem("business", JSON.stringify(result.business));
+
+              // Set cookie for server-side auth
+              document.cookie = `token=${result.token}; path=/; max-age=86400`;
+
+              showToast(
+                "Business registered successfully! Redirecting to dashboard...",
+                "success",
               );
-              const loadingText = submitButton.querySelector(".loading-text");
-              const loadingSpinner = submitButton.querySelector(".loading-spinner");
+              registrationForm.reset();
 
+              // Redirect to dashboard after success
+              setTimeout(() => {
+                window.location.href = "/dashboard.html";
+              }, 2000);
+            } catch (error) {
+              console.error("Registration error:", error);
+              showToast(
+                error.message || "Registration failed. Please try again.",
+                "error",
+              );
+            } finally {
+              // Reset loading state
+              if (loadingOverlay) loadingOverlay.classList.add("hidden");
               if (loadingText && loadingSpinner) {
-                loadingText.classList.add("hidden");
-                loadingSpinner.classList.remove("hidden");
+                loadingText.classList.remove("hidden");
+                loadingSpinner.classList.add("hidden");
               }
-              submitButton.disabled = true;
-              if (loadingOverlay) loadingOverlay.classList.remove("hidden");
-
-              try {
-                // Call real registration API
-                const response = await fetch("/api/business/register", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(data),
-                  credentials: "include"
-                });
-
-                const result = await response.json();
-
-                if (!response.ok) {
-                  throw new Error(result.message || "Registration failed");
-                }
-
-                // Store authentication data
-                localStorage.setItem("token", result.token);
-                localStorage.setItem("business", JSON.stringify(result.business));
-                
-                // Set cookie for server-side auth
-                document.cookie = `token=${result.token}; path=/; max-age=86400`;
-
-                showToast("Business registered successfully! Redirecting to dashboard...", "success");
-                registrationForm.reset();
-
-                // Redirect to dashboard after success
-                setTimeout(() => {
-                  window.location.href = "/dashboard.html";
-                }, 2000);
-
-              } catch (error) {
-                console.error("Registration error:", error);
-                showToast(error.message || "Registration failed. Please try again.", "error");
-              } finally {
-                // Reset loading state
-                if (loadingOverlay) loadingOverlay.classList.add("hidden");
-                if (loadingText && loadingSpinner) {
-                  loadingText.classList.remove("hidden");
-                  loadingSpinner.classList.add("hidden");
-                }
-                submitButton.disabled = false;
-              }
-            });
+              submitButton.disabled = false;
+            }
+          });
         }
       });
 
@@ -1956,8 +2181,8 @@
 
         toast.className = `glass-premium rounded-xl p-4 text-primary-900 dark:text-white font-medium transform transition-all duration-300 animate-fade-in-right max-w-sm flex items-center shadow-lg border-l-4 border-accent-500`;
         // Override glass background for toast to ensure visibility
-        toast.style.background = "var(--glass-bg)"; 
-        
+        toast.style.background = "var(--glass-bg)";
+
         toast.innerHTML = `
           <div class="flex items-center space-x-3 w-full">
             <div class="w-8 h-8 bg-gradient-to-r ${colors[type]} rounded-lg flex items-center justify-center flex-shrink-0 text-white">
@@ -1988,7 +2213,7 @@
         setTimeout(() => {
           showToast(
             "Welcome to SwiftPOS! 🚀 Toggle theme in the menu.",
-            "success"
+            "success",
           );
         }, 2000);
 
@@ -2012,7 +2237,7 @@
           input.addEventListener("blur", () => {
             input.parentElement.classList.remove(
               "ring-2",
-              "ring-accent-500/20"
+              "ring-accent-500/20",
             );
           });
         });
@@ -2037,7 +2262,7 @@
             }
           });
         },
-        { threshold: 0.1 }
+        { threshold: 0.1 },
       );
 
       // Observe elements with data-animate attribute

@@ -48,6 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
     paymentAction: "upgrade", // 'upgrade', 'payCurrent', or 'updatePaymentMethod'
   };
 
+  // Expose appState and flow helpers globally so inline handlers (upgradeToPlan etc.) can use them
+  window.appState = appState;
+
   // Toast Notification Function (existing code)
   function showToast(
     message = "Action completed Successfully!",
@@ -133,10 +136,15 @@ document.addEventListener("DOMContentLoaded", () => {
     actions.needsPayment = status === "pending" || (price === 0 && !actions.isCurrentTrial);
 
     // Can upgrade if subscription is active and current plan is not trial
-    actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
+actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
     
     // Can pay for current plan if it's a trial that needs activation
     actions.canPayCurrent = actions.isCurrentTrial && (status === "active" || status === "pending");
+
+    // Paid plan that needs payment/renewal — also allow paying for the current plan
+    if (!actions.isCurrentTrial && (status === "pending" || status === "expired")) {
+      actions.canPayCurrent = true;
+    }
     
     // Can always update payment method if there's a subscription
     actions.canUpdatePayment = true;
@@ -355,11 +363,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch("/subscriptions/details", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/subscriptions/details?currency=${encodeURIComponent(
+          window.PAYMENT_CURRENCY || "",
+        )}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -381,11 +394,13 @@ document.addEventListener("DOMContentLoaded", () => {
           if (expiryElement) expiryElement.textContent = "N/A";
           if (paymentElement) paymentElement.textContent = "N/A";
           const tbody = document.querySelector("table tbody");
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="5" class="text-center py-4 text-gray-400">No billing history available.</td>
-            </tr>
-          `;
+          if (tbody) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="5" class="text-center py-4 text-gray-400">No billing history available.</td>
+              </tr>
+            `;
+          }
           return;
         }
         throw new Error(
@@ -411,10 +426,13 @@ document.addEventListener("DOMContentLoaded", () => {
         planNameElement.textContent =
           appState.currentSubscription.plan?.name || "N/A";
       if (planPriceElement) {
+        const subPrice =
+          appState.currentSubscription.displayPrice != null
+            ? appState.currentSubscription.displayPrice
+            : appState.currentSubscription.price;
         planPriceElement.textContent =
-          appState.currentSubscription.price !== undefined &&
-          appState.currentSubscription.price !== null
-            ? `KES ${appState.currentSubscription.price.toLocaleString()}`
+          subPrice !== undefined && subPrice !== null
+            ? formatCurrency(subPrice, appState.currentSubscription.displayCurrency)
             : "N/A";
       }
       if (statusElement) {
@@ -439,11 +457,16 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(updateSubscriptionActions, 100); // Small delay to ensure DOM is ready
 
       // Fetch and update billing history from logs
-      const historyResponse = await fetch("/subscriptions/history", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      const historyResponse = await fetch(
+        `/subscriptions/history?currency=${encodeURIComponent(
+          window.PAYMENT_CURRENCY || "",
+        )}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        },
+      );
 
       if (!historyResponse.ok)
         throw new Error("Failed to fetch billing history");
@@ -451,62 +474,68 @@ document.addEventListener("DOMContentLoaded", () => {
       const billingHistory = historyData.history;
 
       const tbody = document.querySelector("table tbody");
-      tbody.innerHTML = "";
-      if (billingHistory && billingHistory.length > 0) {
-        billingHistory.forEach((entry) => {
-          const tr = document.createElement("tr");
-          tr.className = "hover:bg-white/5 transition-colors group";
-          tr.innerHTML = `
-            <td class="py-4 px-6 text-white font-medium">${new Date(
-              entry.date,
-            ).toLocaleDateString()}</td>
-            <td class="py-4 px-6">
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-crown text-white text-sm"></i>
+      if (tbody) {
+        tbody.innerHTML = "";
+        if (billingHistory && billingHistory.length > 0) {
+          billingHistory.forEach((entry) => {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-white/5 transition-colors group";
+            tr.innerHTML = `
+              <td class="py-4 px-6 text-white font-medium">${new Date(
+                entry.date,
+              ).toLocaleDateString()}</td>
+              <td class="py-4 px-6">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-crown text-white text-sm"></i>
+                  </div>
+                  <div>
+                    <p class="text-white font-medium">${
+                      entry.plan?.name || "N/A"
+                    } Subscription</p>
+                    <p class="text-gray-400 text-sm">${
+                      entry.action || "Payment"
+                    } (${
+                      entry.displayPrice != null
+                        ? formatCurrency(entry.displayPrice, entry.displayCurrency)
+                        : "N/A"
+                    })</p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-white font-medium">${
-                    entry.plan?.name || "N/A"
-                  } Subscription</p>
-                  <p class="text-gray-400 text-sm">${
-                    entry.action || "Payment"
-                  } (KES ${
-                    entry.price ? entry.price.toLocaleString() : "N/A"
-                  })</p>
-                </div>
-              </div>
-            </td>
-            <td class="py-4 px-6 text-white font-bold">KES ${
-              entry.price ? entry.price.toLocaleString() : "N/A"
-            }</td>
-            <td class="py-4 px-6">
-              <span class="bg-gradient-to-r ${
-                entry.status === "active" || entry.status === "completed"
-                  ? "from-success-500 to-success-600"
-                  : "from-red-500 to-red-600"
-              } text-white text-xs font-bold px-3 py-1 rounded-full">
-                <i class="fas fa-${
+              </td>
+              <td class="py-4 px-6 text-white font-bold">${
+                entry.displayPrice != null
+                  ? formatCurrency(entry.displayPrice, entry.displayCurrency)
+                  : "N/A"
+              }</td>
+              <td class="py-4 px-6">
+                <span class="bg-gradient-to-r ${
                   entry.status === "active" || entry.status === "completed"
-                    ? "check"
-                    : "times"
-                } mr-1"></i>${entry.status ? entry.status.toUpperCase() : "N/A"}
-              </span>
-            </td>
-            <td class="py-4 px-6">
-              <button class="text-primary-400 hover:text-primary-300 font-medium transition-colors group-hover:scale-110">
-                <i class="fas fa-download mr-2"></i>Download
-              </button>
-            </td>
+                    ? "from-success-500 to-success-600"
+                    : "from-red-500 to-red-600"
+                } text-white text-xs font-bold px-3 py-1 rounded-full">
+                  <i class="fas fa-${
+                    entry.status === "active" || entry.status === "completed"
+                      ? "check"
+                      : "times"
+                  } mr-1"></i>${entry.status ? entry.status.toUpperCase() : "N/A"}
+                </span>
+              </td>
+              <td class="py-4 px-6">
+                <button class="text-primary-400 hover:text-primary-300 font-medium transition-colors group-hover:scale-110">
+                  <i class="fas fa-download mr-2"></i>Download
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center py-4 text-gray-400">No billing history available.</td>
+            </tr>
           `;
-          tbody.appendChild(tr);
-        });
-      } else {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="text-center py-4 text-gray-400">No billing history available.</td>
-          </tr>
-        `;
+        }
       }
 
       // Check expiry status and show notification
@@ -631,45 +660,37 @@ document.addEventListener("DOMContentLoaded", () => {
       infoDiv.innerHTML = '<i class="fas fa-rocket mr-1"></i>Get started with a plan';
     }
     
-    actionContainer.appendChild(infoDiv);
+actionContainer.appendChild(infoDiv);
   }
 
   // --- Function to initiate payment flow for current plan ---
   function initiatePaymentFlow() {
-    if (!appState.currentSubscription || !appState.currentSubscription.plan) {
+    if (!appState.currentSubscription) {
       showToast("Current subscription details not available", "error");
       return;
     }
 
     const paymentModal = document.getElementById("payment-options-modal");
-    if (paymentModal) {
-      paymentModal.classList.remove("hidden");
-      showStep("payment-step-3"); // Go directly to payment method selection
-      
-      // Pre-fill payment details
-      const paystackEmailInput = document.getElementById("paystack-email-input");
-      const paystackAmountInput = document.getElementById("paystack-amount");
-      const mpesaAmountInput = document.getElementById("mpesa-amount");
+    if (!paymentModal) return;
+    paymentModal.classList.remove("hidden");
 
-      if (paystackEmailInput && appState.currentBusiness?.email) {
-        paystackEmailInput.value = appState.currentBusiness.email;
-      }
+    // On a trial: ask the user to choose a paid plan first
+    if (isTrialPlan(appState.currentSubscription.plan)) {
+      appState.paymentAction = "payCurrent";
+      showStep("payment-step-2"); // Show plan selection
+      fetchAvailablePlans();
+      showToast("Choose a paid plan to activate your subscription", "info");
+      return;
+    }
 
-      // Set amount based on available paid plans (get first paid plan)
-      fetchAvailablePlans().then(() => {
-        // Find a suitable paid plan to upgrade to
-        const availablePaidPlans = getAvailablePaidPlans();
-        if (availablePaidPlans.length > 0) {
-          const suggestedPlan = availablePaidPlans[0];
-          if (paystackAmountInput) {
-            paystackAmountInput.value = `KES ${suggestedPlan.price.toLocaleString()}`;
-          }
-          if (mpesaAmountInput) {
-            mpesaAmountInput.value = `KES ${suggestedPlan.price.toLocaleString()}`;
-          }
-          appState.selectedPlan = suggestedPlan;
-        }
-      });
+    // Paid plan needing payment: pay for the current plan
+    appState.paymentAction = "payCurrent";
+    showStep("payment-step-3"); // Go to payment method selection
+
+    // Pre-fill payment details
+    const paystackEmailInput = document.getElementById("paystack-email-input");
+    if (paystackEmailInput && appState.currentBusiness?.email) {
+      paystackEmailInput.value = appState.currentBusiness.email;
     }
   }
 
@@ -743,13 +764,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.availablePaidPlans || [];
   }
 
-  async function fetchAvailablePlans() {
+async function fetchAvailablePlans() {
     try {
-      const response = await fetch("/plans", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `/plans?currency=${encodeURIComponent(window.PAYMENT_CURRENCY || "")}`,
+        {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) throw new Error("Failed to fetch plans");
 
@@ -764,8 +788,9 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("Invalid plans data format");
       }
 
-      // Store paid plans globally
+// Store paid plans globally
       window.availablePaidPlans = plansArray.filter(plan => !isTrialPlan(plan));
+      if (window.updatePlanCards) window.updatePlanCards();
 
       const plansList = document.getElementById("plans-list");
       if (!plansList) return;
@@ -783,11 +808,17 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Filter plans based on current subscription
-      const actions = getAvailableActions();
+const actions = getAvailableActions();
       const currentPlanId = appState.currentSubscription?.plan?._id || appState.currentSubscription?.plan;
       
-      let eligiblePlans = plansArray;
-      
+let eligiblePlans = plansArray;
+
+      // Current plan price in the SAME display currency as the plan list
+      const currentPrice =
+        appState.currentSubscription?.displayPrice ??
+        appState.currentSubscription?.price ??
+        0;
+
       // If upgrading, exclude trial plans and current plan
       if (appState.paymentAction === "upgrade") {
         eligiblePlans = plansArray.filter(plan => {
@@ -798,9 +829,11 @@ document.addEventListener("DOMContentLoaded", () => {
           if (plan._id === currentPlanId) return false;
           
           // Only allow upgrades to more expensive plans
-          const currentPrice = appState.currentSubscription?.price || 0;
           return plan.price > currentPrice;
         });
+      } else if (appState.paymentAction === "payCurrent") {
+        // Trial activation — show paid plans only
+        eligiblePlans = plansArray.filter(plan => !isTrialPlan(plan));
       }
 
       if (eligiblePlans.length === 0) {
@@ -819,7 +852,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const button = document.createElement("button");
         button.className = "w-full px-4 py-3 mb-2 bg-gray-800 rounded-lg text-left hover:bg-gray-700 transition-colors";
         
-        const isUpgrade = plan.price > (appState.currentSubscription?.price || 0);
+const isUpgrade =
+        plan.price > currentPrice;
         const badgeClass = isUpgrade ? "text-success-400" : "text-gray-400";
         const badgeText = isUpgrade ? "UPGRADE" : "DOWNGRADE";
         
@@ -827,11 +861,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="flex justify-between items-center">
             <div>
               <div class="font-semibold">${plan.name} Plan</div>
-              <div class="text-sm text-gray-400">KES ${plan.price.toLocaleString()}</div>
+              <div class="text-sm text-gray-400">${formatCurrency(
+                plan.price,
+                plan.currency,
+              )}</div>
             </div>
             ${isUpgrade ? `<span class="text-xs ${badgeClass} font-bold">${badgeText}</span>` : ''}
           </div>
-        `;
+`;
         
         button.addEventListener("click", () => {
           appState.selectedPlan = {
@@ -840,25 +877,15 @@ document.addEventListener("DOMContentLoaded", () => {
             price: plan.price,
           };
 
-          // Go directly to payment method selection
+          // Go to payment method selection
           const paymentModal = document.getElementById("payment-options-modal");
           if (paymentModal) {
             showStep("payment-step-3");
-            
+
             // Pre-fill email
             const paystackEmailInput = document.getElementById("paystack-email-input");
             if (paystackEmailInput && appState.currentBusiness?.email) {
               paystackEmailInput.value = appState.currentBusiness.email;
-            }
-            
-            // Set amount
-            const paystackAmountInput = document.getElementById("paystack-amount");
-            const mpesaAmountInput = document.getElementById("mpesa-amount");
-            if (paystackAmountInput) {
-              paystackAmountInput.value = `KES ${plan.price.toLocaleString()}`;
-            }
-            if (mpesaAmountInput) {
-              mpesaAmountInput.value = `KES ${plan.price.toLocaleString()}`;
             }
           }
         });
@@ -929,6 +956,17 @@ document.addEventListener("DOMContentLoaded", () => {
         step.classList.add("hidden");
       });
     document.getElementById(stepId)?.classList.remove("hidden");
+
+    // Keep the payment-method step title in sync with the active flow
+    if (stepId === "payment-step-3") {
+      const title = document.querySelector("#payment-step-3 h2");
+      if (title) {
+        title.textContent =
+          appState.paymentAction === "updatePaymentMethod"
+            ? "Update Payment Method"
+            : "Select Payment Method";
+      }
+    }
   }
 
   // --- Event Listeners ---
@@ -963,9 +1001,9 @@ document.addEventListener("DOMContentLoaded", () => {
           if (currentStep.id === "payment-step-2") {
             showStep("payment-step-1");
           } else if (currentStep.id === "payment-step-3") {
-            if (appState.paymentAction === "upgrade") {
+            if (appState.paymentAction === "upgrade" || (appState.paymentAction === "payCurrent" && isTrialPlan(appState.currentSubscription?.plan))) {
               showStep("payment-step-2");
-            } else if (appState.paymentAction === "updatePaymentMethod") {
+            } else {
               showStep("payment-step-1");
             }
           } else if (
@@ -1032,28 +1070,67 @@ document.addEventListener("DOMContentLoaded", () => {
   //   }`;
   // });
 
-  const selectPaystackBtn = document.getElementById("selectPaystack");
-  if (selectPaystackBtn) {
-    selectPaystackBtn.addEventListener("click", () => {
-      showStep("payment-step-4-paystack");
-      const paystackEmailInput = document.getElementById(
-        "paystack-email-input",
-      );
-      const paystackAmountInput = document.getElementById("paystack-amount");
+  // Determine the amount to charge based on the current payment action
+  function getPaymentAmount() {
+    if (appState.paymentAction === "updatePaymentMethod") return null;
 
-      if (paystackEmailInput)
-        paystackEmailInput.value = appState.currentBusiness?.email || "";
+    if (
+      appState.paymentAction === "upgrade" ||
+      isTrialPlan(appState.currentSubscription?.plan)
+    ) {
+      return appState.selectedPlan?.price || null;
+    }
 
-      // Amount based on action
-      const amount =
-        appState.paymentAction === "upgrade"
-          ? appState.selectedPlan?.price
-          : appState.currentSubscription?.price;
+    // Paying for the current paid plan — prefer the display-converted price
+    return appState.currentSubscription?.displayPrice != null
+      ? appState.currentSubscription.displayPrice
+      : appState.currentSubscription?.price != null
+        ? appState.currentSubscription.price
+        : null;
+  }
 
-      if (paystackAmountInput) {
-        paystackAmountInput.value = `KES ${amount ? amount.toLocaleString() : "N/A"}`;
+  // Open the "Complete Payment" step for a chosen channel (card / mobile money)
+  function openPaymentStep4(paymentChannel) {
+    window.selectedPaymentChannel = paymentChannel;
+    showStep("payment-step-4-paystack");
+    const paystackEmailInput = document.getElementById("paystack-email-input");
+    if (paystackEmailInput)
+      paystackEmailInput.value = appState.currentBusiness?.email || "";
+
+    const channelLabel = document.getElementById(
+      "selected-payment-channel",
+    );
+    const paystackAmountInput = document.getElementById("paystack-amount");
+    if (paystackAmountInput) {
+      if (appState.paymentAction === "updatePaymentMethod") {
+        paystackAmountInput.value = "No charge for method update";
+      } else {
+        const amount = getPaymentAmount();
+        paystackAmountInput.value = amount != null ? formatCurrency(amount) : "N/A";
       }
-    });
+    }
+    if (channelLabel) {
+      channelLabel.textContent =
+        appState.paymentAction === "updatePaymentMethod"
+          ? "You're updating your payment method"
+          : `Paying with ${
+              paymentChannel === "card" ? "Card" : "Mobile Money"
+            }`;
+    }
+  }
+
+  // Card payment method
+  const selectCardBtn = document.getElementById("selectCard");
+  if (selectCardBtn) {
+    selectCardBtn.addEventListener("click", () => openPaymentStep4("card"));
+  }
+
+  // Mobile Money payment method
+  const selectMobileMoneyBtn = document.getElementById("selectMobileMoney");
+  if (selectMobileMoneyBtn) {
+    selectMobileMoneyBtn.addEventListener("click", () =>
+      openPaymentStep4("mobile_money"),
+    );
   }
 
   // Pay with M-Pesa button (currently disabled in UI)
@@ -1085,7 +1162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Handle payment method update differently (no charge)
       if (appState.paymentAction === "updatePaymentMethod") {
-        return await updatePaymentMethodOnly();
+return await updatePaymentMethodOnly();
       }
 
       // Determine plan ID and amount based on action
@@ -1097,20 +1174,31 @@ document.addEventListener("DOMContentLoaded", () => {
         planName = appState.selectedPlan?.name;
         actionText = `Upgrading to ${planName} Plan`;
       } else if (appState.paymentAction === "payCurrent") {
-        // For paying current plan, find a suitable paid plan to upgrade to
-        const paidPlans = getAvailablePaidPlans();
-        if (paidPlans.length === 0) {
-          showToast("No paid plans available for activation", "error");
-          return;
+        if (isTrialPlan(appState.currentSubscription?.plan)) {
+          // Trial activation — user picked a paid plan in the plan selection step
+          planId = appState.selectedPlan?._id;
+          amount = appState.selectedPlan?.price;
+          planName = appState.selectedPlan?.name;
+          actionText = `Activating ${planName} Plan`;
+        } else {
+          // Paying for the user's current paid plan
+          const currentPlan = appState.currentSubscription?.plan;
+          planId = currentPlan?._id || currentPlan;
+          amount = appState.currentSubscription?.price;
+          planName =
+            currentPlan && typeof currentPlan === "object"
+              ? currentPlan.name
+              : "Current";
+          actionText = `Paying for ${planName} Plan`;
         }
-        planId = paidPlans[0]._id;
-        amount = paidPlans[0].price;
-        planName = paidPlans[0].name;
-        actionText = `Activating ${planName} Plan`;
       }
 
-      if (!planId || amount <= 0) {
+      if (!planId || !amount || amount <= 0) {
         showToast("Plan information not available or invalid amount", "error");
+        if (isTrialPlan(appState.currentSubscription?.plan)) {
+          // Go back to plan selection so the user can choose a plan
+          showStep("payment-step-2");
+        }
         return;
       }
 
@@ -1123,6 +1211,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Show processing message
       showToast(actionText + "...", "info");
 
+      const paymentChannel = window.selectedPaymentChannel || "paystack";
+
       const response = await fetch("/payments/paystack/initiate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1134,6 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
           amount: amount,
           email: email,
           action: appState.paymentAction === "payCurrent" ? "upgrade" : appState.paymentAction,
+          paymentMethod: paymentChannel,
         }),
       });
 
@@ -1148,10 +1239,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.status && data.data?.authorization_url) {
         // Open Paystack popup
+        const publicKey = data.data.public_key || data.publicKey;
+        if (!publicKey) {
+          showToast(
+            "Payment configuration is missing. Please contact support.",
+            "error",
+          );
+          return;
+        }
         const handler = PaystackPop.setup({
-          key: data.data.public_key || "pk_live_xxxxxxxxxxxxxxxxxxxxxxxx", // Fallback - should be from config
+          key: publicKey,
           email: email,
-          amount: amount * 100, // Paystack expects amount in kobo/cents
+          // The backend computes the charge from the plan's USD price and
+          // returns it in the merchant currency's minor units (kobo/cents).
+          amount: data.amountKobo || Math.round(Number(amount) * 100),
           ref: data.data.reference,
           callback: function (response) {
             // Payment successful - close popup and show success message
@@ -1393,6 +1494,24 @@ document.addEventListener("DOMContentLoaded", () => {
     await fetchSubscriptionDetails();
     monitorSubscriptionStatus(); // This will re-check and set notifications
   }
+
+  // Expose flow helpers for inline handlers in manageSubscriptions.html
+  window.subscriptionFlow = {
+    appState,
+    showStep,
+    fetchAvailablePlans,
+    showUpgradeFlow,
+    getPaymentAmount,
+    openPaymentStep4,
+    initiatePaystackPayment,
+  };
+
+  // When the detected display currency changes, refresh plans + details so
+  // every price on the page reflects the user's currency.
+  window.onCurrencyChanged = () => {
+    fetchAvailablePlans();
+    fetchSubscriptionDetails();
+  };
 
   initialLoad();
   checkPaymentStatusFromURL(); // Check for payment status on page load

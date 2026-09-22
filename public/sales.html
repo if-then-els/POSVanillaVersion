@@ -528,6 +528,36 @@
 
             </div>
           </div>
+
+          <!-- Stored receipts (accountability: sortable by date, reprintable copies) -->
+          <div class="mt-6 glass-premium rounded-2xl p-5 animate-slide-up">
+            <div class="flex flex-wrap items-center gap-2 justify-between mb-3">
+              <h2 class="text-base font-bold text-primary-900 dark:text-white flex items-center gap-2">
+                <span class="p-2 rounded-lg bg-accent-100 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400"><i class="fas fa-receipt"></i></span>
+                Receipts <span id="receipts-count" class="text-xs font-normal text-slate-400">stored copies • tap to reprint</span>
+              </h2>
+              <button id="refresh-receipts-btn" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 dark:hover:bg-slate-800"><i class="fas fa-rotate mr-1"></i>Refresh</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mb-3 text-xs">
+              <div class="flex gap-1 flex-wrap" id="receipts-presets">
+                <button data-range="today" class="px-2.5 py-1.5 rounded-lg font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900">Today</button>
+                <button data-range="yesterday" class="px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Yesterday</button>
+                <button data-range="week" class="px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Last 7 days</button>
+                <button data-range="month" class="px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">This month</button>
+                <button data-range="all" class="px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">All</button>
+              </div>
+              <input id="receipts-from" type="date" class="px-2 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" title="From date" />
+              <span class="text-slate-400">→</span>
+              <input id="receipts-to" type="date" class="px-2 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700" title="To date" />
+              <select id="receipts-sort" class="px-2 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-bold">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+              </select>
+            </div>
+            <div id="recent-receipts" class="text-sm">
+              <div class="py-4 text-center text-slate-400">Loading receipts…</div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -553,169 +583,146 @@
               </button>
             </div>
 
-            <!-- Modal Body -->
-            <form id="checkout-form" class="p-6 space-y-5">
+            <!-- Modal Body : Express 1-screen checkout (fast, safe, minimal typing) -->
+            <form id="checkout-form" class="p-5 sm:p-6 space-y-4 max-h-[85vh] overflow-y-auto">
               <div id="checkout-auth-guard" class="hidden p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
                 <i class="fas fa-lock mr-1"></i><span id="guard-msg">You don't have permission to checkout.</span>
               </div>
-              <!-- Customer (refined) -->
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3">
+
+              <!-- 1. Total hero — always visible, single source of truth -->
+              <div class="flex items-center justify-between p-4 rounded-2xl bg-primary-900 dark:bg-white text-white dark:text-primary-900 shadow-lg">
+                <div>
+                  <p class="text-[11px] font-bold uppercase tracking-widest opacity-70">Total to pay</p>
+                  <p id="checkout-total" class="text-3xl font-black tracking-tight">KES 0.00</p>
+                  <p class="text-[11px] opacity-70 mt-0.5"><span id="checkout-items-count">0 items</span> • Tax <span id="checkout-tax-rate">0%</span> incl. • <span id="checkout-subtotal">KES 0.00</span> subtotal</p>
+                  <p class="text-[11px] opacity-0 h-0 overflow-hidden"><span id="checkout-discount">-KES 0.00</span> <span id="checkout-tax">KES 0.00</span></p>
+                </div>
+                <div class="text-right">
+                  <div id="checkout-save-badge" class="hidden text-[11px] px-2 py-1 rounded-full bg-emerald-500 text-white font-bold mb-1"><i class="fas fa-piggy-bank mr-1"></i>Save <span id="checkout-save-amount">KES 0.00</span></div>
+                  <button type="button" id="checkout-items-toggle" class="text-[11px] underline opacity-70 hover:opacity-100">View items</button>
+                </div>
+              </div>
+              <div id="checkout-items-wrap" class="hidden rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900">
+                <div id="checkout-items" class="p-3 space-y-1.5 max-h-36 overflow-y-auto text-sm"></div>
+              </div>
+
+              <!-- 2. Payment — big tap targets, Cash default, remembers last choice -->
+              <div class="space-y-2">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-xs font-black tracking-widest text-slate-500 uppercase"><i class="fas fa-user-circle mr-1"></i> Customer</h4>
-                  <div class="flex gap-1">
-                    <button type="button" id="customer-walkin" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-100">Walk-in</button>
-                    <button type="button" id="customer-clear" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs">Clear</button>
+                  <label class="block text-sm font-bold text-primary-900 dark:text-white">How is customer paying?</label>
+                  <span id="payment-tier-badge" class="hidden text-[11px] px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold"><i class="fas fa-crown mr-1"></i>Upgrade</span>
+                </div>
+                <div id="payment-methods-container" class="grid grid-cols-4 gap-2">
+                  <div class="col-span-full flex items-center justify-center gap-2 py-4 text-slate-400 text-sm">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
                   </div>
                 </div>
-                <div class="relative">
-                  <input id="customer-name" name="customerName" required placeholder="Customer name — Walk-in" class="w-full pl-10 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-semibold placeholder:font-normal" />
-                  <i class="fas fa-user absolute left-3.5 top-3.5 text-violet-500"></i>
-                  <span class="absolute right-3 top-3 text-[11px] px-1.5 py-0.5 rounded bg-violet-600 text-white font-bold">* required</span>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label class="block text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-1">Phone <span class="text-violet-600">• M-Pesa</span></label>
-                    <div class="relative">
-                      <input id="customer-phone" name="customerPhone" type="tel" placeholder="2547XXXXXXXX" class="w-full pl-9 pr-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-mono" />
-                      <i class="fas fa-phone absolute left-3 top-3 text-slate-400 text-sm"></i>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-[11px] font-bold tracking-widest text-slate-500 uppercase mb-1">Email <span class="font-normal normal-case">• receipt</span></label>
-                    <input id="customer-email" type="email" placeholder="optional@email.com" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm" />
-                  </div>
-                </div>
-                <p class="text-[11px] text-slate-400"><i class="fas fa-info-circle mr-1"></i>Phone required for M-Pesa STK Push. Email sends receipt PDF if configured.</p>
+                <p class="text-[11px] text-slate-400"><i class="fas fa-shield-alt mr-1 text-emerald-500"></i>Safe by default: validated, audit-logged, idempotent. No double-charge.</p>
               </div>
 
-              <!-- Discount & Tax (refined) -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                  <label class="block text-[11px] font-black tracking-widest text-slate-500 uppercase mb-1"><i class="fas fa-tag mr-1 text-amber-500"></i> Discount</label>
-                  <div class="flex gap-2">
-                    <div class="relative flex-1">
-                      <input id="discount-input" type="number" min="0" step="0.01" placeholder="0.00" class="w-full pl-8 pr-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
-                      <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-bold">–</span>
-                    </div>
-                    <select id="discount-type" class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold">
-                      <option value="kes">KES</option>
-                      <option value="percent">%</option>
-                    </select>
-                  </div>
-                  <p class="text-[11px] text-slate-400 mt-1">Applied before tax. Manager PIN may be required for >10% (Premium).</p>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  <label class="block text-[11px] font-black tracking-widest text-slate-500 uppercase mb-1"><i class="fas fa-percent mr-1 text-violet-500"></i> Tax</label>
-                  <div id="tax-display" class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-black">
-                    <span>16% VAT</span><span class="text-xs font-normal text-slate-500">from Settings</span>
-                  </div>
-                  <a href="/settings.html" class="text-[11px] text-violet-600 dark:text-violet-400 hover:underline mt-1 inline-block">Change in Settings →</a>
-                </div>
-              </div>
-
-              <!-- Payment Method (tier-gated, refined) -->
-              <div class="space-y-3">
+              <!-- 3a. Cash panel (default) -->
+              <div id="cash-payment-section" class="space-y-2 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                 <div class="flex items-center justify-between">
-                  <label class="block text-sm font-bold text-primary-900 dark:text-white">Payment <span class="text-slate-400 font-normal">— tap to select</span></label>
-                  <span id="payment-tier-badge" class="hidden text-[11px] px-2 py-1 rounded-full bg-amber-500 text-white font-bold"><i class="fas fa-crown mr-1"></i>Upgrade</span>
+                  <label class="text-xs font-black tracking-widest text-emerald-700 dark:text-emerald-300 uppercase"><i class="fas fa-money-bill-wave mr-1"></i> Cash received</label>
+                  <span id="cash-change" class="text-sm font-black text-emerald-600 dark:text-emerald-400">Change: KES 0.00</span>
                 </div>
-                <div id="payment-methods-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div class="col-span-full flex items-center justify-center gap-2 py-6 text-slate-400 text-sm">
-                    <i class="fas fa-spinner fa-spin"></i> Loading methods...
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 text-[11px] text-slate-500 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
-                  <i class="fas fa-shield-alt text-violet-500"></i>
-                  <span><b>Basic</b> Cash + M-Pesa • <b>Standard</b> +Card • <b>Premium</b> +Bank & Split</span>
-                  <a href="/manageSubscriptions.html" class="ml-auto text-violet-600 dark:text-violet-400 font-bold hover:underline">Upgrade →</a>
-                </div>
-                <!-- Inline M-Pesa phone (shown when M-Pesa selected) -->
-                <div id="mpesa-inline-phone" class="hidden p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
-                  <label class="block text-xs font-bold text-violet-700 dark:text-violet-300 uppercase mb-1"><i class="fas fa-mobile-alt mr-1"></i> M-Pesa phone for STK Push</label>
-                  <div class="flex gap-2">
-                    <input id="mpesa-phone-inline" type="tel" placeholder="2547XXXXXXXX" class="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-700 text-sm" />
-                    <span class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-500" id="mpesa-amount-preview">KES 0.00</span>
-                  </div>
-                  <p class="text-[11px] text-violet-600 dark:text-violet-300 mt-1">Customer will receive STK prompt to enter PIN. Don't close modal.</p>
-                </div>
-              </div>
-
-              <!-- Split Payment (Premium, refined) -->
-              <div id="split-payment-section" class="hidden p-4 rounded-2xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 space-y-3">
-                <div class="flex items-center justify-between">
-                  <label class="block text-xs font-black tracking-widest text-violet-700 dark:text-violet-300 uppercase"><i class="fas fa-columns mr-1"></i> Split payment</label>
-                  <span class="text-xs px-2 py-1 rounded-full bg-violet-600 text-white font-bold">Premium</span>
-                </div>
-                <div id="split-rows" class="space-y-2"></div>
-                <div class="flex justify-between items-center p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-700 text-sm font-bold">
-                  <span class="text-slate-500">Split total</span>
-                  <span id="split-total" class="text-violet-700 dark:text-violet-300">KES 0.00</span>
-                </div>
-                <div class="flex gap-2">
-                  <button type="button" id="add-split" class="flex-1 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 text-sm font-bold hover:bg-violet-50"><i class="fas fa-plus mr-1"></i>Add method</button>
-                  <button type="button" id="split-auto" class="px-4 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-bold hover:bg-violet-700">Auto-fill</button>
-                </div>
-                <p class="text-[11px] text-violet-600 dark:text-violet-300"><i class="fas fa-info-circle mr-1"></i>Splits must sum to total. Example: Cash 200 + M-Pesa 300.</p>
-              </div>
-
-              <!-- Order Summary (refined) -->
-              <div class="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900">
-                <div class="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                  <h4 class="text-xs font-black tracking-widest text-slate-500 uppercase"><i class="fas fa-receipt mr-1"></i> Order Summary</h4>
-                  <span id="checkout-items-count" class="text-xs px-2 py-1 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">0 items</span>
-                </div>
-                <div id="checkout-items" class="p-3 space-y-2 max-h-40 overflow-y-auto text-sm"></div>
-                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 space-y-2 text-sm">
-                  <div class="flex justify-between text-slate-600 dark:text-slate-400"><span>Subtotal</span><span id="checkout-subtotal" class="font-semibold text-slate-900 dark:text-white">KES 0.00</span></div>
-                  <div class="flex justify-between text-amber-600 dark:text-amber-400"><span><i class="fas fa-tag mr-1"></i>Discount</span><span id="checkout-discount">-KES 0.00</span></div>
-                  <div class="flex justify-between text-slate-600 dark:text-slate-400"><span>Tax <span id="checkout-tax-rate" class="font-mono text-xs px-1 py-0.5 rounded bg-white dark:bg-slate-900 border">0%</span></span><span id="checkout-tax">KES 0.00</span></div>
-                  <div class="flex justify-between items-center pt-2 border-t border-dashed border-slate-300 dark:border-slate-600">
-                    <span class="font-black text-slate-900 dark:text-white">Total to pay</span>
-                    <span id="checkout-total" class="text-2xl font-black text-violet-600 dark:text-violet-400 tracking-tight">KES 0.00</span>
-                  </div>
-                  <div id="checkout-save-badge" class="hidden text-xs text-center py-1.5 rounded-xl bg-emerald-500 text-white font-bold"><i class="fas fa-piggy-bank mr-1"></i>You save <span id="checkout-save-amount">KES 0.00</span></div>
-                </div>
-                <div id="offline-queue-note" class="hidden m-3 p-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold flex items-center gap-2"><i class="fas fa-wifi-slash"></i><span>Offline — sale will be queued and synced when online</span><span class="ml-auto bg-white/20 px-2 py-0.5 rounded-full">Queued</span></div>
-              </div>
-
-              <!-- Cash (refined, quick amounts) -->
-              <div id="cash-payment-section" class="hidden space-y-3 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                <label class="block text-xs font-black tracking-widest text-emerald-700 dark:text-emerald-300 uppercase"><i class="fas fa-money-bill-wave mr-1"></i> Cash received</label>
                 <div class="relative">
                   <span class="absolute left-3 top-3 text-slate-400 font-bold text-sm">KES</span>
-                  <input type="number" id="cash-received" min="0" step="0.01" placeholder="0.00" class="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-700 text-lg font-black placeholder:font-normal" />
+                  <input type="number" id="cash-received" min="0" step="1" inputmode="decimal" placeholder="Tap Exact or type amount" class="w-full pl-12 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-700 text-lg font-black placeholder:text-sm placeholder:font-normal" />
                 </div>
                 <div class="grid grid-cols-4 gap-2">
-                  <button type="button" data-cash="exact" class="cash-quick px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-50">Exact</button>
+                  <button type="button" data-cash="exact" class="cash-quick px-2 py-2 rounded-xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700">Exact</button>
                   <button type="button" data-cash="100" class="cash-quick px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold">+100</button>
                   <button type="button" data-cash="500" class="cash-quick px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold">+500</button>
                   <button type="button" data-cash="1000" class="cash-quick px-2 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold">+1000</button>
                 </div>
-                <div class="flex justify-between items-center p-3 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-700">
-                  <span class="text-sm font-bold text-slate-600 dark:text-slate-400">Change</span>
-                  <span id="cash-change" class="text-xl font-black text-emerald-600 dark:text-emerald-400">KES 0.00</span>
-                </div>
-                <p class="text-[11px] text-emerald-700 dark:text-emerald-300"><i class="fas fa-check-circle mr-1"></i>Enter amount tendered — change auto-calculated. Exact enables Process.</p>
               </div>
 
-              <!-- Payment status (M-Pesa polling) -->
+              <!-- 3b. M-Pesa panel — one phone field, STK default, code fallback -->
+              <div id="mpesa-section" class="hidden space-y-2 p-4 rounded-2xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
+                <div class="flex gap-1 p-1 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-700">
+                  <button type="button" data-mpesa-mode="stk" id="mpesa-mode-stk" class="flex-1 py-2 rounded-lg bg-violet-600 text-white text-xs font-black">STK Push (auto)</button>
+                  <button type="button" data-mpesa-mode="code" id="mpesa-mode-code" class="flex-1 py-2 rounded-lg text-slate-500 text-xs font-bold">Code instead</button>
+                </div>
+                <div id="mpesa-stk-fields" class="space-y-2">
+                  <div class="flex gap-2">
+                    <input id="mpesa-phone-inline" type="tel" inputmode="tel" placeholder="2547XXXXXXXX" class="flex-1 px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-violet-200 dark:border-violet-700 text-sm font-mono" />
+                    <span id="mpesa-amount-preview" class="px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono whitespace-nowrap">KES 0.00</span>
+                  </div>
+                  <p class="text-[11px] text-violet-600 dark:text-violet-300">Customer taps PIN on their phone. You keep this open — we confirm automatically.</p>
+                </div>
+                <div id="mpesa-code-fields" class="hidden space-y-2">
+                  <input id="mpesa-code-input" type="text" placeholder="M-Pesa code e.g. QGH7K9L2P4" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-mono uppercase tracking-widest" />
+                  <input id="mpesa-amount-inline" type="number" step="0.01" placeholder="Amount — auto-fills" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm" />
+                </div>
+              </div>
+
+              <!-- 3c. Bank / Card panel — single optional ref -->
+              <div id="bank-section" class="hidden space-y-2 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <label class="block text-xs font-bold text-slate-500 uppercase"><i class="fas fa-university mr-1"></i> Card / Bank ref <span class="font-normal normal-case">(optional — tap Pay to finish)</span></label>
+                <input id="bank-ref" type="text" placeholder="Ref / approval code (optional)" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-mono" />
+                <input id="bank-amount-inline" type="hidden" />
+              </div>
+
+              <!-- 3d. Split panel -->
+              <div id="split-payment-section" class="hidden p-4 rounded-2xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 space-y-2">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-black tracking-widest text-violet-700 dark:text-violet-300 uppercase"><i class="fas fa-columns mr-1"></i> Split — must sum to total</label>
+                  <span id="split-total" class="text-sm font-black text-violet-700 dark:text-violet-300">KES 0.00 / KES 0.00</span>
+                </div>
+                <div id="split-rows" class="space-y-2"></div>
+                <div class="flex gap-2">
+                  <button type="button" id="add-split" class="flex-1 py-2 rounded-xl bg-white dark:bg-slate-900 border border-violet-300 text-violet-700 text-xs font-bold"><i class="fas fa-plus mr-1"></i>Add</button>
+                  <button type="button" id="split-auto" class="flex-1 py-2 rounded-xl bg-violet-600 text-white text-xs font-bold">Auto-split remainder</button>
+                </div>
+              </div>
+
+              <!-- Status + offline note -->
               <div id="mpesa-status" class="hidden p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm">
                 <div class="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-bold"><i class="fas fa-spinner fa-spin"></i><span id="mpesa-status-text">Sending STK Push...</span></div>
                 <div class="mt-2 w-full bg-blue-100 dark:bg-blue-900/50 rounded-full h-1.5"><div id="mpesa-progress" class="bg-blue-500 h-1.5 rounded-full transition-all" style="width: 30%"></div></div>
               </div>
+              <div id="offline-queue-note" class="hidden p-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold flex items-center gap-2"><i class="fas fa-wifi-slash"></i><span>Offline — will queue & sync</span></div>
 
-              <!-- Action Buttons (refined) -->
-              <div class="space-y-2">
-                <button type="submit" id="process-sale-btn" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:scale-[1.01] transition-all flex items-center justify-center gap-3 text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
-                  <span class="flex items-center gap-2"><i class="fas fa-lock"></i> Pay <span id="pay-amount" class="bg-white/20 px-2 py-0.5 rounded-full text-sm">KES 0.00</span></span>
-                  <i class="fas fa-arrow-right"></i>
+              <!-- 4. Optional details — collapsed so manual feels faster, not slower -->
+              <details id="checkout-advanced" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                <summary class="px-4 py-3 text-xs font-bold text-slate-500 cursor-pointer select-none">Add customer / discount <span class="font-normal">(optional)</span></summary>
+                <div class="px-4 pb-4 space-y-3">
+                  <div class="flex gap-2">
+                    <input id="customer-name" name="customerName" placeholder="Customer: Walk-in (tap to change)" class="flex-1 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+                    <button type="button" id="customer-walkin" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border text-xs font-bold">Walk-in</button>
+                    <button type="button" id="customer-clear" class="px-2 py-2 rounded-xl text-slate-400 text-xs" title="Clear">✕</button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <input id="customer-phone" name="customerPhone" type="tel" placeholder="Phone (for M-Pesa)" class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-mono" />
+                    <input id="customer-email" type="email" placeholder="Email (receipt)" class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm" />
+                  </div>
+                  <div class="flex gap-2 items-center">
+                    <input id="discount-input" type="number" min="0" step="0.01" placeholder="Discount 0.00" class="flex-1 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold" />
+                    <select id="discount-type" class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold">
+                      <option value="kes">KES</option>
+                      <option value="percent">%</option>
+                    </select>
+                    <span id="tax-display" class="text-[11px] text-slate-400 whitespace-nowrap">VAT from Settings</span>
+                  </div>
+                </div>
+              </details>
+
+              <!-- 5. One Pay button + print toggle -->
+              <div class="space-y-2 pt-1">
+                <button type="submit" id="process-sale-btn" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black rounded-2xl shadow-lg flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed">
+                  <i class="fas fa-lock text-sm"></i> Pay <span id="pay-amount" class="bg-white/20 px-2 py-0.5 rounded-full text-sm">KES 0.00</span>
+                  <i class="fas fa-arrow-right text-sm"></i>
                   <span id="pay-spinner" class="hidden"><i class="fas fa-spinner fa-spin"></i></span>
                 </button>
-                <div class="grid grid-cols-2 gap-2">
-                  <button type="button" id="process-print-btn" class="py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold hover:bg-slate-50"><i class="fas fa-print mr-1"></i>Pay & Print</button>
-                  <button type="button" id="checkout-cancel-2" class="py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold">Cancel</button>
+                <div class="flex items-center justify-between text-xs">
+                  <label class="flex items-center gap-2 font-bold text-slate-500 cursor-pointer"><input type="checkbox" id="print-receipt-check" class="w-4 h-4 accent-emerald-600" /> Print receipt</label>
+                  <div class="flex gap-2">
+                    <button type="button" id="process-print-btn" class="hidden">Pay & Print</button>
+                    <button type="button" id="checkout-cancel-2" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 dark:hover:bg-slate-800">Cancel <span class="opacity-50 font-normal">Esc</span></button>
+                  </div>
                 </div>
-                <p class="text-center text-[11px] text-slate-400"><i class="fas fa-shield-alt mr-1"></i>Secure • Encrypted • Audit logged • <a href="/reports.html" class="text-violet-600 hover:underline">View in Reports</a></p>
+                <p class="text-center text-[11px] text-slate-400"><i class="fas fa-shield-alt mr-1"></i>Secure • Idempotent • Audit-logged • Enter ↵ to pay</p>
               </div>
             </form>
           </div>

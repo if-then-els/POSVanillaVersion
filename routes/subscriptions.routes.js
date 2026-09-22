@@ -5,6 +5,7 @@ const subscriptionMiddleware = require("../middleware/subscription.middleware");
 const Plan = require("../models/plan.model");
 const Subscription = require("../models/subscription.model");
 const auth = require("../middleware/auth.middleware");
+const currencyService = require("../services/currencyService");
 // Route to upgrade/create a subscription (triggered internally after payment verification)
 router.post(
   "/subscriptions/upgrade",
@@ -26,11 +27,15 @@ router.get(
   subscriptionsController.getSubscriptionDetails
 );
 
-// Get plans (public route)
+// Get plans (public route). Prices are USD; ?currency= converts to a local currency.
 router.get("/plans", async (req, res) => {
   try {
     const plans = await Plan.find({});
-    res.json({ plans });
+    const currency = req.query.currency || "";
+    const converted = await Promise.all(
+      plans.map((plan) => currencyService.priceForDisplay(plan, currency)),
+    );
+    res.json({ plans: converted });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch plans" });
   }

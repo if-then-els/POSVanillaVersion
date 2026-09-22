@@ -392,7 +392,8 @@
             <div class="glass-card rounded-2xl p-5">
               <p class="text-xs uppercase text-slate-400">Store Filter</p>
               <select id="storeFilter" class="store-selector mt-2 w-full px-3 py-2 rounded-lg border bg-white dark:bg-slate-900 text-sm"><option>All stores</option></select>
-              <a href="/admin/dashboard.html" class="text-xs text-violet-400 mt-2 inline-block">Manage stores →</a>
+              <button id="manage-stores-btn" class="text-xs text-violet-500 dark:text-violet-400 mt-2 inline-flex items-center gap-1 font-bold hover:underline"><i class="fas fa-store"></i>Manage my stores →</button>
+              <p id="store-plan-hint" class="text-[11px] text-slate-400 mt-1"></p>
             </div>
           </div>
 
@@ -994,6 +995,40 @@
       </div>
     </div>
 
+    <!-- My Stores Modal (business-owned, plan-gated. SuperAdmin has its own /admin/* login — never linked from here.) -->
+    <div id="stores-modal" class="fixed inset-0 z-[60] hidden">
+      <div class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm" id="stores-modal-backdrop"></div>
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div class="w-full max-w-md transform overflow-hidden rounded-3xl glass-premium shadow-2xl animate-scale-in">
+            <div class="bg-gradient-to-r from-violet-600 to-indigo-600 p-5 flex justify-between items-center">
+              <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fas fa-store"></i> My Stores</h3>
+                <p id="stores-plan-line" class="text-xs text-white/70 mt-0.5">Loading plan…</p>
+              </div>
+              <button id="stores-modal-close" class="text-white/80 hover:text-white"><i class="fas fa-times text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-3">
+              <div id="stores-list" class="space-y-2 max-h-64 overflow-y-auto">
+                <div class="py-6 text-center text-sm text-slate-400">Loading stores…</div>
+              </div>
+              <form id="store-form" class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400">Add a store</p>
+                <input id="store-name-input" placeholder="Store name (e.g. Main Branch)" class="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm" maxlength="80" />
+                <div class="grid grid-cols-2 gap-2">
+                  <input id="store-location-input" placeholder="Location (optional)" class="px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm" maxlength="120" />
+                  <input id="store-phone-input" placeholder="Phone (optional)" class="px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm" maxlength="30" />
+                </div>
+                <label class="flex items-center gap-2 text-xs font-bold text-slate-500"><input type="checkbox" id="store-main-input" class="w-4 h-4 accent-violet-600" /> Set as main store</label>
+                <button type="submit" id="store-add-btn" class="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold"><i class="fas fa-plus mr-1"></i>Add store</button>
+                <p id="stores-limit-note" class="hidden text-[11px] text-amber-600 dark:text-amber-400 font-bold"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Feedback Modal (Consistent) -->
     <div
       id="feedbackModal"
@@ -1166,6 +1201,7 @@
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
+    <script src="./js/stores.js"></script>
     <script src="./js/inventory.js"></script>
     <script src="./js/chat2.js"></script>
     <script src="js/subscriptionChecker.js"></script>

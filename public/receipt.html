@@ -204,14 +204,17 @@
           <div>
             <div><strong>Receipt #:</strong> <span id="receipt-id"></span></div>
             <div><strong>Date:</strong> <span id="sale-date"></span></div>
+            <div><strong>Time:</strong> <span id="sale-time"></span></div>
           </div>
-          <div>
+          <div style="text-align:right">
             <div>
-              <strong>Cashier:</strong> <span id="cashier-name">Admin</span>
+              <strong>Served by:</strong> <span id="cashier-name"></span>
             </div>
+            <div id="cashier-role" style="font-size:0.75rem;color:#64748b"></div>
             <div>
               <strong>Customer:</strong> <span id="customer-name"></span>
             </div>
+            <div id="store-line" style="font-size:0.75rem;color:#64748b"></div>
           </div>
         </div>
 
@@ -233,6 +236,10 @@
           <div class="total-row">
             <div class="total-label">Subtotal</div>
             <div class="total-value" id="subtotal">KES 0.00</div>
+          </div>
+          <div class="total-row" id="discount-row" style="display:none">
+            <div class="total-label">Discount</div>
+            <div class="total-value" id="discount-amount">KES 0.00</div>
           </div>
           <div class="total-row">
             <div class="total-label">Tax (<span id="tax-rate">0</span>%)</div>
@@ -304,70 +311,76 @@
           .substring(0, 12);
       }
 
-      // Load receipt data
+      // Load receipt data — stored copy from GET /receipt/:id.
+      // Business block is the REAL logged-in business (BusinessDetails),
+      // never hardcoded placeholders.
       async function loadReceipt() {
         try {
-          const response = await fetch(`/receipt/${saleId}`);
+          const response = await fetch(`/receipt/${saleId}`, { credentials: "include" });
           const data = await response.json();
 
-          if (!data.sale || !data.store) {
+          if (!data.sale) {
             throw new Error("Invalid receipt data");
           }
 
-          const { sale, store } = data;
+          const { sale } = data;
+          const biz = data.business || {};
+          const store = data.store || {};
+          const settings = data.settings || {};
 
-          // Populate store info
-          document.getElementById("store-name").textContent =
-            store.storeName || "SwiftPOS Store";
+          // Business header (real info)
+          document.getElementById("store-name").textContent = biz.name || "Receipt";
           document.getElementById("store-address").textContent =
-            store.storeAddress || "123 Business Street, Nairobi";
-          document.getElementById("store-phone").textContent = `Phone: ${
-            store.storePhone || "+254 700 000 000"
-          }`;
-          document.getElementById("store-email").textContent = `Email: ${
-            store.storeEmail || "info@swiftpos.com"
-          }`;
+            [store.name, store.location].filter(Boolean).join(" • ") || biz.address || "";
+          const phoneBits = [biz.phone, store.phone].filter(Boolean);
+          document.getElementById("store-phone").textContent =
+            phoneBits.length ? `Phone: ${phoneBits.join(" / ")}` : "";
+          document.getElementById("store-email").textContent = biz.email ? `Email: ${biz.email}` : "";
 
-          // Populate sale info
-          document.getElementById("receipt-id").textContent = sale._id;
-          document.getElementById("sale-date").textContent = formatDate(
-            sale.createdAt
-          );
-          document.getElementById("customer-name").textContent =
-            sale.customerName || "Walk-in Customer";
-          document.getElementById("payment-method").textContent =
-            sale.paymentMethod;
+          // Standard receipt info: number, date+time, served-by, customer
+          const receiptNo = sale.receiptNo || sale.receiptNumber || sale._id;
+          document.getElementById("receipt-id").textContent = receiptNo;
+          const d = new Date(sale.createdAt);
+          document.getElementById("sale-date").textContent = d.toLocaleDateString("en-KE", { year: "numeric", month: "short", day: "numeric" });
+          document.getElementById("sale-time").textContent = d.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit" });
+          document.getElementById("cashier-name").textContent = sale.cashierName || sale.cashier?.name || "Staff";
+          document.getElementById("cashier-role").textContent = sale.cashierRole || sale.cashier?.role || "";
+          document.getElementById("customer-name").textContent = sale.customerName || "Walk-in";
+          document.getElementById("store-line").textContent = store.name ? `Branch: ${store.name}` : "";
+          let payLabel = sale.paymentMethod || "cash";
+          if (sale.mpesaReceipt) payLabel += ` • ${sale.mpesaReceipt}`;
+          if (sale.bankRef) payLabel += ` • ${sale.bankRef}`;
+          document.getElementById("payment-method").textContent = payLabel;
 
           // Populate items
           const itemsList = document.getElementById("items-list");
           itemsList.innerHTML = "";
 
-          sale.items.forEach((item) => {
+          (sale.items || []).forEach((item) => {
             const row = document.createElement("tr");
             row.innerHTML = `
             <td class="item-name">${item.productName}</td>
             <td class="item-qty">${item.quantity}</td>
             <td class="item-price">${formatCurrency(item.price)}</td>
-            <td class="item-total">${formatCurrency(item.total)}</td>
+            <td class="item-total">${formatCurrency(item.total ?? item.price * item.quantity)}</td>
           `;
             itemsList.appendChild(row);
           });
 
-          // Populate totals
-          document.getElementById("subtotal").textContent = formatCurrency(
-            sale.subtotal
-          );
-          document.getElementById("tax-rate").textContent = sale.taxRate;
-          document.getElementById("tax-amount").textContent = formatCurrency(
-            sale.taxAmount
-          );
-          document.getElementById("grand-total").textContent = formatCurrency(
-            sale.grandTotal
-          );
+          // Populate totals (stored snapshot, not recomputed)
+          document.getElementById("subtotal").textContent = formatCurrency(sale.subtotal ?? 0);
+          if ((sale.discount || 0) > 0) {
+            document.getElementById("discount-row").style.display = "flex";
+            document.getElementById("discount-amount").textContent = "-" + formatCurrency(sale.discount);
+          }
+          document.getElementById("tax-rate").textContent = sale.taxRate ?? 0;
+          document.getElementById("tax-amount").textContent = formatCurrency(sale.taxAmount ?? 0);
+          document.getElementById("grand-total").textContent = formatCurrency(sale.grandTotal ?? sale.total ?? 0);
+          const foot = document.querySelector(".footer-message");
+          if (foot && settings.footerText) foot.innerHTML = `Thank you for your business!<br/>${settings.footerText}`;
 
-          // Generate barcode
-          document.getElementById("barcode-content").textContent =
-            generateBarcode(sale._id);
+          // Generate barcode from receipt number
+          document.getElementById("barcode-content").textContent = generateBarcode(receiptNo);
         } catch (error) {
           console.error("Error loading receipt:", error);
           alert("Failed to load receipt data");

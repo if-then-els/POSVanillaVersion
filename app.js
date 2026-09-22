@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   // Set Content Security Policy (kept, but helmet also guards)
   res.header(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://api.paystack.co https://www.paystack.co https://cdn.tailwindcss.com; connect-src 'self' https://api.paystack.co https://www.paystack.co; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://paystack.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; frame-src 'self' https://checkout.paystack.com;"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://api.paystack.co https://www.paystack.co https://cdn.tailwindcss.com; connect-src 'self' https://api.paystack.co https://www.paystack.co https://ipwho.is https://api.bigdatacloud.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://paystack.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; frame-src 'self' https://checkout.paystack.com;"
   );
   
   if (req.method === "OPTIONS") {
@@ -84,12 +84,19 @@ const businessPaymentRoutes = require("./routes/businesPayment.routes");
 const supportRoutes = require("./routes/support.routes");
 const superAdminRoutes = require("./routes/superAdmin.routes");
 
-// Public plans route (before subscription middleware)
+// Public plans route (before subscription middleware).
+// Plan prices are stored in USD; pass ?currency=KES (or any ISO code) to get
+// each plan's price converted to the caller's local currency for display.
+const currencyService = require("./services/currencyService");
 app.get("/plans", async (req, res) => {
   try {
     const Plan = require("./models/plan.model");
     const plans = await Plan.find({});
-    res.json({ plans });
+    const currency = req.query.currency || "";
+    const converted = await Promise.all(
+      plans.map((plan) => currencyService.priceForDisplay(plan, currency)),
+    );
+    res.json({ plans: converted });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch plans" });
   }
@@ -121,7 +128,7 @@ async function seedPlans() {
   const plans = [
     {
       name: "basic",
-      price: 2000,
+      price: 15, // USD
       description: "Basic Plan - Perfect for small businesses",
       userLimit: 2,
       roleManagement: false,
@@ -150,7 +157,7 @@ async function seedPlans() {
     },
     {
       name: "Standard",
-      price: 3500,
+      price: 29, // USD
       description: "Standard Plan - Best for growing businesses",
       userLimit: 5,
       roleManagement: true,
@@ -179,7 +186,7 @@ async function seedPlans() {
     },
     {
       name: "premium",
-      price: 15000,
+      price: 49, // USD
       description: "Premium Plan - For large / enterprise businesses",
       userLimit: 20,
       roleManagement: true,

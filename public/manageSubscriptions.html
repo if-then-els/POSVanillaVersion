@@ -436,10 +436,16 @@
                 </div>
               </div>
 
-              <div class="flex flex-col gap-3 w-full md:w-auto" id="subscription-actions">
+              <div
+                class="flex flex-col gap-3 w-full md:w-auto"
+                id="subscription-actions"
+              >
                 <!-- Dynamic action buttons will be inserted here by JavaScript -->
-                <div class="text-center text-primary-500 dark:text-primary-400 animate-pulse">
-                  <i class="fas fa-spinner fa-spin mr-2"></i>Loading subscription options...
+                <div
+                  class="text-center text-primary-500 dark:text-primary-400 animate-pulse"
+                >
+                  <i class="fas fa-spinner fa-spin mr-2"></i>Loading
+                  subscription options...
                 </div>
               </div>
             </div>
@@ -472,7 +478,8 @@
                   <div
                     class="text-3xl font-black text-primary-900 dark:text-white mt-2"
                   >
-                    KES 2,000<span
+                    <span data-currency></span>
+                    <span data-card-price="basic"></span><span
                       class="text-sm font-medium text-primary-500 dark:text-primary-400"
                       >/mo</span
                     >
@@ -494,8 +501,8 @@
                     Reporting
                   </li>
                 </ul>
-                <button 
-                  onclick="upgradeToPlan('basic', 2000)"
+                <button
+                  onclick="upgradeToPlan('basic')"
                   class="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   Upgrade to Basic
@@ -520,7 +527,8 @@
                   <div
                     class="text-3xl font-black text-primary-900 dark:text-white mt-2"
                   >
-                    KES 3,800<span
+                    <span data-currency></span>
+                    <span data-card-price="standard"></span><span
                       class="text-sm font-medium text-primary-500 dark:text-primary-400"
                       >/mo</span
                     >
@@ -544,8 +552,8 @@
                     Integration
                   </li>
                 </ul>
-                <button 
-                  onclick="upgradeToPlan('standard', 3800)"
+                <button
+                  onclick="upgradeToPlan('standard')"
                   class="w-full py-3 bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
                   Upgrade to Standard
@@ -583,7 +591,7 @@
                     Support
                   </li>
                 </ul>
-                <button 
+                <button
                   onclick="contactForPremiumPlan()"
                   class="w-full py-3 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
                 >
@@ -680,14 +688,10 @@
                 Select Payment Method
               </h2>
               <div class="space-y-3">
-                <!-- <button id="selectMpesa" class="w-full p-4 rounded-xl bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 hover:border-green-500 transition-all flex items-center gap-3" data-payment-method="mpesa">
-                         <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600"><i class="fas fa-mobile-alt"></i></div>
-                         <span class="font-bold text-primary-900 dark:text-white">M-Pesa</span>
-                      </button> -->
                 <button
-                  id="selectPaystack"
+                  id="selectCard"
                   class="w-full p-4 rounded-xl bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 hover:border-blue-500 transition-all flex items-center gap-3"
-                  data-payment-method="paystack"
+                  data-payment-method="card"
                 >
                   <div
                     class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600"
@@ -695,7 +699,21 @@
                     <i class="fas fa-credit-card"></i>
                   </div>
                   <span class="font-bold text-primary-900 dark:text-white"
-                    >Card / Mobile Money (Paystack)</span
+                    >Card</span
+                  >
+                </button>
+                <button
+                  id="selectMobileMoney"
+                  class="w-full p-4 rounded-xl bg-primary-50 dark:bg-primary-800 border border-primary-200 dark:border-primary-700 hover:border-green-500 transition-all flex items-center gap-3"
+                  data-payment-method="mobile_money"
+                >
+                  <div
+                    class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600"
+                  >
+                    <i class="fas fa-mobile-alt"></i>
+                  </div>
+                  <span class="font-bold text-primary-900 dark:text-white"
+                    >Mobile Money</span
                   >
                 </button>
               </div>
@@ -739,6 +757,10 @@
                     readonly
                   />
                 </div>
+                <p
+                  id="selected-payment-channel"
+                  class="text-sm text-primary-500 dark:text-primary-400"
+                ></p>
                 <button
                   id="payWithPaystack"
                   class="w-full py-3 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl font-bold shadow-lg hover:shadow-success-500/25 hover:scale-[1.02] transition-all"
@@ -980,57 +1002,211 @@
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
+    <script>
+      // Currency shown is based on the user's location (cosmetic display only;
+      // actual charges always use PAYSTACK_CURRENCY on the backend). Default
+      // shows below and is replaced once the location is detected.
+      window.PAYMENT_CURRENCY = "NGN";
+      window.formatCurrency = (value, currency) => {
+        const code = String(currency || window.PAYMENT_CURRENCY || "NGN").toUpperCase();
+        const noMinor = [
+          "KES", "UGX", "TZS", "RWF", "XOF", "XAF", "JPY", "KRW", "VND", "IDR",
+        ].includes(code);
+        const num = noMinor ? Math.round(Number(value)) : Number(value);
+        return `${code} ${num.toLocaleString(undefined, {
+          maximumFractionDigits: noMinor ? 0 : 2,
+        })}`;
+      };
+
+      // ISO country code -> display currency
+      const CURRENCY_BY_COUNTRY = {
+        NG: "NGN", GH: "GHS", ZA: "ZAR",
+        KE: "KES", UG: "UGX", TZ: "TZS", RW: "RWF",
+        CI: "XOF", SN: "XOF", BF: "XOF", BJ: "XOF", TG: "XOF", ML: "XOF", NE: "XOF",
+        CM: "XAF", CG: "XAF", GA: "XAF", TD: "XAF",
+        US: "USD", GB: "GBP", CA: "CAD", AU: "AUD",
+        DE: "EUR", FR: "EUR", ES: "EUR", IT: "EUR", PT: "EUR", NL: "EUR", BE: "EUR", IE: "EUR", AT: "EUR", FI: "EUR", GR: "EUR",
+        IN: "INR", CN: "CNY", JP: "JPY", AE: "AED", BR: "BRL", MX: "MXN",
+      };
+
+      function applyCurrency(currency) {
+        if (currency && currency !== window.PAYMENT_CURRENCY) {
+          window.PAYMENT_CURRENCY = currency;
+          // Re-fetch plans/details so displayed prices use the new currency
+          if (window.onCurrencyChanged) window.onCurrencyChanged();
+        } else if (currency) {
+          window.PAYMENT_CURRENCY = currency;
+        }
+        document.querySelectorAll("[data-currency]").forEach((el) => {
+          el.textContent = window.PAYMENT_CURRENCY;
+        });
+        // Re-render the payment amount if the modal is already open
+        const amountInput = document.getElementById("paystack-amount");
+        if (amountInput && amountInput.value && amountInput.value !== "N/A") {
+          const numeric = parseFloat(amountInput.value.replace(/[^\d.-]/g, ""));
+          if (!isNaN(numeric)) {
+            amountInput.value = window.formatCurrency(numeric);
+          }
+        }
+        if (window.updatePlanCards) window.updatePlanCards();
+      }
+
+      // Fill the static plan-card prices from the fetched (converted) plans
+      window.updatePlanCards = function updatePlanCards() {
+        const plans = window.availablePaidPlans || [];
+        document.querySelectorAll("[data-card-price]").forEach((el) => {
+          const name = el.getAttribute("data-card-price");
+          const plan = plans.find(
+            (p) => p.name.toLowerCase() === name.toLowerCase(),
+          );
+          if (plan) {
+            el.textContent = Number(plan.price || 0).toLocaleString(undefined, {
+              maximumFractionDigits: 0,
+            });
+          } else {
+            el.textContent = "";
+          }
+        });
+      };
+
+      // Detect country from coords (reverse geocode), apply that country's
+      // currency. Honors the Chrome DevTools location sensor override.
+      function applyCurrencyFromCoords(latitude, longitude) {
+        fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+        )
+          .then((r) => (r.ok ? r.json() : Promise.reject(new Error("reverse geocode failed"))))
+          .then((data) => {
+            const code = String(data.countryCode || "").toUpperCase();
+            applyCurrency(CURRENCY_BY_COUNTRY[code]);
+          })
+          .catch((err) => {
+            console.warn("Reverse geocode failed:", err.message);
+            applyCurrency();
+          });
+      }
+
+      // Detect the user's country from their IP as well.
+      function detectCurrencyViaIP() {
+        try {
+          fetch("https://ipwho.is/")
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error("ip geolocation failed"))))
+            .then((data) => {
+              const code = String(data.country_code || "").toUpperCase();
+              applyCurrency(CURRENCY_BY_COUNTRY[code]);
+            })
+            .catch((err) => {
+              console.warn("Unable to detect location currency:", err.message);
+              applyCurrency();
+            });
+        } catch (e) {
+          applyCurrency();
+        }
+      }
+
+      // Primary: browser geolocation (works with DevTools location sensor).
+      // Fallback: IP-based lookup.
+      function detectCurrency() {
+        if (typeof navigator !== "undefined" && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              applyCurrencyFromCoords(pos.coords.latitude, pos.coords.longitude);
+            },
+            (err) => {
+              console.warn("Browser geolocation unavailable, using IP:", err.message);
+              detectCurrencyViaIP();
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+          );
+        } else {
+          detectCurrencyViaIP();
+        }
+      }
+
+      window.detectCurrency = detectCurrency;
+      window.applyCurrency = applyCurrency;
+
+      window.addEventListener("DOMContentLoaded", () => {
+        applyCurrency();
+        detectCurrency();
+      });
+    </script>
     <script src="./js/subscriptions.js"></script>
     <script src="./js/chat2.js"></script>
     <script src="./js/subscriptionChecker.js"></script>
 
     <script>
       // Simplified upgrade functions for direct plan upgrades
-      async function upgradeToPlan(planName, price) {
+      async function upgradeToPlan(planName) {
         try {
-          // Set payment action to upgrade
-          if (window.appState) {
-            window.appState.paymentAction = "upgrade";
-            window.appState.selectedPlan = {
-              _id: planName,
-              name: planName.charAt(0).toUpperCase() + planName.slice(1),
-              price: price
-            };
+          const flow = window.subscriptionFlow;
+          const paymentModal = document.getElementById("payment-options-modal");
+          if (!paymentModal || !flow) {
+            console.warn("Payment flow not ready yet");
+            return;
           }
 
-          // Show payment modal with Paystack
-          const paymentModal = document.getElementById("payment-options-modal");
-          if (paymentModal) {
-            paymentModal.classList.remove("hidden");
-            
-            // Go to payment method selection
-            const allSteps = document.querySelectorAll('[data-step]');
-            allSteps.forEach(step => step.classList.add('hidden'));
-            const payStep = document.getElementById('payment-step-4-paystack');
-            if (payStep) {
-              payStep.classList.remove('hidden');
+          // Set payment action to upgrade
+          flow.appState.paymentAction = "upgrade";
+
+          paymentModal.classList.remove("hidden");
+
+          // Make sure plans are loaded so we can resolve the real plan id
+          if (
+            !window.availablePaidPlans ||
+            window.availablePaidPlans.length === 0
+          ) {
+            await flow.fetchAvailablePlans();
+          }
+
+          const plan = (window.availablePaidPlans || []).find(
+            (p) => p.name.toLowerCase() === String(planName).toLowerCase(),
+          );
+
+          if (plan) {
+            flow.appState.selectedPlan = {
+              _id: plan._id,
+              name: plan.name,
+              price: plan.price,
+            };
+
+            // Go straight to the payment completion step
+            flow.showStep("payment-step-4-paystack");
+            window.selectedPaymentChannel = "card";
+
+            const stepTitle = document.querySelector(
+              "#payment-step-4-paystack h2",
+            );
+            if (stepTitle) {
+              stepTitle.textContent = `Upgrade to ${plan.name} Plan`;
             }
 
-            // Update title
-            const stepTitle = document.querySelector('#payment-step-4-paystack h2');
-            if (stepTitle) {
-              stepTitle.textContent = `Upgrade to ${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan`;
+            const channelLabel = document.getElementById(
+              "selected-payment-channel",
+            );
+            if (channelLabel) {
+              channelLabel.textContent = "Paying with Card";
             }
 
             // Pre-fill business email
             const emailInput = document.getElementById("paystack-email-input");
-            if (emailInput && window.currentBusiness?.email) {
-              emailInput.value = window.currentBusiness.email;
+            if (emailInput && flow.appState.currentBusiness?.email) {
+              emailInput.value = flow.appState.currentBusiness.email;
             }
 
             // Set amount
             const amountInput = document.getElementById("paystack-amount");
             if (amountInput) {
-              amountInput.value = `KES ${price.toLocaleString()}`;
+              amountInput.value = window.formatCurrency(plan.price);
               amountInput.disabled = false;
             }
 
-            showToast(`Upgrading to ${planName.charAt(0).toUpperCase() + planName.slice(1)} plan...`, "info");
+            showToast(`Upgrading to ${plan.name} plan...`, "info");
+          } else {
+            // Fall back to plan selection so the user can pick a plan
+            flow.showStep("payment-step-2");
+            flow.fetchAvailablePlans();
+            showToast("Select a plan to continue with your upgrade", "info");
           }
         } catch (error) {
           console.error("Upgrade error:", error);
@@ -1039,9 +1215,13 @@
       }
 
       function contactForPremiumPlan() {
-        showToast("Please contact sales@swiftpos.com for Premium plan pricing", "info");
+        showToast(
+          "Please contact sales@swiftpos.com for Premium plan pricing",
+          "info",
+        );
         // Alternatively, open email client
-        window.location.href = "mailto:sales@swiftpos.com?subject=Premium Plan Inquiry";
+        window.location.href =
+          "mailto:sales@swiftpos.com?subject=Premium Plan Inquiry";
       }
     </script>
 
