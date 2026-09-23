@@ -166,25 +166,85 @@
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      /* Adaptive Inputs (Matches Dashboard style) */
+      /* Adaptive Inputs (plain CSS - @apply is NOT processed by the
+         Tailwind Play CDN in regular <style> blocks, so vanilla CSS
+         is required for light/dark mode to actually work) */
       .input-premium {
-        @apply bg-white dark:bg-primary-800/50 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white transition-all duration-200 placeholder-primary-400;
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #0f172a;
+        transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+      }
+      .input-premium::placeholder {
+        color: #94a3b8;
       }
       .input-premium:focus {
-        @apply border-accent-500 ring-2 ring-accent-500/20 outline-none;
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+        outline: none;
+      }
+      .dark .input-premium {
+        background-color: rgba(30, 41, 59, 0.5);
+        border-color: #334155;
+        color: #ffffff;
+      }
+      .dark .input-premium::placeholder {
+        color: #94a3b8;
+      }
+      select.input-premium option {
+        background-color: #ffffff;
+        color: #0f172a;
+      }
+      .dark select.input-premium option {
+        background-color: #0f172a;
+        color: #ffffff;
+      }
+      .input-premium:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
-      /* Table Styles */
+      /* Table Styles (plain CSS, light + dark) */
       .premium-table th {
-        @apply text-xs uppercase tracking-wider font-bold text-primary-500 dark:text-primary-400 px-6 py-4 border-b border-primary-200/50 dark:border-primary-700/50 bg-primary-50/50 dark:bg-primary-800/30;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 700;
+        color: #64748b;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        background-color: rgba(248, 250, 252, 0.7);
+        white-space: nowrap;
       }
-
+      .dark .premium-table th {
+        color: #94a3b8;
+        border-bottom-color: rgba(51, 65, 85, 0.5);
+        background-color: rgba(30, 41, 59, 0.3);
+      }
       .premium-table td {
-        @apply px-6 py-4 border-b border-primary-100/50 dark:border-primary-800/30 text-primary-600 dark:text-primary-300 transition-colors duration-200;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(241, 245, 249, 0.7);
+        color: #475569;
+        transition: background-color 0.2s;
+      }
+      .dark .premium-table td {
+        border-bottom-color: rgba(30, 41, 59, 0.4);
+        color: #cbd5e1;
+      }
+      .premium-table tbody tr:hover td {
+        background-color: rgba(241, 245, 249, 0.8);
+      }
+      .dark .premium-table tbody tr:hover td {
+        background-color: rgba(30, 41, 59, 0.25);
       }
 
-      .premium-table tr:hover td {
-        @apply bg-primary-50/80 dark:bg-primary-800/20;
+      /* Dark-glass toast card (toasts are dark in both modes for contrast) */
+      .glass-dark {
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
       }
 
       .btn-shine {

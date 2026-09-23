@@ -318,8 +318,8 @@ async function loadUsers(page = 1, search = currentSearch) {
       <tr>
         <td colspan="6" class="px-6 py-12 text-center">
           <div class="flex flex-col items-center justify-center gap-2">
-            <i class="fas fa-exclamation-circle text-3xl text-red-400"></i>
-            <p class="text-sm font-semibold text-red-400">Error: ${escapeHtml(error.message)}</p>
+            <i class="fas fa-exclamation-circle text-3xl text-red-500 dark:text-red-400"></i>
+            <p class="text-sm font-semibold text-red-600 dark:text-red-400">Error: ${escapeHtml(error.message)}</p>
             <button onclick="loadUsers(currentPage)" class="mt-2 px-4 py-2 text-xs font-bold rounded-lg bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-700">Retry</button>
           </div>
         </td>
@@ -338,7 +338,7 @@ function renderUsers(users) {
     usersTable.innerHTML = `
       <tr>
         <td colspan="6" class="px-6 py-12 text-center">
-          <div class="flex flex-col items-center justify-center gap-2 text-primary-400">
+          <div class="flex flex-col items-center justify-center gap-2 text-primary-500 dark:text-primary-400">
             <i class="fas fa-users text-3xl"></i>
             <p class="text-sm font-semibold">No users found</p>
             <p class="text-xs">Try clearing the search or filters.</p>
@@ -367,7 +367,7 @@ function renderUsers(users) {
     const resettable = canDeleteAndReset() && !isSelf;
 
     const row = document.createElement("tr");
-    row.className = "hover:bg-white/5 transition-colors";
+    row.className = "transition-colors";
     row.innerHTML = `
       <td class="py-4 px-6">
         <div class="flex items-center space-x-3">
@@ -382,13 +382,13 @@ function renderUsers(users) {
               ${isSelf ? '<span class="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300">You</span>' : ""}
               ${safeUser.mustChangePassword ? '<span class="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-warning-100 dark:bg-warning-900/30 text-warning-700 dark:text-warning-300" title="Must change password on next login">PW reset</span>' : ""}
             </div>
-            <div class="text-xs text-gray-400 font-mono">${escapeHtml(String(safeUser._id).slice(-8))}</div>
+            <div class="text-xs text-primary-500 dark:text-gray-400 font-mono">${escapeHtml(String(safeUser._id).slice(-8))}</div>
           </div>
         </div>
       </td>
       <td class="py-4 px-6">
         <div class="text-sm">${escapeHtml(safeUser.email)}</div>
-        <div class="text-xs text-gray-400">${escapeHtml(safeUser.phone)}</div>
+        <div class="text-xs text-primary-500 dark:text-gray-400">${escapeHtml(safeUser.phone)}</div>
       </td>
       <td class="py-4 px-6">
         <span class="px-3 py-1 rounded-full text-xs font-medium ${getRoleClass(safeUser.role)}">
@@ -401,27 +401,27 @@ function renderUsers(users) {
           <span>${escapeHtml(safeUser.status.charAt(0).toUpperCase() + safeUser.status.slice(1))}</span>
         </div>
       </td>
-      <td class="py-4 px-6 text-sm text-gray-400">${
+      <td class="py-4 px-6 text-sm text-primary-500 dark:text-gray-400">${
         safeUser.lastActive ? escapeHtml(new Date(safeUser.lastActive).toLocaleString()) : "Never"
       }</td>
       <td class="py-4 px-6 text-right">
         <div class="flex justify-end space-x-1">
           ${
             editable
-              ? `<button class="edit-user-btn p-2 text-primary-400 hover:text-primary-300" data-id="${escapeHtml(safeUser._id)}" title="Edit user"><i class="fas fa-edit"></i></button>`
+              ? `<button class="edit-user-btn p-2 text-primary-500 hover:text-accent-500 dark:text-primary-400 dark:hover:text-primary-300" data-id="${escapeHtml(safeUser._id)}" title="Edit user"><i class="fas fa-edit"></i></button>`
               : ""
           }
           ${
             resettable
-              ? `<button class="reset-pw-btn p-2 text-warning-500 hover:text-warning-400" data-id="${escapeHtml(safeUser._id)}" data-name="${escapeHtml(safeUser.name)}" title="Reset password"><i class="fas fa-key"></i></button>`
+              ? `<button class="reset-pw-btn p-2 text-warning-600 hover:text-warning-500 dark:text-warning-500 dark:hover:text-warning-400" data-id="${escapeHtml(safeUser._id)}" data-name="${escapeHtml(safeUser.name)}" title="Reset password"><i class="fas fa-key"></i></button>`
               : ""
           }
           ${
             deletable
-              ? `<button class="delete-user-btn p-2 text-red-400 hover:text-red-300" data-id="${escapeHtml(safeUser._id)}" data-name="${escapeHtml(safeUser.name)}" title="Delete user"><i class="fas fa-trash"></i></button>`
+              ? `<button class="delete-user-btn p-2 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" data-id="${escapeHtml(safeUser._id)}" data-name="${escapeHtml(safeUser.name)}" title="Delete user"><i class="fas fa-trash"></i></button>`
               : ""
           }
-          ${!editable && !deletable && !resettable ? '<span class="text-xs text-gray-400 px-2">—</span>' : ""}
+          ${!editable && !deletable && !resettable ? '<span class="text-xs text-primary-400 dark:text-gray-400 px-2">—</span>' : ""}
         </div>
       </td>
     `;
@@ -454,15 +454,15 @@ function renderUsers(users) {
 function getRoleClass(role) {
   switch (role) {
     case "admin":
-      return "bg-purple-900/50 text-purple-300";
+      return "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300";
     case "manager":
-      return "bg-blue-900/50 text-blue-300";
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
     case "cashier":
-      return "bg-green-900/50 text-green-300";
+      return "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300";
     case "inventory":
-      return "bg-cyan-900/50 text-cyan-300";
+      return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300";
     default:
-      return "bg-yellow-900/50 text-yellow-300";
+      return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300";
   }
 }
 
@@ -743,7 +743,7 @@ function showToast(message, type = "info") {
   const typeClass = { success: "success", error: "red", warning: "yellow", info: "primary" }[type];
 
   const toast = document.createElement("div");
-  toast.className = `glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${typeClass}-500`;
+  toast.className = `pointer-events-auto glass-dark rounded-xl p-4 text-white font-medium transform transition-all duration-300 animate-slide-in border-l-4 border-${typeClass}-500`;
   toast.innerHTML = `
     <div class="flex items-center space-x-3">
       <i class="fas fa-${
