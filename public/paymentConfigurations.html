@@ -246,6 +246,11 @@
     <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
     <script src="./js/accountDetailsBadge.js"></script>
     <script>
+      // Page authorization: payment configuration is admin only.
+      window.PAGE_ROLES = ["admin"];
+    </script>
+    <script src="./js/pageGuard.js"></script>
+    <script>
       // Toggle sidebar function
       function toggleSidebar() {
         const sidebar = document.getElementById("sidebar");

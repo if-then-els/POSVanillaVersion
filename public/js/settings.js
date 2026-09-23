@@ -134,7 +134,9 @@ async function fetchCurrentIdentity() {
 }
 
 function canManageSettings() {
-  return currentUserRole === "admin" || currentUserRole === "manager";
+  // Store / Receipts / Payments management is admin only. Every role keeps
+  // the Account tab (self-service profile + password). Backend enforces.
+  return currentUserRole === "admin";
 }
 
 function isAdmin() {
@@ -163,6 +165,15 @@ function applyRoleGating() {
     });
     const notice = document.getElementById("settings-readonly-notice");
     if (notice) notice.classList.remove("hidden");
+  }
+
+  // Non-admins only get the Account tab. If the currently active tab was
+  // just hidden, fall back to Account so the page is never left blank.
+  if (!isAdmin()) {
+    const activeTab = document.querySelector(".tab-button.active");
+    if (activeTab && activeTab.style.display === "none") {
+      document.getElementById("tab-user")?.click();
+    }
   }
 }
 
@@ -311,7 +322,7 @@ function setSaving(btn, saving, label) {
 async function saveStoreSettings(e) {
   e.preventDefault();
   if (!canManageSettings()) {
-    notify("Only admins and managers can change store settings.", "error");
+    notify("Only administrators can change store settings.", "error");
     return;
   }
   const email = document.getElementById("store-email").value.trim();
@@ -361,7 +372,7 @@ async function saveStoreSettings(e) {
 async function saveReceiptSettings(e) {
   e.preventDefault();
   if (!canManageSettings()) {
-    notify("Only admins and managers can change receipt settings.", "error");
+    notify("Only administrators can change receipt settings.", "error");
     return;
   }
   const payload = {

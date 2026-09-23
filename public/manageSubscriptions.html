@@ -1003,6 +1003,11 @@
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
     <script>
+      // Page authorization: subscription billing is admin only.
+      window.PAGE_ROLES = ["admin"];
+    </script>
+    <script src="./js/pageGuard.js"></script>
+    <script>
       // Currency shown is based on the user's location (cosmetic display only;
       // actual charges are converted backend-side from USD into a
       // Paystack-supported currency enabled on the merchant account). Default

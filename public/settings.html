@@ -434,12 +434,14 @@
               >
                 <button
                   id="tab-store"
+                  data-requires-role="admin"
                   class="tab-button active flex-1 px-4 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-center"
                 >
                   <i class="fas fa-store mr-2"></i>Store
                 </button>
                 <button
                   id="tab-receipt"
+                  data-requires-role="admin"
                   class="tab-button flex-1 px-4 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-center"
                 >
                   <i class="fas fa-receipt mr-2"></i>Receipts
@@ -452,6 +454,7 @@
                 </button>
                 <button
                   id="tab-payments"
+                  data-requires-role="admin"
                   class="tab-button flex-1 px-4 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 text-center"
                 >
                   <i class="fas fa-credit-card mr-2"></i>Payments
@@ -1372,6 +1375,9 @@
     <!-- Scripts -->
     <script src="./js/sidebar.js"></script>
     <script src="./js/accountDetailsBadge.js"></script>
+    <!-- No PAGE_ROLES here: every role may open Settings for the Account tab.
+         Store/Receipts/Payments tabs are admin-gated inside settings.js. -->
+    <script src="./js/pageGuard.js"></script>
     <script src="./js/settings.js"></script>
     <script src="./js/chat2.js"></script>
     <script src="js/subscriptionChecker.js"></script>

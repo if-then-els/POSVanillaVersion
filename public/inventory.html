@@ -429,6 +429,7 @@
               <button
                 id="upload-csv-btn"
                 data-requires-role="admin,manager,inventory"
+                data-requires-role="admin,manager,inventory"
                 class="px-5 py-3 glass-card text-primary-700 dark:text-primary-200 rounded-xl font-bold hover:bg-primary-50 dark:hover:bg-primary-800 transition-all flex items-center gap-2"
                 title="Import products from CSV"
               >
@@ -438,6 +439,7 @@
               <button
                 id="upload-excel-btn"
                 data-requires-role="admin,manager,inventory"
+                data-requires-role="admin,manager,inventory"
                 class="px-5 py-3 glass-card text-primary-700 dark:text-primary-200 rounded-xl font-bold hover:bg-primary-50 dark:hover:bg-primary-800 transition-all flex items-center gap-2"
                 title="Import products from Excel"
               >
@@ -446,6 +448,7 @@
               </button>
               <button
                 id="add-product-btn"
+                data-requires-role="admin,manager,inventory"
                 data-requires-role="admin,manager,inventory"
                 class="px-5 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-bold hover:shadow-lg hover:scale-105 transition-all flex items-center gap-2"
               >
@@ -1336,6 +1339,11 @@
     <script src="./js/accountDetailsBadge.js"></script>
     <script src="./js/utils.js"></script>
     <script src="./js/auth.js"></script>
+    <script>
+      // Page authorization: add/edit stock is manager+admin (+inventory role).
+      window.PAGE_ROLES = ["admin", "manager", "inventory"];
+    </script>
+    <script src="./js/pageGuard.js"></script>
     <script src="./js/stores.js"></script>
     <script src="./js/inventory.js"></script>
     <script src="./js/chat2.js"></script>

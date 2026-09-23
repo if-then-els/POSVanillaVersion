@@ -8,21 +8,23 @@ const { audit } = require("../middleware/audit.middleware");
 
 // Get all settings (store tab)
 router.get("/api/settings", verifyToken, settingsController.getSettings);
-router.put("/api/settings", verifyToken, authorize("admin","manager"), audit("settings.update", "Settings"), settingsController.updateSettings);
+// General + store + receipt management is admin only. Every role keeps the
+// Account tab (self-service profile/password) via /settings/user below.
+router.put("/api/settings", verifyToken, authorize("admin"), audit("settings.update", "Settings"), settingsController.updateSettings);
 
 // Store settings (store tab). The controller parses the logo upload itself
 // with a dedicated image-only multer setup (see settings.controller.js).
 router.post(
   "/settings/store",
   verifyToken,
-  authorize("admin", "manager"),
+  authorize("admin"),
   audit("settings.store.update", "Settings"),
   settingsController.saveStoreSettings
 );
 router.put(
   "/settings/store",
   verifyToken,
-  authorize("admin", "manager"),
+  authorize("admin"),
   audit("settings.store.update", "Settings"),
   settingsController.saveStoreSettings
 );
@@ -37,7 +39,7 @@ router.get(
 router.put(
   "/settings/receipt",
   verifyToken,
-  authorize("admin", "manager"),
+  authorize("admin"),
   audit("settings.receipt.update", "Settings"),
   settingsController.saveReceiptSettings
 );

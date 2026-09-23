@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const { verifyToken } = require("../middleware/auth.middleware");
 const { requireFeature } = require("../middleware/tier.middleware");
+const { authorize } = require("../middleware/rbac.middleware");
 const ai = require("../services/aiService");
 
 // All AI routes are Premium only (reportsAIS)
-router.get("/insights/forecast", verifyToken, requireFeature("reportsAIS", "AI forecast requires Premium"), async (req,res)=>{
+router.get("/insights/forecast", verifyToken, authorize("admin", "manager"), requireFeature("reportsAIS", "AI forecast requires Premium"), async (req,res)=>{
   try{
     const days = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
     const data = await ai.getOrForecast(req.user.business, true, days);
@@ -13,7 +14,7 @@ router.get("/insights/forecast", verifyToken, requireFeature("reportsAIS", "AI f
   } catch(e){ console.error(e); res.status(500).json({message:"Forecast failed"}); }
 });
 
-router.get("/insights/dead-stock", verifyToken, requireFeature("reportsAIS"), async (req,res)=>{
+router.get("/insights/dead-stock", verifyToken, authorize("admin", "manager"), requireFeature("reportsAIS"), async (req,res)=>{
   try{
     const days = Number(req.query.days)||60;
     const data = await ai.detectDeadStock(req.user.business, days);
@@ -21,14 +22,14 @@ router.get("/insights/dead-stock", verifyToken, requireFeature("reportsAIS"), as
   } catch(e){ res.status(500).json({message:"Dead stock failed"}); }
 });
 
-router.get("/insights/anomalies", verifyToken, requireFeature("reportsAIS"), async (req,res)=>{
+router.get("/insights/anomalies", verifyToken, authorize("admin", "manager"), requireFeature("reportsAIS"), async (req,res)=>{
   try{
     const data = await ai.anomalyDetection(req.user.business);
     res.json(data);
   } catch(e){ res.status(500).json({message:"Anomaly detection failed"}); }
 });
 
-router.post("/query", verifyToken, requireFeature("reportsAIS"), async (req,res)=>{
+router.post("/query", verifyToken, authorize("admin", "manager"), requireFeature("reportsAIS"), async (req,res)=>{
   try{
     const { question } = req.body;
     if(!question || question.length<3) return res.status(400).json({message:"question required"});
@@ -37,7 +38,7 @@ router.post("/query", verifyToken, requireFeature("reportsAIS"), async (req,res)
   } catch(e){ console.error(e); res.status(500).json({message:"AI query failed"}); }
 });
 
-router.get("/insights/overview", verifyToken, requireFeature("reportsAIS"), async (req,res)=>{
+router.get("/insights/overview", verifyToken, authorize("admin", "manager"), requireFeature("reportsAIS"), async (req,res)=>{
   try{
     const horizon = Math.min(Math.max(Number(req.query.days) || 30, 7), 90);
     const idleDays = Math.min(Math.max(Number(req.query.idleDays) || 60, 30), 180);

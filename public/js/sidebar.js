@@ -87,7 +87,11 @@ function loadSidebar() {
   const sidebar = document.getElementById("sidebar");
   if (!sidebar) return;
 
-  // Define navigation items with a new 'requiresSubscription' property
+  // Define navigation items with access control:
+  // - requiresSubscription: hidden/locked without an active subscription
+  //   (the Subscription Hub itself is always reachable so users can renew).
+  // - requiresRole: visible only to these roles (mirrors pageGuard PAGE_ROLES
+  //   and backend authorize() - the backend re-enforces everything).
   const navItems = [
     { href: "dashboard.html", icon: "fa-home", text: "Dashboard" },
     {
@@ -101,24 +105,28 @@ function loadSidebar() {
       icon: "fa-box",
       text: "Add Products",
       requiresSubscription: true,
+      requiresRole: ["admin", "manager", "inventory"],
     },
     {
       href: "reports.html",
       icon: "fa-chart-bar",
       text: "Reports",
       requiresSubscription: true,
+      requiresRole: ["admin", "manager"],
     },
     {
       href: "aiAnalytics.html",
       icon: "fa-brain",
       text: "AI Analytics",
       requiresSubscription: true,
+      requiresRole: ["admin", "manager"],
     },
     {
       href: "manageSubscriptions.html",
       icon: "fa-bell",
       text: "Subscriptions",
       solid: true,
+      requiresRole: ["admin"],
     },
     {
       href: "users.html",
@@ -126,6 +134,7 @@ function loadSidebar() {
       text: "User Management",
       solid: true,
       requiresSubscription: true,
+      requiresRole: ["admin", "manager"],
     },
     { href: "settings.html", icon: "fa-cog", text: "Settings" },
   ];
@@ -150,7 +159,7 @@ function loadSidebar() {
     <nav class="p-4 flex-1 overflow-y-auto">
       <ul class="space-y-1">
         ${navItems
-          .map(({ href, icon, text, solid, requiresSubscription }) => {
+          .map(({ href, icon, text, solid, requiresSubscription, requiresRole }) => {
             const isActive = window.location.pathname.endsWith(href);
             // Active state classes
             const activeClass =
@@ -163,7 +172,8 @@ function loadSidebar() {
                 <li>
                   <a href="./${href}" 
                      class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-200 group ${isActive ? activeClass : inactiveClass}" 
-                     ${requiresSubscription ? 'data-requires-subscription="true"' : ""}>
+                      ${requiresSubscription ? 'data-requires-subscription="true"' : ""}
+                      ${requiresRole ? `data-requires-role="${requiresRole.join(",")}"` : ""}>
                     <i class="${solid ? "fa-solid" : "fas"} ${icon} w-5 text-center transition-colors ${isActive ? "text-accent-500" : "text-primary-400 dark:text-primary-500 group-hover:text-accent-500"}"></i>
                     <span class="sidebar-text">${text}</span>
                     ${isActive ? '<div class="ml-auto w-1.5 h-1.5 rounded-full bg-accent-500 sidebar-text"></div>' : ""}
@@ -242,6 +252,25 @@ function loadSidebar() {
     document.head.appendChild(style);
   }
 
+  // Role-based nav filtering (same matrix as pageGuard + backend).
+  // Runs after the role is known; unauthorized links are removed entirely
+  // so they can't be clicked. Direct-URL access is blocked by pageGuard.js
+  // and every API re-checks the role server-side.
+  function applySidebarRoleFilter(role) {
+    if (!role) return;
+    document
+      .querySelectorAll('#sidebar a[data-requires-role]')
+      .forEach((link) => {
+        const required = link
+          .getAttribute("data-requires-role")
+          .split(",")
+          .map((s) => s.trim());
+        if (!required.includes(role)) {
+          link.closest("li")?.remove();
+        }
+      });
+  }
+
   // Populate user info
   function updateUserInfo() {
     const userName = document.getElementById("user-name");
@@ -262,6 +291,7 @@ function loadSidebar() {
         if (data.user) {
           userName.textContent = data.user.business?.name || "Admin User";
           userEmail.textContent = data.user.email || "not logged in @pos.com";
+          applySidebarRoleFilter(data.user.role);
         }
       })
       .catch(() => {

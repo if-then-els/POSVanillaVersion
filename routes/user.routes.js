@@ -34,8 +34,8 @@ router.post("/public-reset-password", publicResetPassword); // New endpoint
 const { authorize } = require("../middleware/rbac.middleware");
 const { requireLimit } = require("../middleware/tier.middleware");
 const { audit } = require("../middleware/audit.middleware");
-router.get("/users", verifyToken, getAllUsers);
-router.get("/users/:id", verifyToken, getUserById);
+router.get("/users", verifyToken, authorize("admin", "manager"), getAllUsers);
+router.get("/users/:id", verifyToken, authorize("admin", "manager"), getUserById);
 router.post(
   "/users",
   verifyToken,

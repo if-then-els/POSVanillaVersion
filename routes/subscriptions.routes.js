@@ -4,19 +4,23 @@ const subscriptionsController = require("../controllers/subscriptions.controller
 const Plan = require("../models/plan.model");
 const Subscription = require("../models/subscription.model");
 const auth = require("../middleware/auth.middleware");
+const { authorize } = require("../middleware/rbac.middleware");
 const currencyService = require("../services/currencyService");
 // Route to upgrade/create a subscription (triggered internally after payment verification)
-// NOTE: must use auth only (NOT subscriptionMiddleware) so expired users can renew.
+// NOTE: auth + admin only (NOT subscriptionMiddleware) so expired admins can
+// still renew, while non-admin roles cannot touch billing.
 router.post(
   "/subscriptions/upgrade",
   auth.verifyToken,
+  authorize("admin"),
   subscriptionsController.upgradeSubscription
 );
 
-// Cancel subscription (auth only - expired users get a clean 404, not a 403 loop)
+// Cancel subscription (admin only)
 router.post(
   "/subscriptions/cancel",
   auth.verifyToken,
+  authorize("admin"),
   subscriptionsController.cancelSubscription
 );
 
@@ -61,10 +65,12 @@ router.get(
 );
 
 // Initiate Paystack Payment (frontend calls this)
-// Auth only (NOT subscriptionMiddleware) so expired users can pay/renew.
+// Auth + admin only (NOT subscriptionMiddleware) so expired admins can
+// pay/renew. Non-admin roles cannot initiate billing charges.
 router.post(
   "/payments/paystack/initiate",
   auth.verifyToken,
+  authorize("admin"),
   subscriptionsController.initiatePaystackPayment
 );
 
@@ -75,11 +81,11 @@ router.post(
 );
 
 // Frontend-driven confirmation after the popup reports success.
-// Needed because webhooks can't reach localhost/dev - the server re-verifies
-// the reference with Paystack and fulfills the subscription.
+// Auth + admin only (same billing boundary as initiate).
 router.post(
   "/payments/paystack/confirm",
   auth.verifyToken,
+  authorize("admin"),
   subscriptionsController.confirmPaystackPayment
 );
 
@@ -94,6 +100,7 @@ router.get(
 router.post(
   "/subscriptions/update-payment-method",
   auth.verifyToken,
+  authorize("admin"),
   subscriptionsController.updatePaymentMethod
 );
 
