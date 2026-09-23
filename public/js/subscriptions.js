@@ -183,6 +183,12 @@ actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
     const existingBanner = document.getElementById("subscription-banner");
     if (existingBanner) existingBanner.remove(); // Clear existing banners
 
+    // Never show the "Renew Now" banner on the Subscription Hub itself
+    // (it links to the page the user is already on).
+    const isExemptPage = (window.location.pathname || "")
+      .toLowerCase()
+      .endsWith("managesubscriptions.html");
+
     if (daysUntilExpiry <= 0 && appState.currentSubscription) {
       // Only show if there was a subscription that expired
       message =
@@ -201,6 +207,8 @@ actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
 
     if (message) {
       showToast(message, type);
+
+      if (isExemptPage) return; // toast only on Subscription Hub, no self-link banner
 
       const bannerHtml = `
         <div id="subscription-banner" class="fixed top-0 left-0 right-0 bg-gradient-to-r ${
@@ -1230,12 +1238,35 @@ return await updatePaymentMethodOnly();
 
       if (!response.ok) {
         const errorData = await response.json();
+        const providerDetail =
+          errorData.error?.message || errorData.error?.meta?.nextStep;
         throw new Error(
-          errorData.message || "Failed to initiate Paystack payment",
+          [errorData.message, providerDetail].filter(Boolean).join(" | ") ||
+            "Failed to initiate Paystack payment",
         );
       }
 
       const data = await response.json();
+
+      // Backend converts USD -> a Paystack-supported charge currency and
+      // retries on "unsupported_currency". Show the ACTUAL charge so the
+      // user isn't surprised when it differs from the display currency.
+      if (data.currency && data.amountCharge != null) {
+        const amountInput = document.getElementById("paystack-amount");
+        if (amountInput) {
+          amountInput.value = `${data.currency} ${Number(data.amountCharge).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+        }
+        const channelLabel = document.getElementById(
+          "selected-payment-channel",
+        );
+        if (channelLabel && data.triedCurrencies?.length > 1) {
+          channelLabel.textContent += ` (charged in ${data.currency})`;
+        }
+        showToast(
+          `Charging ${data.currency} ${Number(data.amountCharge).toLocaleString(undefined, { maximumFractionDigits: 2 })} via Paystack`,
+          "info",
+        );
+      }
 
       if (data.status && data.data?.authorization_url) {
         // Open Paystack popup
@@ -1251,8 +1282,12 @@ return await updatePaymentMethodOnly();
           key: publicKey,
           email: email,
           // The backend computes the charge from the plan's USD price and
-          // returns it in the merchant currency's minor units (kobo/cents).
+          // returns it in a Paystack-supported charge currency's minor units.
+          // currency MUST be passed explicitly: without it the popup defaults
+          // to the integration currency (which may not be enabled) and fails
+          // with "Currency not supported by merchant".
           amount: data.amountKobo || Math.round(Number(amount) * 100),
+          currency: data.currency || undefined,
           ref: data.data.reference,
           callback: function (response) {
             // Payment successful - close popup and show success message

@@ -1004,7 +1004,8 @@
     <script src="./js/auth.js"></script>
     <script>
       // Currency shown is based on the user's location (cosmetic display only;
-      // actual charges always use PAYSTACK_CURRENCY on the backend). Default
+      // actual charges are converted backend-side from USD into a
+      // Paystack-supported currency enabled on the merchant account). Default
       // shows below and is replaced once the location is detected.
       window.PAYMENT_CURRENCY = "NGN";
       window.formatCurrency = (value, currency) => {

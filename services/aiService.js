@@ -53,18 +53,70 @@ async function anomalyDetection(businessId) {
   return { anomalies, avg: Number(avg.toFixed(2)), stdev: Number(stdev.toFixed(2)), count: anomalies.length };
 }
 
-// Simple NL query over aggregated data (heuristic, no external LLM required for demo)
-// If OPENAI_API_KEY present, it will try to use OpenAI, else heuristic.
+// Aggregated, PII-free business snapshot used as grounded context for the LLM.
+async function buildBusinessSnapshot(businessId) {
+  const [sales, forecast, dead] = await Promise.all([
+    Sale.find({ business: businessId }).populate("items.productId").lean(),
+    forecastDemand(businessId, 30).catch(() => ({ forecasts: [] })),
+    detectDeadStock(businessId, 60).catch(() => ({ deadStock: [], count: 0 })),
+  ]);
+  let revenue = 0, cogs = 0, units = 0;
+  sales.forEach(s => s.items.forEach(it => {
+    const q = Number(it.quantity) || 0;
+    revenue += Number(it.price) * q;
+    cogs += Number(it.costPrice ?? it.productId?.costPrice ?? 0) * q;
+    units += q;
+  }));
+  const top = (forecast.forecasts || []).slice(0, 5).map(f => `${f.productName} (sold ${f.soldLast30d}, ~${f.avgDaily}/day)`).join("; ");
+  return [
+    `Sales: ${sales.length} orders, ${units} units, revenue KES ${Math.round(revenue)}, gross KES ${Math.round(revenue - cogs)}.`,
+    `Top products (30d): ${top || "not enough data"}.`,
+    `Dead stock (60d idle): ${dead.count || 0} lines${dead.deadStock?.length ? " e.g. " + dead.deadStock.slice(0, 3).map(d => d.productName).join(", ") : ""}.`,
+  ].join("\n");
+}
+
+// Free-form answers via Gemini (key from .env: GEMINI_API_KEY, legacy `gemini` also accepted).
+// REST call — no extra SDK dependency. Returns answer text or null when unconfigured/failing.
+async function askGemini(question, snapshot) {
+  const key = (process.env.GEMINI_API_KEY || process.env.gemini || "").trim();
+  if (!key) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: "You are a POS business assistant. Answer concisely (max 4 sentences) using ONLY the business snapshot below. Use KES currency. Never invent products or numbers not in the snapshot." }] },
+        contents: [{ parts: [{ text: `Business snapshot:\n${snapshot}\n\nQuestion: ${question}` }] }],
+        generationConfig: { maxOutputTokens: 300, temperature: 0.3 },
+      }),
+    });
+    if (!r.ok) throw new Error(`Gemini HTTP ${r.status}`);
+    const j = await r.json();
+    const text = j.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("").trim();
+    return text || null;
+  } catch (e) {
+    console.error("askGemini failed:", e.message);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Simple NL query: instant heuristics for known topics, Gemini for free-form questions.
 async function naturalQuery(businessId, question) {
   const q = (question||"").toLowerCase();
-  // cache key
-  const cacheKey = question.slice(0,120);
+  // v2 cache key — v1 entries may contain retired wording, never serve them.
+  const cacheKey = "v2:" + question.slice(0,120);
   const cached = await AIInsight.findOne({ business: businessId, type: "query", "payload.question": cacheKey }).sort({ createdAt: -1 });
   if (cached && cached.expiresAt > new Date()) {
     return { answer: cached.payload.answer, cached: true, followUps: cached.payload.followUps };
   }
   let answer = "";
   let data = null;
+  let llmProvider = "heuristic";
   if (q.includes("best") && (q.includes("product") || q.includes("selling"))) {
     const overview = await forecastDemand(businessId, 30);
     const top = overview.forecasts[0];
@@ -87,25 +139,23 @@ async function naturalQuery(businessId, question) {
     answer = f.forecasts.slice(0,3).map(x=>`${x.productName}: reorder ~${x.predictedNext30d}`).join("; ") || "No forecast — add sales first.";
     data = f;
   } else {
-    // generic fallback: try OpenAI if key present
-    if (process.env.OPENAI_API_KEY) {
-      try {
-        const OpenAI = require("openai");
-        const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        // build tiny context (no PII, aggregated only)
-        const context = `Business ${businessId} has aggregated sales/inventory. Question: ${question}. Answer concisely, no disallowed content.`;
-        const resp = await client.chat.completions.create({ model: "gpt-4o-mini", messages:[{role:"user", content: context}], max_tokens: 200 });
-        answer = resp.choices[0]?.message?.content || "No answer.";
-        data = { provider: "openai" };
-      } catch (e) {
-        answer = `I can answer: best product, profit/margin, dead stock, forecast. Try: "what sold best last week?"`;
+    // free-form: Gemini grounded on the business snapshot; user-safe fallback otherwise.
+    try {
+      const snapshot = await buildBusinessSnapshot(businessId);
+      const aiText = await askGemini(question, snapshot);
+      if (aiText) {
+        answer = aiText;
+        data = { provider: "gemini" };
+        llmProvider = "gemini";
+      } else {
+        answer = `Smart answers are limited right now — please ask your admin to enable AI responses. Meanwhile I can answer questions about best sellers, profit and margins, dead stock, and demand forecasts. Try: "what sold best last week?"`;
       }
-    } else {
-      answer = `I can answer questions about best sellers, profit and margins, dead stock, and demand forecasts. Try: "what sold best last week?"`;
+    } catch (e) {
+      answer = `Smart answers are limited right now — please ask your admin to enable AI responses. Meanwhile I can answer questions about best sellers, profit and margins, dead stock, and demand forecasts. Try: "what sold best last week?"`;
     }
   }
   const toCache = { question: cacheKey, answer, data, followUps: ["Show profit breakdown", "Which items are dead stock?", "Forecast next 30 days"] };
-  await AIInsight.create({ business: businessId, type: "query", payload: toCache, expiresAt: addDays(new Date(), 1), provider: process.env.OPENAI_API_KEY ? "openai" : "heuristic" });
+  await AIInsight.create({ business: businessId, type: "query", payload: toCache, expiresAt: addDays(new Date(), 1), provider: llmProvider });
   return { answer, data, followUps: toCache.followUps, cached: false };
 }
 

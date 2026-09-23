@@ -13,6 +13,50 @@ const PAYSTACK_PUBLIC_KEY = process.env.PAYSTACK_PUBLIC_KEY;
 const PAYSTACK_CURRENCY = (process.env.PAYSTACK_CURRENCY || "NGN").toUpperCase();
 const PAYSTACK_BASE_URL = "https://api.paystack.co";
 
+// Paystack processes NGN, GHS, ZAR, KES and USD - but a single merchant
+// account only has a subset enabled (depends on country of registration).
+// Passing a non-enabled currency fails with:
+//   { code: "unsupported_currency", message: "Currency not supported by merchant" }
+// So we convert the plan's USD price into a SUPPORTED currency and retry
+// across candidates until Paystack accepts one.
+const PAYSTACK_SUPPORTED_CURRENCIES = ["NGN", "GHS", "ZAR", "KES", "USD"];
+
+// Preferred order: PAYSTACK_CURRENCIES="GHS,NGN" (optional, comma-separated)
+// takes precedence, then PAYSTACK_CURRENCY, then the remaining supported ones.
+function getPaystackCandidateCurrencies() {
+  const rawList = String(process.env.PAYSTACK_CURRENCIES || "")
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
+  const ordered = [...new Set(rawList)];
+  if (!ordered.includes(PAYSTACK_CURRENCY)) ordered.push(PAYSTACK_CURRENCY);
+  for (const cur of PAYSTACK_SUPPORTED_CURRENCIES) {
+    if (!ordered.includes(cur)) ordered.push(cur);
+  }
+  return ordered;
+}
+
+function isUnsupportedCurrencyError(err) {
+  const data = err?.response?.data || {};
+  // Paystack has used both codes for the same condition across API versions.
+  if (
+    data.code === "unsupported_currency" ||
+    data.code === "currency_not_supported"
+  )
+    return true;
+  const msg = String(data.message || err?.message || "").toLowerCase();
+  return msg.includes("currency not supported");
+}
+
+async function postPaystackInitialize(payload) {
+  return axios.post(`${PAYSTACK_BASE_URL}/transaction/initialize`, payload, {
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 // Placeholder for sendExpiryReminderEmail - YOU WILL NEED TO IMPLEMENT THIS
 async function sendExpiryReminderEmail(email, data) {
   console.log(`Sending expiry reminder email to ${email}:`, data);
@@ -58,9 +102,10 @@ exports.initiatePaystackPayment = async (req, res) => {
     }
 
     // Plans are priced in USD. The charge amount is computed server-side from
-    // the plan's USD price (never trust the client amount), converted to the
-    // merchant's supported currency, then to its smallest unit (kobo/cents).
-    // Paystack does NOT support KES.
+    // the plan's USD price (never trust the client amount), converted to a
+    // Paystack-supported charge currency, then to its smallest unit.
+    // Paystack supports NGN/GHS/ZAR/KES/USD but each merchant account only
+    // has a subset enabled - candidates are retried until one is accepted.
     const plan = await Plan.findById(planId);
     if (!plan) {
       return res.status(404).json({ message: "Plan not found" });
@@ -78,53 +123,93 @@ exports.initiatePaystackPayment = async (req, res) => {
       });
     }
 
-    const amountKobo = await currencyService.convertUSDToMinor(
-      usdPrice,
-      PAYSTACK_CURRENCY,
-    );
-    if (amountKobo == null || amountKobo <= 0) {
+    const triedCurrencies = [];
+    let paystackResponse = null;
+    let chargeCurrency = null;
+    let amountKobo = null;
+    let amountCharge = null;
+    let lastUnsupportedError = null;
+
+    // Try each candidate currency: convert USD -> candidate, then initialize.
+    // Skips currencies we cannot convert to; retries on unsupported_currency.
+    for (const candidate of getPaystackCandidateCurrencies()) {
+      let minor = null;
+      try {
+        minor = await currencyService.convertUSDToMinor(usdPrice, candidate);
+      } catch (convErr) {
+        console.warn(
+          `Currency conversion USD->${candidate} failed: ${convErr.message}. Trying next currency.`,
+        );
+        continue;
+      }
+      if (minor == null || minor <= 0) {
+        console.warn(
+          `Could not convert USD ${usdPrice} to ${candidate}, trying next currency.`,
+        );
+        continue;
+      }
+      triedCurrencies.push(candidate);
+
+      try {
+        paystackResponse = await postPaystackInitialize({
+          email,
+          amount: minor,
+          currency: candidate,
+          reference: uniqueRef,
+          callback_url: `${req.protocol}://${req.get("host")}/subscriptions`,
+          metadata: {
+            businessId,
+            planId,
+            planName: plan.name,
+            action,
+            usdAmount: usdPrice,
+            originalAmount: minor / 100,
+            originalCurrency: candidate,
+            paymentMethod: paymentMethod || "paystack",
+          },
+        });
+        chargeCurrency = candidate;
+        amountKobo = minor;
+        amountCharge = minor / 100; // major units in charge currency
+        break; // success
+      } catch (psErr) {
+        if (isUnsupportedCurrencyError(psErr)) {
+          lastUnsupportedError = psErr;
+          console.warn(
+            `Paystack rejected currency ${candidate} (not enabled on merchant account). Trying next currency.`,
+          );
+          paystackResponse = null;
+          continue;
+        }
+        throw psErr; // real failure (auth, network, validation) - don't mask it
+      }
+    }
+
+    if (!paystackResponse) {
+      const detail =
+        lastUnsupportedError?.response?.data?.message ||
+        "None of the Paystack currencies are enabled on this merchant account.";
       console.error(
-        `Could not convert USD ${usdPrice} to ${PAYSTACK_CURRENCY} for plan ${plan.name}.`,
+        `Paystack init failed for all currencies (tried: ${triedCurrencies.join(", ") || "none"}). ${detail}`,
       );
-      return res.status(503).json({
-        message: "Could not determine the payment amount. Please retry.",
+      return res.status(400).json({
+        message:
+          `Payment currency not supported by your Paystack account. ` +
+          `Tried: ${triedCurrencies.join(", ") || "none"}. ` +
+          `Enable one of NGN, GHS, ZAR, KES, USD in your Paystack dashboard ` +
+          `or set PAYSTACK_CURRENCY/PAYSTACK_CURRENCIES to an enabled currency.`,
+        triedCurrencies,
+        error: lastUnsupportedError?.response?.data,
       });
     }
-    const amountCharge = amountKobo / 100; // major units in merchant currency
-
-    const paystackResponse = await axios.post(
-      `${PAYSTACK_BASE_URL}/transaction/initialize`,
-      {
-        email,
-        amount: amountKobo,
-        currency: PAYSTACK_CURRENCY,
-        reference: uniqueRef,
-        callback_url: `${req.protocol}://${req.get("host")}/subscriptions`,
-        metadata: {
-          businessId,
-          planId,
-          planName: plan.name,
-          action,
-          usdAmount: usdPrice,
-          originalAmount: amountCharge,
-          originalCurrency: PAYSTACK_CURRENCY,
-          paymentMethod: paymentMethod || "paystack",
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
 
     res.status(200).json({
       ...paystackResponse.data,
       publicKey: PAYSTACK_PUBLIC_KEY,
-      currency: PAYSTACK_CURRENCY,
+      currency: chargeCurrency,
       amountCharge,
       amountKobo,
+      triedCurrencies,
       metadata: {
         ...paystackResponse.data.metadata,
         amountInUnit: amountCharge,
@@ -136,8 +221,11 @@ exports.initiatePaystackPayment = async (req, res) => {
       "Error initiating Paystack payment:",
       error.response ? error.response.data : error.message,
     );
+    const providerMessage = error.response?.data?.message;
     res.status(500).json({
-      message: "Error initiating Paystack payment",
+      message: providerMessage
+        ? `Paystack: ${providerMessage}`
+        : "Error initiating Paystack payment",
       error: error.response?.data,
     });
   }

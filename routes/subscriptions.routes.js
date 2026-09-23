@@ -1,22 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const subscriptionsController = require("../controllers/subscriptions.controller");
-const subscriptionMiddleware = require("../middleware/subscription.middleware");
 const Plan = require("../models/plan.model");
 const Subscription = require("../models/subscription.model");
 const auth = require("../middleware/auth.middleware");
 const currencyService = require("../services/currencyService");
 // Route to upgrade/create a subscription (triggered internally after payment verification)
+// NOTE: must use auth only (NOT subscriptionMiddleware) so expired users can renew.
 router.post(
   "/subscriptions/upgrade",
-  subscriptionMiddleware,
+  auth.verifyToken,
   subscriptionsController.upgradeSubscription
 );
 
-// Cancel subscription
+// Cancel subscription (auth only - expired users get a clean 404, not a 403 loop)
 router.post(
   "/subscriptions/cancel",
-  subscriptionMiddleware,
+  auth.verifyToken,
   subscriptionsController.cancelSubscription
 );
 
@@ -56,13 +56,15 @@ router.get("/subscriptions/status", async (req, res) => {
 
 router.get(
   "/subscriptions/history",
-  subscriptionMiddleware,
+  auth.verifyToken,
   subscriptionsController.getSubscriptionHistory
 );
 
 // Initiate Paystack Payment (frontend calls this)
+// Auth only (NOT subscriptionMiddleware) so expired users can pay/renew.
 router.post(
   "/payments/paystack/initiate",
+  auth.verifyToken,
   subscriptionsController.initiatePaystackPayment
 );
 
@@ -75,13 +77,14 @@ router.post(
 // Route for frontend to check payment status (optional, webhook is more reliable)
 router.get(
   "/payments/paystack/status/:reference",
+  auth.verifyToken,
   subscriptionsController.checkPaystackStatus
 );
 
 // Route to update payment method (triggered internally after payment verification)
 router.post(
   "/subscriptions/update-payment-method",
-  subscriptionMiddleware,
+  auth.verifyToken,
   subscriptionsController.updatePaymentMethod
 );
 

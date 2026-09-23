@@ -3,6 +3,9 @@ const jwt = require("jsonwebtoken");
 
 module.exports = async function (req, res, next) {
   // Allow public routes and registration endpoint
+  // NOTE: subscription-management / payment routes must ALWAYS bypass the
+  // active-subscription check, otherwise expired users can never renew
+  // (chicken-and-egg 403: "Subscription inactive or expired").
   const publicRoutes = [
     "/business/register",
     "/api/business/register",
@@ -16,10 +19,26 @@ module.exports = async function (req, res, next) {
     "/subscriptions/details",
     "/api/superadmin/login",
     "/api/superadmin/register",
+    // Renewal / payment flows - must work while expired:
+    "/subscriptions/upgrade",
+    "/subscriptions/cancel",
+    "/subscriptions/history",
+    "/subscriptions/update-payment-method",
+    "/payments/paystack/initiate",
+    "/payments/paystack/webhook",
+  ];
+
+  // Prefix matches (e.g. /payments/paystack/status/:reference)
+  const publicPrefixes = [
+    "/payments/paystack/status",
+    "/payments/paystack/webhook",
   ];
 
   // Skip subscription check for public routes
-  if (publicRoutes.includes(req.path)) {
+  if (
+    publicRoutes.includes(req.path) ||
+    publicPrefixes.some((p) => req.path === p || req.path.startsWith(p + "/"))
+  ) {
     return next();
   }
 

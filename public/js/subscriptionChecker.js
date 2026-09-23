@@ -14,6 +14,22 @@
     API_ENDPOINT: '/subscriptions/details'
   };
 
+  // Pages where the blocking "Subscription Expired" overlay must NEVER appear,
+  // so users can actually renew / purchase a plan.
+  const EXEMPT_PAGES = [
+    'managesubscriptions.html',
+    'paymentconfigurations.html'
+  ];
+
+  function isExemptPage() {
+    try {
+      const path = (window.location.pathname || '').toLowerCase();
+      return EXEMPT_PAGES.some((p) => path.endsWith(p));
+    } catch (e) {
+      return false;
+    }
+  }
+
   // --- Global State ---
   let globalSubscriptionState = {
     subscription: null,
@@ -201,6 +217,13 @@
    * Shows expiry notification banner
    */
   function showExpiryNotification() {
+    // No banner needed on the page where users renew (it links to itself).
+    if (isExemptPage()) {
+      const existingBanner = document.getElementById(CONFIG.BANNER_ID);
+      if (existingBanner) existingBanner.remove();
+      return;
+    }
+
     const existingBanner = document.getElementById(CONFIG.BANNER_ID);
     if (existingBanner) existingBanner.remove();
 
@@ -233,6 +256,13 @@
   function setModalVisibility(visible) {
     const modal = document.getElementById(CONFIG.MODAL_ID);
     if (modal) {
+      // Exempt pages must never show the blocking overlay.
+      if (isExemptPage()) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        modal.remove();
+        return;
+      }
       if (visible) {
         modal.classList.remove('hidden');
       } else {
@@ -245,6 +275,14 @@
    * Main enforcement function - applies subscription rules
    */
   function enforceSubscriptionRules() {
+    // NEVER block exempt pages (e.g. Subscription Hub) - users must be able
+    // to interact with the page to renew/purchase a plan.
+    if (isExemptPage()) {
+      unlockFeatures();
+      setModalVisibility(false);
+      return;
+    }
+
     if (globalSubscriptionState.isActive) {
       unlockFeatures();
       showExpiryNotification();
@@ -281,6 +319,12 @@
     } catch (error) {
       console.error('Failed to initialize subscription checker:', error);
       // Fail-safe: lock features if we can't determine status
+      // ...unless we're on an exempt page (must stay usable to renew).
+      if (isExemptPage()) {
+        unlockFeatures();
+        setModalVisibility(false);
+        return;
+      }
       lockFeatures();
       setModalVisibility(true);
       showToast('Could not verify subscription status. Features are limited.', 'error');

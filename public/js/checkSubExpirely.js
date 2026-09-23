@@ -9,6 +9,17 @@
   const TOAST_CONTAINER_ID = "toast-container";
   let isSubscriptionActive = false;
 
+  // Pages where the blocking overlay must NEVER appear (users renew here).
+  const EXEMPT_PAGES = ["managesubscriptions.html", "paymentconfigurations.html"];
+  function isExemptPage() {
+    try {
+      const path = (window.location.pathname || "").toLowerCase();
+      return EXEMPT_PAGES.some((p) => path.endsWith(p));
+    } catch (e) {
+      return false;
+    }
+  }
+
   // --- HTML for Modal and Toast Container (embedded for self-contained script) ---
   const embeddedHtml = `
     <!-- Toast notification container -->
@@ -135,6 +146,9 @@
    * Shows the subscription inactive modal.
    */
   function showSubscriptionInactiveModal() {
+    // Never block exempt pages (e.g. Subscription Hub) - users must be able
+    // to interact with the page to renew/purchase a plan.
+    if (isExemptPage()) return;
     const modal = document.getElementById(MODAL_ID);
     if (modal) {
       modal.classList.remove("hidden");
@@ -256,6 +270,15 @@
     // Inject the modal and toast HTML into the body once
     document.body.insertAdjacentHTML("afterbegin", embeddedHtml);
 
+    // Exempt pages stay fully usable so users can subscribe/renew.
+    if (isExemptPage()) {
+      const modal = document.getElementById(MODAL_ID);
+      if (modal) modal.remove();
+      unlockFeatures();
+      hideSubscriptionInactiveModal();
+      return;
+    }
+
     try {
       const subscription = await fetchSubscriptionDetails();
       const status = checkSubscriptionStatus(subscription);
@@ -291,6 +314,11 @@
 
   // Expose function for external use if needed (e.g., a button to check status)
   window.checkAndLockFeatures = async function () {
+    if (isExemptPage()) {
+      unlockFeatures();
+      hideSubscriptionInactiveModal();
+      return;
+    }
     const subscription = await fetchSubscriptionDetails();
     const status = checkSubscriptionStatus(subscription);
     if (status.isActive) {
