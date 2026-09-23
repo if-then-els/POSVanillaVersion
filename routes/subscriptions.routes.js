@@ -74,6 +74,15 @@ router.post(
   subscriptionsController.verifyPaystackPayment
 );
 
+// Frontend-driven confirmation after the popup reports success.
+// Needed because webhooks can't reach localhost/dev - the server re-verifies
+// the reference with Paystack and fulfills the subscription.
+router.post(
+  "/payments/paystack/confirm",
+  auth.verifyToken,
+  subscriptionsController.confirmPaystackPayment
+);
+
 // Route for frontend to check payment status (optional, webhook is more reliable)
 router.get(
   "/payments/paystack/status/:reference",

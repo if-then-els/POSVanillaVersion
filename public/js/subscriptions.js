@@ -1278,6 +1278,7 @@ return await updatePaymentMethodOnly();
           );
           return;
         }
+        let paymentCompleted = false;
         const handler = PaystackPop.setup({
           key: publicKey,
           email: email,
@@ -1290,24 +1291,57 @@ return await updatePaymentMethodOnly();
           currency: data.currency || undefined,
           ref: data.data.reference,
           callback: function (response) {
-            // Payment successful - close popup and show success message
-            showToast(
-              "Payment successful! Processing your subscription...",
-              "success",
-            );
-            const paymentModal = document.getElementById(
-              "payment-options-modal",
-            );
-            if (paymentModal) paymentModal.classList.add("hidden");
+            // Payment succeeded at Paystack - now confirm server-side so the
+            // subscription is actually updated (webhooks can't reach
+            // localhost/dev, so the frontend must drive confirmation).
+            paymentCompleted = true;
+            (async () => {
+              const ref =
+                response?.reference || response?.trxref || response?.trans;
+              showToast(
+                "Payment successful! Confirming your subscription...",
+                "info",
+              );
+              const paymentModal = document.getElementById(
+                "payment-options-modal",
+              );
+              if (paymentModal) paymentModal.classList.add("hidden");
 
-            // Refresh subscription details after a delay
-            setTimeout(async () => {
+              try {
+                if (!ref) throw new Error("Missing payment reference");
+                const confirmRes = await fetch("/payments/paystack/confirm", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ reference: ref }),
+                });
+                const confirmData = await confirmRes.json().catch(() => ({}));
+                if (!confirmRes.ok) {
+                  throw new Error(
+                    confirmData.message || "Subscription confirmation failed",
+                  );
+                }
+                showToast(
+                  confirmData.message || "Subscription updated successfully!",
+                  "success",
+                );
+              } catch (confirmErr) {
+                console.error("Confirm error:", confirmErr);
+                showToast(
+                  `${confirmErr.message}. If money left your account, refresh - the payment may still confirm via webhook.`,
+                  "warning",
+                );
+              }
+
+              // Refresh subscription details immediately
               await fetchSubscriptionDetails();
               monitorSubscriptionStatus();
-            }, 3000);
+            })();
           },
           onClose: function () {
-            showToast("Payment cancelled", "warning");
+            // v1 inline fires onClose when the modal closes, including right
+            // after a successful callback - don't cry wolf in that case.
+            if (!paymentCompleted) showToast("Payment cancelled", "warning");
           },
         });
         handler.openIframe();

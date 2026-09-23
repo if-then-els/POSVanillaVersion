@@ -25,6 +25,7 @@ module.exports = async function (req, res, next) {
     "/subscriptions/history",
     "/subscriptions/update-payment-method",
     "/payments/paystack/initiate",
+    "/payments/paystack/confirm",
     "/payments/paystack/webhook",
   ];
 

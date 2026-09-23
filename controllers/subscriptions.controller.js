@@ -231,6 +231,160 @@ exports.initiatePaystackPayment = async (req, res) => {
   }
 };
 
+// Map the payment channel selected on the frontend to a value the model accepts
+function mapStoredPaymentMethod(channel) {
+  return channel === "card" ? "card" : "paystack";
+}
+
+// Shared fulfillment for a verified successful Paystack charge.
+// Used by BOTH the server-to-server webhook and the frontend-driven confirm
+// endpoint (webhooks can't reach localhost/dev, so the popup callback must be
+// able to finalize the subscription too). Idempotent per reference.
+async function fulfillSuccessfulPaystackCharge({
+  reference,
+  metadata,
+  amountMinor,
+  currency,
+  source,
+}) {
+  const businessId = metadata?.businessId;
+  const planId = metadata?.planId;
+  const action = metadata?.action;
+  const originalAmount = metadata?.originalAmount;
+  const storedPaymentMethod = mapStoredPaymentMethod(metadata?.paymentMethod);
+
+  if (!businessId || !planId || !action) {
+    throw new Error("Transaction metadata is missing business/plan/action");
+  }
+
+  // Idempotency: never apply the same reference twice (webhook + confirm
+  // can both fire for the same payment in production).
+  const alreadyLogged = await SubscriptionLog.findOne({
+    paystackReference: reference,
+  });
+  if (alreadyLogged) {
+    console.log(
+      `Paystack ${source}: reference ${reference} already processed, skipping.`,
+    );
+    const existingSub = await Subscription.findOne({
+      business: businessId,
+    }).populate("plan");
+    return { alreadyProcessed: true, subscription: existingSub };
+  }
+
+  const chargedAmountMajor = Number(amountMinor) / 100; // in charge currency
+
+  console.log(
+    `Paystack ${source}: fulfilling reference ${reference}, action: ${action}, charged ${chargedAmountMajor} ${currency}`,
+  );
+
+  if (action === "upgrade") {
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      throw new Error(`Plan not found for ID ${planId}`);
+    }
+
+    let subscription = await Subscription.findOne({ business: businessId });
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setMonth(now.getMonth() + 1);
+
+    let actionType = "subscription_created";
+    if (subscription && subscription.status === "active") {
+      actionType = "subscription_upgraded";
+    } else if (subscription && subscription.status !== "active") {
+      actionType = "subscription_reactivated";
+    }
+
+    if (subscription) {
+      subscription.plan = planId;
+      subscription.startDate = now;
+      subscription.endDate = endDate;
+      subscription.status = "active";
+      subscription.price = chargedAmountMajor; // charged amount in merchant currency
+      subscription.paymentMethod = storedPaymentMethod;
+      subscription.paystackReference = reference;
+      subscription.lastPaymentDate = now;
+      subscription.nextBillingDate = endDate;
+      await subscription.save();
+    } else {
+      subscription = await Subscription.create({
+        business: businessId,
+        plan: planId,
+        startDate: now,
+        endDate: endDate,
+        status: "active",
+        autoRenew: true,
+        price: chargedAmountMajor, // charged amount in merchant currency
+        paymentMethod: storedPaymentMethod,
+        lastPaymentDate: now,
+        nextBillingDate: endDate,
+        paystackReference: reference,
+      });
+    }
+
+    await SubscriptionLog.create({
+      business: businessId,
+      plan: planId,
+      action: actionType,
+      date: now,
+      paymentMethod: storedPaymentMethod,
+      price: chargedAmountMajor,
+      priceCurrency: currency,
+      paystackReference: reference,
+      status: "completed",
+      paidAmountUSD: plan.price, // Tier price is stored in USD
+    });
+
+    console.log(
+      `Paystack ${source}: subscription '${actionType}' completed for business ${businessId}.`,
+    );
+    return { subscription };
+  }
+
+  if (action === "updatePaymentMethod") {
+    const subscription = await Subscription.findOne({
+      business: businessId,
+      status: "active",
+    });
+
+    if (!subscription) {
+      throw new Error("No active subscription found for payment method update");
+    }
+    if (subscription.plan.toString() !== String(planId)) {
+      console.warn(
+        `Paystack ${source}: payment-method update for a different plan than active. Expected ${subscription.plan}, got ${planId}. Updating method on existing subscription.`,
+      );
+    }
+
+    subscription.paymentMethod = storedPaymentMethod;
+    subscription.paystackReference = reference;
+    subscription.lastPaymentDate = new Date();
+    await subscription.save();
+
+    await SubscriptionLog.create({
+      business: businessId,
+      plan: subscription.plan,
+      action: "payment_method_updated",
+      date: new Date(),
+      paymentMethod: storedPaymentMethod,
+      price: originalAmount,
+      paystackReference: reference,
+      status: "completed",
+      paidAmountUSD: Number(amountMinor) / 100,
+    });
+    console.log(
+      `Paystack ${source}: payment method updated for business ${businessId}.`,
+    );
+    return { subscription };
+  }
+
+  console.warn(
+    `Paystack ${source}: unknown action type received: ${action} for reference ${reference}.`,
+  );
+  return { subscription: null };
+}
+
 // Controller to handle Paystack webhooks (server-to-server verification)
 exports.verifyPaystackPayment = async (req, res) => {
   // 1. Verify Paystack Webhook Signature for security
@@ -246,30 +400,12 @@ exports.verifyPaystackPayment = async (req, res) => {
 
   const event = req.body;
 
-  // Map the payment channel selected on the frontend to a value the model accepts
-  const mapStoredPaymentMethod = (channel) =>
-    channel === "card" ? "card" : "paystack";
-
   // 2. Only process successful charge events
   if (event.event === "charge.success" && event.data.status === "success") {
     try {
       const reference = event.data.reference;
-      const metadata = event.data.metadata;
-      const businessId = metadata.businessId;
-      const planId = metadata.planId;
-      const action = metadata.action;
-      const originalAmount = metadata.originalAmount;
-      const storedPaymentMethod = mapStoredPaymentMethod(metadata.paymentMethod);
-      const chargedAmountMajor = event.data.amount / 100; // in merchant currency
 
-      console.log(
-        `Paystack Webhook: Received successful charge for reference ${reference}, action: ${action}`,
-      );
-      console.log(
-        `Charged amount (${event.data.currency}): ${chargedAmountMajor}`,
-      );
-
-      // Optional: Verify the transaction directly with Paystack API for double-checking
+      // Verify the transaction directly with Paystack API for double-checking
       const verificationResponse = await axios.get(
         `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
         {
@@ -285,126 +421,13 @@ exports.verifyPaystackPayment = async (req, res) => {
           .json({ message: "Transaction verification failed" });
       }
 
-      if (action === "upgrade") {
-        const plan = await Plan.findById(planId);
-        if (!plan) {
-          console.error(
-            `Paystack Webhook: Plan not found for ID ${planId} during upgrade action.`,
-          );
-          return res.status(404).json({ message: "Plan not found" });
-        }
-
-        let subscription = await Subscription.findOne({ business: businessId });
-        const now = new Date();
-        const endDate = new Date(now);
-        endDate.setMonth(now.getMonth() + 1);
-
-        let actionType = "subscription_created";
-        if (subscription && subscription.status === "active") {
-          actionType = "subscription_upgraded";
-        } else if (subscription && subscription.status !== "active") {
-          actionType = "subscription_reactivated";
-        }
-
-        if (subscription) {
-          subscription.plan = planId;
-          subscription.startDate = now;
-          subscription.endDate = endDate;
-          subscription.status = "active";
-          subscription.price = chargedAmountMajor; // charged amount in merchant currency
-          subscription.paymentMethod = storedPaymentMethod;
-          subscription.paystackReference = reference;
-          subscription.lastPaymentDate = now;
-          subscription.nextBillingDate = endDate;
-          await subscription.save();
-
-          await SubscriptionLog.create({
-            business: businessId,
-            plan: planId,
-            action: actionType,
-            date: now,
-            paymentMethod: storedPaymentMethod,
-            price: chargedAmountMajor,
-            priceCurrency: event.data.currency,
-            paystackReference: reference,
-            status: "completed",
-            paidAmountUSD: plan.price, // Tier price is stored in USD
-          });
-        } else {
-          subscription = await Subscription.create({
-            business: businessId,
-            plan: planId,
-            startDate: now,
-            endDate: endDate,
-            status: "active",
-            autoRenew: true,
-            price: chargedAmountMajor, // charged amount in merchant currency
-            paymentMethod: storedPaymentMethod,
-            lastPaymentDate: now,
-            nextBillingDate: endDate,
-            paystackReference: reference,
-          });
-
-          await SubscriptionLog.create({
-            business: businessId,
-            plan: planId,
-            action: actionType,
-            date: now,
-            paymentMethod: storedPaymentMethod,
-            price: chargedAmountMajor,
-            priceCurrency: event.data.currency,
-            paystackReference: reference,
-            status: "completed",
-            paidAmountUSD: plan.price, // Tier price is stored in USD
-          });
-        }
-        console.log(
-          `Paystack Webhook: Subscription action 'upgrade' processed successfully for business ${businessId}.`,
-        );
-      } else if (action === "updatePaymentMethod") {
-        let subscription = await Subscription.findOne({
-          business: businessId,
-          status: "active",
-        });
-
-        if (!subscription) {
-          console.error(
-            `Paystack Webhook: No active subscription found for business ${businessId} to update payment method.`,
-          );
-          return res.status(404).json({
-            message: "No active subscription found for payment method update",
-          });
-        }
-        if (subscription.plan.toString() !== planId) {
-          console.warn(
-            `Paystack Webhook: Attempted to update payment method for a different plan than active. Expected ${subscription.plan}, got ${planId}. Proceeding with payment method update on existing subscription.`,
-          );
-        }
-
-        subscription.paymentMethod = storedPaymentMethod;
-        subscription.paystackReference = reference;
-        subscription.lastPaymentDate = new Date();
-        await subscription.save();
-
-        await SubscriptionLog.create({
-          business: businessId,
-          plan: subscription.plan,
-          action: "payment_method_updated",
-          date: new Date(),
-          paymentMethod: storedPaymentMethod,
-          price: originalAmount,
-          paystackReference: reference,
-          status: "completed",
-          paidAmountUSD: event.data.amount / 100,
-        });
-        console.log(
-          `Paystack Webhook: Payment method updated for business ${businessId}.`,
-        );
-      } else {
-        console.warn(
-          `Paystack Webhook: Unknown action type received: ${action} for reference ${reference}.`,
-        );
-      }
+      await fulfillSuccessfulPaystackCharge({
+        reference,
+        metadata: event.data.metadata,
+        amountMinor: event.data.amount,
+        currency: event.data.currency,
+        source: "webhook",
+      });
 
       res.status(200).send("Webhook received and processed");
     } catch (error) {
@@ -421,6 +444,89 @@ exports.verifyPaystackPayment = async (req, res) => {
       `Paystack Webhook: Received non-'charge.success' event or non-successful status: ${event.event}, status: ${event.data.status}`,
     );
     res.status(200).send("Webhook received (not a successful charge)");
+  }
+};
+
+// Frontend-driven confirmation for a completed Paystack payment.
+// Paystack's webhook can't reach localhost/dev (no public URL), so the popup
+// callback calls this with the transaction reference. The server re-verifies
+// the transaction with Paystack (secret key, server-side) and fulfills it.
+exports.confirmPaystackPayment = async (req, res) => {
+  try {
+    const { reference } = req.body || {};
+    if (!reference) {
+      return res.status(400).json({ message: "Payment reference is required" });
+    }
+
+    let tx;
+    try {
+      const verificationResponse = await axios.get(
+        `${PAYSTACK_BASE_URL}/transaction/verify/${encodeURIComponent(reference)}`,
+        {
+          headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
+        },
+      );
+      tx = verificationResponse.data?.data;
+    } catch (verifyErr) {
+      console.error(
+        "Paystack confirm: verification request failed:",
+        verifyErr.response?.data || verifyErr.message,
+      );
+      return res.status(502).json({
+        message: "Could not verify payment with Paystack. Please try again.",
+        error: verifyErr.response?.data,
+      });
+    }
+
+    if (!tx || tx.status !== "success") {
+      return res.status(400).json({
+        message: `Payment not successful (status: ${tx?.status || tx?.gateway_response || "unknown"}). No subscription change made.`,
+      });
+    }
+
+    const metadata = tx.metadata || {};
+    // The reference must belong to the caller's business - never fulfill
+    // someone else's payment.
+    if (
+      !metadata.businessId ||
+      String(metadata.businessId) !== String(req.user?.business)
+    ) {
+      console.warn(
+        `Paystack confirm: business mismatch for reference ${reference}.`,
+      );
+      return res
+        .status(403)
+        .json({ message: "This payment does not belong to your business." });
+    }
+
+    const result = await fulfillSuccessfulPaystackCharge({
+      reference,
+      metadata,
+      amountMinor: tx.amount,
+      currency: tx.currency,
+      source: "confirm",
+    });
+
+    const populated = result.subscription
+      ? await Subscription.findById(result.subscription._id).populate("plan")
+      : null;
+
+    return res.status(200).json({
+      message: result.alreadyProcessed
+        ? "Payment was already processed."
+        : "Subscription updated successfully.",
+      alreadyProcessed: !!result.alreadyProcessed,
+      subscription: populated,
+    });
+  } catch (error) {
+    console.error(
+      "Error confirming Paystack payment:",
+      error.response?.data || error.message,
+    );
+    return res.status(500).json({
+      message: error.message || "Error confirming payment",
+      error: error.response?.data,
+    });
   }
 };
 
