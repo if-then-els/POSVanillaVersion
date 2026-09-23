@@ -576,6 +576,20 @@
                 >
                   <i class="fas fa-coins"></i> Profit & Loss
                 </button>
+                <button
+                  id="tab-sales-by-store"
+                  data-requires-role="admin,manager"
+                  class="tab-button pb-3 text-sm font-bold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-200 border-b-2 border-transparent transition-colors flex items-center gap-2"
+                >
+                  <i class="fas fa-store"></i> Sales by Store
+                </button>
+                <button
+                  id="tab-loss"
+                  data-requires-role="admin,manager"
+                  class="tab-button pb-3 text-sm font-bold text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-200 border-b-2 border-transparent transition-colors flex items-center gap-2"
+                >
+                  <i class="fas fa-trash-restore"></i> Loss & Disposal
+                </button>
               </div>
             </div>
 
@@ -867,6 +881,44 @@
                 <button id="export-profit-xls" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold">Excel</button>
                 <button id="export-profit-pdf" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold">PDF</button>
               </div>
+            </div>
+
+            <!-- Sales by Store Content (admin) -->
+            <div class="tab-content hidden" id="sales-by-store-content" data-requires-role="admin,manager">
+              <div class="mb-6"><h3 class="text-lg font-bold text-primary-900 dark:text-white">Sales by Store</h3><p class="text-sm text-primary-500 dark:text-primary-400">Revenue, orders, units and profit per branch - who performs best</p></div>
+              <div class="h-[300px] w-full rounded-2xl bg-white/50 dark:bg-primary-900/50 border border-primary-100 dark:border-primary-800 p-4 mb-8"><canvas id="store-sales-chart"></canvas></div>
+              <div id="store-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+              <div class="overflow-x-auto rounded-xl border border-primary-200/50 dark:border-primary-700/50 mb-6">
+                <table class="w-full text-left"><thead class="bg-primary-50/80 dark:bg-primary-800/50"><tr>
+                  <th class="px-6 py-4 text-xs font-bold text-primary-500 uppercase">Store</th>
+                  <th class="px-6 py-4 text-xs font-bold text-primary-500 uppercase">Revenue</th>
+                  <th class="px-6 py-4 text-xs font-bold text-primary-500 uppercase">Orders</th>
+                  <th class="px-6 py-4 text-xs font-bold text-primary-500 uppercase">Units</th>
+                  <th class="px-6 py-4 text-xs font-bold text-primary-500 uppercase">Profit</th>
+                  <th class="px-6 py-4 text-xs font-bold text-primary-500 uppercase">Share</th>
+                </tr></thead>
+                <tbody id="store-sales-table" class="divide-y text-sm"><tr><td colspan="6" class="px-6 py-8 text-center italic">Loading…</td></tr></tbody></table>
+              </div>
+              <button id="export-store-csv" class="px-4 py-2 bg-primary-100 dark:bg-primary-800 rounded-lg text-sm font-bold">Export CSV</button><button id="export-store-xls" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold ml-2">Excel</button><button id="export-store-pdf" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold ml-2">PDF</button>
+            </div>
+
+            <!-- Loss & Disposal Content (admin) -->
+            <div class="tab-content hidden" id="loss-content" data-requires-role="admin,manager">
+              <div class="mb-6"><h3 class="text-lg font-bold text-primary-900 dark:text-white">Loss & Disposal</h3><p class="text-sm text-primary-500 dark:text-primary-400">Written-off stock at cost value - disposals, theft and shrinkage, counted for finance</p></div>
+              <div id="loss-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+              <div class="overflow-x-auto rounded-xl border border-primary-200/50 dark:border-primary-700/50 mb-6">
+                <table class="w-full text-left"><thead class="bg-primary-50/80 dark:bg-primary-800/50"><tr>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase">Date</th>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase">Product</th>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase">Type</th>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase">Store</th>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase text-right">Qty</th>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase text-right">Cost</th>
+                  <th class="px-4 py-3 text-xs font-bold text-primary-500 uppercase">Reason / By</th>
+                </tr></thead>
+                <tbody id="loss-table" class="divide-y text-sm"><tr><td colspan="7" class="px-6 py-8 text-center italic">Loading…</td></tr></tbody></table>
+              </div>
+              <button id="export-loss-csv" class="px-4 py-2 bg-primary-100 dark:bg-primary-800 rounded-lg text-sm font-bold">Export CSV</button><button id="export-loss-xls" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold ml-2">Excel</button><button id="export-loss-pdf" class="px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold ml-2">PDF</button>
             </div>
           </div>
         </div>

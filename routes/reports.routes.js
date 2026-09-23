@@ -89,5 +89,21 @@ router.get(
   requireFeature("reportsAdvanced"),
   reportsController.profitLoss || ((req,res)=>res.status(501).json({message:"Profit-loss report coming in Premium"}))
 );
+// Sales by store (admin view - revenue/orders/units/profit per store)
+router.get(
+  "/reports/sales-by-store",
+  verifyToken,
+  authorize("admin", "manager"),
+  requireFeature("reportsAdvanced"),
+  reportsController.salesByStore
+);
+// Loss & disposal ledger report (admin view - written-off qty + cost value)
+router.get(
+  "/reports/loss",
+  verifyToken,
+  authorize("admin", "manager"),
+  requireFeature("reportsAdvanced"),
+  reportsController.lossReport
+);
 
 module.exports = router;

@@ -6,6 +6,7 @@ let userChartInstance = null;
 let itemChartInstance = null;
 let paymentsChartInstance = null;
 let hourlyChartInstance = null;
+let storeChartInstance = null;
 
 const RF = { preset: "last30", from: "", to: "", store: "" };
 
@@ -130,6 +131,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("export-full-pdf")?.addEventListener("click", exportFullReportPDF);
   document.getElementById("export-profit-xls")?.addEventListener("click", () => exportTableToExcel("profit-table", "profit_loss.xls"));
   document.getElementById("export-profit-pdf")?.addEventListener("click", () => exportSectionPDF("Profit & Loss", ["profit-table"]));
+  document.getElementById("export-store-csv")?.addEventListener("click", () => exportTableToCSV("store-sales-table", "sales_by_store.csv"));
+  document.getElementById("export-store-xls")?.addEventListener("click", () => exportTableToExcel("store-sales-table", "sales_by_store.xls"));
+  document.getElementById("export-store-pdf")?.addEventListener("click", () => exportSectionPDF("Sales by Store", ["store-sales-table"]));
+  document.getElementById("export-loss-csv")?.addEventListener("click", () => exportTableToCSV("loss-table", "loss_disposal.csv"));
+  document.getElementById("export-loss-xls")?.addEventListener("click", () => exportTableToExcel("loss-table", "loss_disposal.xls"));
+  document.getElementById("export-loss-pdf")?.addEventListener("click", () => exportSectionPDF("Loss & Disposal", ["loss-table"]));
 });
 
 function wireFilters() {
@@ -165,6 +172,7 @@ async function loadStores() {
 function loadAll() {
   const lbl = document.getElementById("report-range-label");
   if (lbl) lbl.textContent = RF.from && RF.to ? `${RF.from} → ${RF.to}` : RF.preset === "last30" ? "Last 30 days" : RF.preset;
+  applyAdminSections();
   loadKPIs();
   loadSalesOverview(document.getElementById("time-range")?.value || "daily");
   loadProductSales();
@@ -174,6 +182,25 @@ function loadAll() {
   loadSalesByItem();
   loadPaymentsHourly();
   loadProfit();
+  loadSalesByStore();
+  loadLossReport();
+}
+
+// Admin/manager-only sections are hidden for other roles (backend also
+// enforces via authorize()). Role comes from the server, not localStorage.
+let cachedRole = null;
+async function applyAdminSections() {
+  try {
+    if (!cachedRole) {
+      const r = await fetch("/userDetails", { credentials: "include" });
+      if (r.ok) cachedRole = (await r.json()).user?.role || null;
+    }
+  } catch (_) {}
+  if (cachedRole && !["admin", "manager"].includes(cachedRole)) {
+    document.querySelectorAll('[data-requires-role="admin,manager"]').forEach((el) => {
+      el.style.display = "none";
+    });
+  }
 }
 
 async function loadKPIs() {
@@ -372,8 +399,7 @@ async function loadPaymentsHourly() {
 }
 
 let lastProfit = null;
-async function loadProfit() {
-  try {
+async function loadProfit() {  try {
     lastProfit = await rfFetch("/reports/profit-loss");
     const box = document.getElementById("profit-cards");
     if (box) {
@@ -392,6 +418,72 @@ function exportProfitCSV() {
   const rows = [["Metric", "Value"], ["Revenue", lastProfit.revenue], ["Discounts", lastProfit.discounts], ["Tax", lastProfit.tax], ["COGS", lastProfit.cogs], ["Gross profit", lastProfit.grossProfit], ["Margin %", lastProfit.margin], ["Orders", lastProfit.orders]];
   const blob = new Blob([rows.map(r => r.join(",")).join("\n")], { type: "text/csv" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "profit_loss.csv"; a.click();
+}
+
+async function loadSalesByStore() {
+  const table = document.getElementById("store-sales-table");
+  try {
+    const { stores = [], totals = {} } = await rfFetch("/reports/sales-by-store");
+    const cards = document.getElementById("store-cards");
+    if (cards) {
+      cards.innerHTML = stores.slice(0, 4).map((s) => `
+        <div class="glass-card rounded-2xl p-4">
+          <p class="text-[11px] uppercase text-primary-400 font-bold truncate">${s.store}</p>
+          <h3 class="text-lg font-black">${kes(s.revenue)}</h3>
+          <p class="text-[11px] text-primary-400">${s.orders} orders · ${s.share}% share</p>
+        </div>`).join("") || "";
+    }
+    if (table) {
+      table.innerHTML = stores.length ? stores.map((s) => `
+      <tr class="hover:bg-gray-800 transition-colors">
+        <td class="px-6 py-4 text-sm font-medium text-white">${s.store}</td>
+        <td class="px-6 py-4 text-sm text-gray-300">${kes(s.revenue)}</td>
+        <td class="px-6 py-4 text-sm text-gray-300">${s.orders}</td>
+        <td class="px-6 py-4 text-sm text-gray-300">${num(s.units)}</td>
+        <td class="px-6 py-4 text-sm text-gray-300">${kes(s.grossProfit)}</td>
+        <td class="px-6 py-4 text-sm text-gray-300">${s.share}%</td>
+      </tr>`).join("") : `<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No store sales in range.</td></tr>`;
+    }
+    const ctx = needChart("store-sales-chart");
+    if (ctx) {
+      if (storeChartInstance) storeChartInstance.destroy();
+      storeChartInstance = new Chart(ctx, { type: "bar", data: { labels: stores.map((s) => s.store), datasets: [{ label: "Revenue", data: stores.map((s) => s.revenue), backgroundColor: "#0ea5e9" }] }, options: chartOpts() });
+    }
+  } catch (err) { sectionError("store-sales-table", err, 6, loadSalesByStore); }
+}
+
+async function loadLossReport() {
+  const table = document.getElementById("loss-table");
+  try {
+    const { movements = [], byKind = [], totals = {} } = await rfFetch("/reports/loss");
+    const cards = document.getElementById("loss-cards");
+    if (cards) {
+      const kindMap = {};
+      byKind.forEach((k) => { kindMap[k._id] = k; });
+      const card = (label, qty, cost, color) => `
+        <div class="glass-card rounded-2xl p-4">
+          <p class="text-[11px] uppercase text-primary-400 font-bold">${label}</p>
+          <h3 class="text-lg font-black ${color}">${num(qty)} units</h3>
+          <p class="text-[11px] text-primary-400">${kes(cost)} written off</p>
+        </div>`;
+      cards.innerHTML =
+        card("Disposals", kindMap.disposal?.quantity || 0, kindMap.disposal?.cost || 0, "text-red-500") +
+        card("Losses", kindMap.loss?.quantity || 0, kindMap.loss?.cost || 0, "text-orange-500") +
+        card("Total entries", totals.entries || 0, totals.cost || 0, "");
+    }
+    if (table) {
+      table.innerHTML = movements.length ? movements.slice(0, 100).map((m) => `
+      <tr class="hover:bg-gray-800 transition-colors">
+        <td class="px-4 py-3 text-xs text-gray-300 whitespace-nowrap">${new Date(m.createdAt).toLocaleString()}</td>
+        <td class="px-4 py-3 text-sm font-medium text-white">${m.product?.productName || "—"}</td>
+        <td class="px-4 py-3 text-sm"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${m.kind === "disposal" ? "bg-red-500/20 text-red-400" : "bg-orange-500/20 text-orange-400"}">${m.kind}</span></td>
+        <td class="px-4 py-3 text-sm text-gray-300">${m.store?.name || "Default"}</td>
+        <td class="px-4 py-3 text-sm text-gray-300 text-right font-bold">−${m.quantity}</td>
+        <td class="px-4 py-3 text-sm text-gray-300 text-right">${kes(m.totalCost)}</td>
+        <td class="px-4 py-3 text-xs text-gray-400">${m.reason || ""} · ${m.user?.name || ""}</td>
+      </tr>`).join("") : `<tr><td colspan="7" class="px-6 py-8 text-center text-gray-500">No disposals or losses in range. Good news.</td></tr>`;
+    }
+  } catch (err) { sectionError("loss-table", err, 7, loadLossReport); }
 }
 
 function chartOpts() {
@@ -455,10 +547,10 @@ function exportSectionPDF(title, tableIds) {
   w.document.close(); w.focus();
 }
 function exportFullReportExcel() {
-  ["sales-table", "product-sales-table", "category-sales-table", "transactions-table", "user-sales-table", "item-sales-table", "payments-table", "profit-table"].forEach((id, i) => setTimeout(() => exportTableToExcel(id, `report_${id}.xls`), i * 300));
+  ["sales-table", "product-sales-table", "category-sales-table", "transactions-table", "user-sales-table", "item-sales-table", "payments-table", "profit-table", "store-sales-table", "loss-table"].forEach((id, i) => setTimeout(() => exportTableToExcel(id, `report_${id}.xls`), i * 300));
 }
 function exportFullReportPDF() {
-  exportSectionPDF("SwiftPOS Full Report", ["sales-table", "product-sales-table", "category-sales-table", "user-sales-table", "item-sales-table", "payments-table", "profit-table", "transactions-table"]);
+  exportSectionPDF("SwiftPOS Full Report", ["sales-table", "product-sales-table", "category-sales-table", "user-sales-table", "item-sales-table", "payments-table", "profit-table", "transactions-table", "store-sales-table", "loss-table"]);
 }
 
 function downloadChartImage(chartInstance, filename) {

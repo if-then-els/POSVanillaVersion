@@ -993,9 +993,15 @@ async function processMpesaInline(paymentType, config, amount){
   const isC2B = paymentType === "mpesa_till" || paymentType === "mpesa_paybill";
   const endpoint = isC2B ? "/api/payments/mpesa/c2b/initiate" : "/api/payments/mpesa/stkpush";
   showMpesaStatus("Sending STK push to " + phoneNumber + "...", 30);
+  // Stored method configs mask secrets as "***MASKED***" - strip them so the
+  // backend falls back to env credentials instead of sending the sentinel.
+  const cleanConfig = {};
+  for (const [k, v] of Object.entries(config?.config || {})) {
+    if (v !== "***MASKED***") cleanConfig[k] = v;
+  }
   const res = await fetch(endpoint, {
     method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
-    body: JSON.stringify({ phoneNumber, amount: Math.round(amount), paymentType, config: config?.config || {} })
+    body: JSON.stringify({ phoneNumber, amount: Math.round(amount), paymentType, config: cleanConfig })
   });
   const result = await res.json().catch(()=> ({}));
   if (!res.ok || !result.success) throw new Error(result.message || "STK push failed. Try Code instead.");

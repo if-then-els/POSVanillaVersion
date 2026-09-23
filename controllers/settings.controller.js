@@ -6,14 +6,89 @@ const CheckoutPayment = require("../models/CheckoutPayment");
 const axios = require("axios");
 const mongoose = require("mongoose");
 const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
-// Configure storage
+// ---------------------------------------------------------------------------
+// Shared validation helpers
+// ---------------------------------------------------------------------------
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email || "").trim());
+}
+
+function isValidPhone(phone) {
+  return /[+\d][\d\s\-()]{6,}/.test(String(phone || "").trim());
+}
+
+function isValidKenyanPhone(phone) {
+  return /^254[17]\d{8}$/.test(String(phone || "").trim());
+}
+
+function parseTaxRate(value) {
+  if (value === undefined || value === null || value === "") return 0;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > 100) return null;
+  return n;
+}
+
+// Allowed payment-method types (mirrors models/paymentMethod.js enum).
+const PAYMENT_TYPES = [
+  "card",
+  "mobile_money",
+  "paypal",
+  "mpesa_stk",
+  "mpesa_paybill",
+  "bank",
+];
+
+// Config keys treated as secrets: masked in list responses, never logged.
+const SECRET_CONFIG_KEYS = /secret|passkey|password|token|private/i;
+const MASK_SENTINEL = "***MASKED***";
+
+function maskConfigSecrets(config) {
+  const out = {};
+  const src =
+    config instanceof Map ? Object.fromEntries(config) : config || {};
+  for (const [k, v] of Object.entries(src)) {
+    out[k] = SECRET_CONFIG_KEYS.test(k) ? MASK_SENTINEL : v;
+  }
+  return out;
+}
+
+// Pick the first usable credential, skipping masked sentinels coming back
+// from the (masked) list endpoint. Secrets must fall through to env defaults
+// rather than being sent to Safaricom as "***MASKED***".
+function pickCredential(...values) {
+  for (const v of values) {
+    if (v === undefined || v === null) continue;
+    const s = String(v).trim();
+    if (!s || s === MASK_SENTINEL) continue;
+    return s;
+  }
+  return undefined;
+}
+
+function serializePaymentMethod(doc) {
+  const obj = typeof doc.toObject === "function" ? doc.toObject() : doc;
+  if (obj.config !== undefined) obj.config = maskConfigSecrets(obj.config);
+  return obj;
+}
+
+// Configure storage (logos directory is created on demand)
+const logosDir = path.join(__dirname, "..", "public", "logos");
+try {
+  fs.mkdirSync(logosDir, { recursive: true });
+} catch (_) {
+  /* best effort - multer will surface real errors */
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "public/logos/");
+    cb(null, logosDir);
   },
   filename: (req, file, cb) => {
-    cb(null, `logo-${Date.now()}${path.extname(file.originalname)}`);
+    const safeExt = path.extname(file.originalname || "").toLowerCase();
+    cb(null, `logo-${Date.now()}${safeExt}`);
   },
 });
 
@@ -22,12 +97,12 @@ const logos = multer({
   storage,
   limits: { fileSize: 1000000 }, // 1MB
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif/;
+    const filetypes = /jpeg|jpg|png|gif|webp/;
     const extname = filetypes.test(
       path.extname(file.originalname).toLowerCase(),
     );
     const mimetype = filetypes.test(file.mimetype);
-    mimetype && extname ? cb(null, true) : cb("Error: Images Only!");
+    mimetype && extname ? cb(null, true) : cb(new Error("Images only (jpeg, png, gif, webp, max 1MB)!"));
   },
 }).single("logo");
 
@@ -59,20 +134,56 @@ exports.getSettings = async (req, res) => {
   }
 };
 
-// Update all settings for the current business
+// Update all settings for the current business.
+// NOTE: explicit allow-list - never Object.assign(req.body) (mass assignment
+// would let clients overwrite business/_id or inject unknown fields).
+const GENERAL_SETTINGS_FIELDS = [
+  "storeName",
+  "storeAddress",
+  "storePhone",
+  "storeEmail",
+  "taxRate",
+  "currency",
+  "showLogo",
+  "showTax",
+  "includeContact",
+  "printAuto",
+  "footerText",
+  "logoUrl",
+];
+
 exports.updateSettings = async (req, res) => {
   try {
     const business = req.user.business;
     let settings = await Settings.findOne({ business });
     if (!settings) settings = new Settings({ business });
-    Object.assign(settings, req.body);
+
+    for (const field of GENERAL_SETTINGS_FIELDS) {
+      if (req.body[field] !== undefined) settings[field] = req.body[field];
+    }
+
+    if (settings.taxRate !== undefined && settings.taxRate !== null) {
+      const rate = parseTaxRate(settings.taxRate);
+      if (rate === null) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Tax rate must be between 0 and 100" });
+      }
+      settings.taxRate = rate;
+    }
+    if (settings.storeEmail && !isValidEmail(settings.storeEmail)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid store email address" });
+    }
+
     await settings.save();
     res.json({ success: true, message: "Settings updated", settings });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to update settings",
-      error: err,
+      error: err.message,
     });
   }
 };
@@ -84,24 +195,69 @@ exports.saveStoreSettings = async (req, res) => {
       if (err) {
         return res.status(400).json({
           success: false,
-          message: err,
+          message: err.message || err,
         });
+      }
+
+      const { name, address, phone, email, taxRate, currency } = req.body;
+
+      // Validate inputs before persisting
+      if (name !== undefined && String(name).trim().length > 120) {
+        return res.status(400).json({
+          success: false,
+          message: "Store name is too long (max 120 characters)",
+        });
+      }
+      if (phone !== undefined && phone !== "" && !isValidPhone(phone)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid phone number" });
+      }
+      if (email !== undefined && email !== "" && !isValidEmail(email)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid email address" });
+      }
+      const parsedTax = parseTaxRate(taxRate);
+      if (parsedTax === null) {
+        return res.status(400).json({
+          success: false,
+          message: "Tax rate must be a number between 0 and 100",
+        });
+      }
+      let normalizedCurrency;
+      if (currency !== undefined && currency !== "") {
+        normalizedCurrency = String(currency).trim().toUpperCase();
+        if (!/^[A-Z]{3}$/.test(normalizedCurrency)) {
+          return res.status(400).json({
+            success: false,
+            message: "Currency must be a 3-letter code (e.g. KES, USD)",
+          });
+        }
       }
 
       const business = req.user.business;
       let settings = await Settings.findOne({ business });
       if (!settings) settings = new Settings({ business });
 
-      settings.storeName = req.body.name;
-      settings.storeAddress = req.body.address;
-      settings.storePhone = req.body.phone;
-      settings.storeEmail = req.body.email;
-      settings.taxRate = req.body.taxRate;
-      settings.currency = req.body.currency;
+      if (name !== undefined) settings.storeName = String(name).trim();
+      if (address !== undefined) settings.storeAddress = String(address).trim();
+      if (phone !== undefined) settings.storePhone = String(phone).trim();
+      if (email !== undefined) settings.storeEmail = String(email).trim().toLowerCase();
+      settings.taxRate = parsedTax;
+      if (normalizedCurrency !== undefined) settings.currency = normalizedCurrency;
 
-      // Handle logo logos
+      // Handle logo logos (remove the previous file to avoid orphans)
       if (req.file) {
+        const oldUrl = settings.logoUrl;
         settings.logoUrl = `/logos/${req.file.filename}`;
+        if (oldUrl && oldUrl.startsWith("/logos/")) {
+          try {
+            fs.unlinkSync(path.join(__dirname, "..", "public", oldUrl));
+          } catch (_) {
+            /* best effort */
+          }
+        }
       }
 
       await settings.save();
@@ -175,52 +331,111 @@ exports.saveReceiptSettings = async (req, res) => {
     const business = req.user.business;
     let settings = await Settings.findOne({ business });
     if (!settings) settings = new Settings({ business });
-    settings.showLogo = req.body.showLogo;
-    settings.showTax = req.body.showTaxDetails;
-    settings.includeContact = req.body.includeContactInfo;
-    settings.printAuto = req.body.printAutomatically;
-    settings.footerText = req.body.footerText;
+
+    const toBool = (v, fallback) =>
+      v === undefined ? fallback : v === true || v === "true" || v === 1 || v === "1";
+    settings.showLogo = toBool(req.body.showLogo, settings.showLogo ?? true);
+    settings.showTax = toBool(req.body.showTaxDetails, settings.showTax ?? true);
+    settings.includeContact = toBool(
+      req.body.includeContactInfo,
+      settings.includeContact ?? true
+    );
+    settings.printAuto = toBool(
+      req.body.printAutomatically,
+      settings.printAuto ?? true
+    );
+    if (req.body.footerText !== undefined) {
+      settings.footerText = String(req.body.footerText).slice(0, 500);
+    }
+
     await settings.save();
     res.json({ success: true, message: "Receipt settings saved", settings });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to save receipt settings",
-      error: err,
+      error: err.message,
     });
   }
 };
 
-// Get user settings (username, email) for the current user
+// Get profile settings for the current user (self-service)
 exports.getUserSettings = async (req, res) => {
   try {
-    const user = await Users.findById(req.user.id);
+    const user = await Users.findById(req.user.id).select(
+      "name email phone role status mustChangePassword"
+    );
 
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({
-      username: user.userName || user.username,
-      email: user.email,
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      role: user.role || "",
+      mustChangePassword: !!user.mustChangePassword,
     });
   } catch (err) {
     res
       .status(500)
-      .json({ message: "Failed to fetch user settings", error: err });
+      .json({ message: "Failed to fetch user settings", error: err.message });
   }
 };
 
-// Update user settings (username, email, password)
+// Update own profile (name, email, phone, password). Email changes are
+// checked for duplicates within the business.
 exports.updateUserSettings = async (req, res) => {
   try {
     const user = await Users.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Update username/email
-    if (req.body.username) user.username = req.body.username;
-    if (req.body.email) user.email = req.body.email;
+    if (req.body.name !== undefined) {
+      const name = String(req.body.name).trim();
+      if (!name) return res.status(400).json({ message: "Name is required" });
+      if (name.length > 120) {
+        return res.status(400).json({ message: "Name is too long" });
+      }
+      user.name = name;
+    }
 
-    // Handle password change
-    if (req.body.currentPassword && req.body.newPassword) {
+    if (req.body.phone !== undefined) {
+      const phone = String(req.body.phone).trim();
+      if (phone && !isValidPhone(phone)) {
+        return res.status(400).json({ message: "Invalid phone number" });
+      }
+      user.phone = phone;
+    }
+
+    if (req.body.email !== undefined) {
+      const email = String(req.body.email).trim().toLowerCase();
+      if (!isValidEmail(email)) {
+        return res.status(400).json({ message: "Invalid email address" });
+      }
+      if (email !== String(user.email).toLowerCase()) {
+        const clash = await Users.findOne({
+          business: user.business,
+          email: new RegExp(
+            `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i"
+          ),
+          _id: { $ne: user._id },
+        });
+        if (clash) {
+          return res.status(409).json({ message: "Email already in use" });
+        }
+        user.email = email;
+      }
+    }
+
+    // Handle password change. IMPORTANT: assign the PLAIN password and let
+    // the model's pre-save hook hash it exactly once. Hashing here would
+    // double-hash and lock the user out.
+    if (req.body.newPassword || req.body.confirmPassword) {
       const bcrypt = require("bcrypt");
+      if (!req.body.currentPassword) {
+        return res
+          .status(400)
+          .json({ message: "Current password is required to set a new one" });
+      }
       const valid = await bcrypt.compare(
         req.body.currentPassword,
         user.password,
@@ -230,33 +445,71 @@ exports.updateUserSettings = async (req, res) => {
           .status(400)
           .json({ message: "Current password is incorrect" });
       }
+      if (String(req.body.newPassword).length < 8) {
+        return res
+          .status(400)
+          .json({ message: "New password must be at least 8 characters" });
+      }
       if (req.body.newPassword !== req.body.confirmPassword) {
         return res.status(400).json({ message: "Passwords do not match" });
       }
-      user.password = await bcrypt.hash(req.body.newPassword, 10);
+      user.password = String(req.body.newPassword); // hashed by pre-save hook
+      user.mustChangePassword = false;
     }
 
     await user.save();
-    res.json({ success: true, message: "User settings updated" });
+    res.json({
+      success: true,
+      message: "Profile updated",
+      user: {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ message: "Email already in use" });
+    }
     res
       .status(500)
-      .json({ message: "Failed to update user settings", error: err });
+      .json({ message: "Failed to update user settings", error: err.message });
   }
 };
 
-// Get payment methods for checkout
+// Get payment methods for checkout (secrets masked - safe for any role;
+// the full config is only exposed by getPaymentMethodById, admin only).
 exports.getPaymentMethods = async (req, res) => {
   try {
-    let business = await BusinessDetails.findOne({ users: req.user.id });
-    if (!business) {
-      return res.json({ success: true, methods: [] });
-    }
+    const businessId = req.user.business;
     const methods = await PaymentMethod.find({
-      businessId: business._id,
+      businessId,
       active: true,
+    }).sort({ dateAdded: -1 });
+    res.json({ success: true, methods: methods.map(serializePaymentMethod) });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Get a single payment method WITH full config (admin only - needed to edit
+// secrets, since the list endpoint masks them).
+exports.getPaymentMethodById = async (req, res) => {
+  try {
+    const method = await PaymentMethod.findOne({
+      _id: req.params.id,
+      businessId: req.user.business,
     });
-    res.json({ success: true, methods });
+    if (!method) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Payment method not found" });
+    }
+    const obj =
+      typeof method.toObject === "function" ? method.toObject() : method;
+    if (obj.config instanceof Map) obj.config = Object.fromEntries(obj.config);
+    res.json({ success: true, method: obj });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -265,27 +518,59 @@ exports.getPaymentMethods = async (req, res) => {
 // Add a new payment method for checkout
 exports.addPaymentMethod = async (req, res) => {
   try {
-    console.log("user id in addPaymentMethod:", req.user.id);
-    let business = await BusinessDetails.findOne({ users: req.user.id });
-    if (!business) {
+    const businessId = req.user.business;
+    const { type, provider, label, config } = req.body;
+
+    if (!type || !PAYMENT_TYPES.includes(type)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Please complete your business registration first before adding payment methods.",
+        message: `Payment type is required (one of: ${PAYMENT_TYPES.join(", ")})`,
+      });
+    }
+    if (!label || !String(label).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "A display label is required",
       });
     }
 
+    // Avoid exact duplicates piling up
+    const duplicate = await PaymentMethod.findOne({
+      businessId,
+      type,
+      label: String(label).trim(),
+      active: true,
+    });
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message: "An active payment method with this label already exists",
+      });
+    }
+
+    const cleanConfig = {};
+    if (config && typeof config === "object") {
+      for (const [k, v] of Object.entries(config)) {
+        if (typeof v === "string" && v.trim() !== "") {
+          cleanConfig[String(k).slice(0, 60)] = v.trim().slice(0, 500);
+        }
+      }
+    }
+
     const method = await PaymentMethod.create({
-      businessId: business._id,
-      type: req.body.type,
-      provider: req.body.provider,
-      label: req.body.label,
-      config: req.body.config,
+      businessId,
+      type,
+      provider: provider ? String(provider).trim().slice(0, 120) : undefined,
+      label: String(label).trim().slice(0, 120),
+      config: cleanConfig,
       active: true,
     });
 
-    res.status(201).json({ success: true, method });
+    res.status(201).json({ success: true, method: serializePaymentMethod(method) });
   } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: err.message });
+    }
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -293,30 +578,62 @@ exports.addPaymentMethod = async (req, res) => {
 // Update a payment method
 exports.updatePaymentMethod = async (req, res) => {
   try {
-    const method = await PaymentMethod.findById(req.params.id);
+    const method = await PaymentMethod.findOne({
+      _id: req.params.id,
+      businessId: req.user.business,
+    });
     if (!method) {
       return res
         .status(404)
         .json({ success: false, message: "Payment method not found" });
     }
 
-    // Verify ownership
-    let business = await BusinessDetails.findOne({ users: req.user.id });
-    if (!business || method.businessId.toString() !== business._id.toString()) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Not authorized" });
+    if (req.body.type !== undefined) {
+      if (!PAYMENT_TYPES.includes(req.body.type)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid payment type" });
+      }
+      method.type = req.body.type;
+    }
+    if (req.body.provider !== undefined) {
+      method.provider = String(req.body.provider).trim().slice(0, 120);
+    }
+    if (req.body.label !== undefined) {
+      const label = String(req.body.label).trim();
+      if (!label) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Display label cannot be empty" });
+      }
+      method.label = label.slice(0, 120);
+    }
+    if (req.body.config && typeof req.body.config === "object") {
+      // Merge: masked sentinel values keep the stored secret.
+      const current =
+        method.config instanceof Map
+          ? Object.fromEntries(method.config)
+          : { ...(method.config || {}) };
+      for (const [k, v] of Object.entries(req.body.config)) {
+        if (v === MASK_SENTINEL) continue; // unchanged secret
+        if (typeof v === "string" && v.trim() !== "") {
+          current[String(k).slice(0, 60)] = v.trim().slice(0, 500);
+        } else if (v === "" || v === null) {
+          delete current[k];
+        }
+      }
+      method.config = current;
+    }
+    if (req.body.active !== undefined) {
+      method.active = req.body.active === true || req.body.active === "true";
     }
 
-    if (req.body.type) method.type = req.body.type;
-    if (req.body.provider) method.provider = req.body.provider;
-    if (req.body.label) method.label = req.body.label;
-    if (req.body.config) method.config = req.body.config;
-    if (req.body.active !== undefined) method.active = req.body.active;
-
     await method.save();
-    res.json({ success: true, method });
+    res.json({ success: true, method: serializePaymentMethod(method) });
   } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: err.message });
+    }
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -324,19 +641,14 @@ exports.updatePaymentMethod = async (req, res) => {
 // Delete a payment method
 exports.deletePaymentMethod = async (req, res) => {
   try {
-    const method = await PaymentMethod.findById(req.params.id);
+    const method = await PaymentMethod.findOne({
+      _id: req.params.id,
+      businessId: req.user.business,
+    });
     if (!method) {
       return res
         .status(404)
         .json({ success: false, message: "Payment method not found" });
-    }
-
-    // Verify ownership
-    let business = await BusinessDetails.findOne({ users: req.user.id });
-    if (!business || method.businessId.toString() !== business._id.toString()) {
-      return res
-        .status(403)
-        .json({ success: false, message: "Not authorized" });
     }
 
     method.active = false;
@@ -376,8 +688,15 @@ exports.initiateCheckoutMpesaStkPush = async (req, res) => {
   try {
     const { phoneNumber, amount, paymentType, config } = req.body;
 
-    if (!phoneNumber || !amount) {
+    if (!phoneNumber || amount === undefined || amount === null) {
       return res.status(400).json({ success: false, message: "Phone number and amount are required" });
+    }
+    if (!isValidKenyanPhone(phoneNumber)) {
+      return res.status(400).json({ success: false, message: "Phone number must be in 2547XXXXXXXX format" });
+    }
+    const chargeAmount = Number(amount);
+    if (!Number.isFinite(chargeAmount) || chargeAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Amount must be greater than zero" });
     }
 
     // Get business
@@ -389,17 +708,17 @@ exports.initiateCheckoutMpesaStkPush = async (req, res) => {
     // Create pending payment record
     const payment = await CheckoutPayment.create({
       businessId: business._id,
-      phoneNumber,
-      amount,
+      phoneNumber: String(phoneNumber).trim(),
+      amount: chargeAmount,
       paymentType: paymentType || "mpesa_stk",
       status: "pending",
     });
 
     // Get M-Pesa credentials from config or environment
-    const consumerKey = config?.consumerKey || process.env.MPESA_CONSUMER_KEY;
-    const consumerSecret = config?.consumerSecret || process.env.MPESA_CONSUMER_SECRET;
-    const shortcode = config?.shortcode || process.env.MPESA_SHORTCODE;
-    const passkey = config?.passkey || process.env.MPESA_PASSKEY;
+    const consumerKey = pickCredential(config?.consumerKey, process.env.MPESA_CONSUMER_KEY);
+    const consumerSecret = pickCredential(config?.consumerSecret, process.env.MPESA_CONSUMER_SECRET);
+    const shortcode = pickCredential(config?.shortcode, process.env.MPESA_SHORTCODE);
+    const passkey = pickCredential(config?.passkey, process.env.MPESA_PASSKEY);
     const callbackUrl = process.env.MPESA_CHECKOUT_CALLBACK_URL || process.env.MPESA_STK_PUSH_CALLBACK_URL;
 
     if (!shortcode || !passkey || !consumerKey || !consumerSecret) {
@@ -431,13 +750,13 @@ exports.initiateCheckoutMpesaStkPush = async (req, res) => {
         Password: password,
         Timestamp: timestamp,
         TransactionType: "CustomerPayBillOnline",
-        Amount: Math.round(amount),
+        Amount: Math.round(chargeAmount),
         PartyA: phoneNumber,
         PartyB: shortcode,
         PhoneNumber: phoneNumber,
         CallBackURL: callbackUrl,
         AccountReference: payment._id.toString(),
-        TransactionDesc: `POS Checkout Payment - ${amount}`,
+        TransactionDesc: `POS Checkout Payment - ${chargeAmount}`,
       },
       {
         headers: {
@@ -614,6 +933,18 @@ exports.registerC2BUrls = async (req, res) => {
 exports.simulateC2BPayment = async (req, res) => {
   try {
     const { amount, phoneNumber, accountReference, description } = req.body;
+
+    if (amount === undefined || !phoneNumber) {
+      return res.status(400).json({ success: false, message: "Amount and phone number are required" });
+    }
+    if (!isValidKenyanPhone(phoneNumber)) {
+      return res.status(400).json({ success: false, message: "Phone number must be in 2547XXXXXXXX format" });
+    }
+    const simAmount = Number(amount);
+    if (!Number.isFinite(simAmount) || simAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Amount must be greater than zero" });
+    }
+
     const config = getPlatformMpesaConfig();
 
     if (!config.consumerKey || !config.shortcode) {
@@ -627,8 +958,8 @@ exports.simulateC2BPayment = async (req, res) => {
       {
         ShortCode: config.shortcode,
         CommandID: "CustomerBuyGoodsOnline",
-        Amount: Math.round(amount),
-        Msisdn: phoneNumber.replace(/^254/, "254"),
+        Amount: Math.round(simAmount),
+        Msisdn: String(phoneNumber).trim(),
         BillRefNumber: accountReference,
       },
       {
@@ -680,8 +1011,15 @@ exports.initiateC2BPayment = async (req, res) => {
   try {
     const { phoneNumber, amount, paymentType, config: clientConfig } = req.body;
 
-    if (!phoneNumber || !amount) {
+    if (!phoneNumber || amount === undefined || amount === null) {
       return res.status(400).json({ success: false, message: "Phone number and amount required" });
+    }
+    if (!isValidKenyanPhone(phoneNumber)) {
+      return res.status(400).json({ success: false, message: "Phone number must be in 2547XXXXXXXX format" });
+    }
+    const c2bAmount = Number(amount);
+    if (!Number.isFinite(c2bAmount) || c2bAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Amount must be greater than zero" });
     }
 
     // Get business
@@ -693,8 +1031,8 @@ exports.initiateC2BPayment = async (req, res) => {
     // Create pending payment record
     const payment = await CheckoutPayment.create({
       businessId: business._id,
-      phoneNumber,
-      amount,
+      phoneNumber: String(phoneNumber).trim(),
+      amount: c2bAmount,
       paymentType: paymentType || "mpesa_till",
       status: "pending",
     });
@@ -776,8 +1114,18 @@ exports.saveManualPayment = async (req, res) => {
   try {
     const { phoneNumber, amount, paymentType, receiptNumber, tillNumber, paybillNumber, accountNumber } = req.body;
 
-    if (!phoneNumber || !amount || !receiptNumber) {
+    if (!phoneNumber || amount === undefined || amount === null || !receiptNumber) {
       return res.status(400).json({ success: false, message: "Phone, amount and receipt number required" });
+    }
+    if (!isValidKenyanPhone(phoneNumber)) {
+      return res.status(400).json({ success: false, message: "Phone number must be in 2547XXXXXXXX format" });
+    }
+    const manualAmount = Number(amount);
+    if (!Number.isFinite(manualAmount) || manualAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Amount must be greater than zero" });
+    }
+    if (String(receiptNumber).trim().length < 4) {
+      return res.status(400).json({ success: false, message: "Receipt number looks invalid" });
     }
 
     // Get business
@@ -789,11 +1137,11 @@ exports.saveManualPayment = async (req, res) => {
     // Create payment record
     const payment = await CheckoutPayment.create({
       businessId: business._id,
-      phoneNumber,
-      amount,
+      phoneNumber: String(phoneNumber).trim(),
+      amount: manualAmount,
       paymentType: paymentType || "mpesa_till",
       status: "completed", // Mark as completed since customer provided receipt
-      mpesaReceiptNumber: receiptNumber,
+      mpesaReceiptNumber: String(receiptNumber).trim().toUpperCase(),
       completedAt: new Date(),
     });
 

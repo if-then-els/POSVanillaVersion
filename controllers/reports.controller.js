@@ -364,3 +364,129 @@ exports.profitLoss = async (req, res) => {
     res.status(500).json({ message: "Failed to load profit/loss" });
   }
 };
+
+exports.salesByStore = async (req, res) => {
+  // Revenue / orders / units / profit per store (admin view). Sales without
+  // a store fall into an "Unassigned" bucket so totals always reconcile.
+  try {
+    const { filter, from, to } = scopedFilter(req);
+    const sales = await Sale.find(filter).populate("items.productId", "costPrice").lean();
+    const Store = require("../models/store.model");
+    const stores = await Store.find({ business: req.user.business }).select("name location").lean();
+    const nameById = {};
+    stores.forEach((s) => { nameById[s._id.toString()] = s.name; });
+
+    const map = {};
+    const bucket = (id, name) => {
+      if (!map[id]) {
+        map[id] = { storeId: id === "unassigned" ? null : id, store: name, revenue: 0, orders: 0, units: 0, discounts: 0, cogs: 0, sales: [] };
+      }
+      return map[id];
+    };
+    sales.forEach((s) => {
+      const id = s.store ? s.store.toString() : "unassigned";
+      const b = bucket(id, id === "unassigned" ? "Unassigned" : (nameById[id] || s.storeSnapshot?.name || "Store"));
+      b.sales.push(s);
+    });
+    const rows = Object.values(map).map((b) => {
+      const s = summarize(b.sales);
+      return {
+        storeId: b.storeId,
+        store: b.store,
+        revenue: s.revenue,
+        orders: s.orders,
+        units: s.units,
+        discounts: s.discounts,
+        cogs: s.cogs,
+        grossProfit: s.grossProfit,
+        margin: s.margin,
+        avgTicket: s.avgTicket,
+      };
+    }).sort((a, b) => b.revenue - a.revenue);
+
+    const totals = rows.reduce(
+      (t, r) => ({
+        revenue: t.revenue + r.revenue,
+        orders: t.orders + r.orders,
+        units: t.units + r.units,
+        cogs: t.cogs + r.cogs,
+      }),
+      { revenue: 0, orders: 0, units: 0, cogs: 0 }
+    );
+    rows.forEach((r) => {
+      r.share = totals.revenue ? Number(((r.revenue / totals.revenue) * 100).toFixed(1)) : 0;
+    });
+    res.json({ stores: rows, totals, from, to });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load sales by store" });
+  }
+};
+
+exports.lossReport = async (req, res) => {
+  // Disposals + losses ledger, grouped for finance: totals by kind, by
+  // store, and top products by written-off cost. Quantities AND cost value.
+  try {
+    const business = req.user.business;
+    const { store, kind, from, to } = req.query;
+    const filter = { business: new mongoose.Types.ObjectId(business) };
+    if (store) {
+      try { filter.store = new mongoose.Types.ObjectId(store); } catch (_) { /* ignore */ }
+    }
+    const kinds = ["disposal", "loss"];
+    if (kind) {
+      if (!kinds.includes(kind)) return res.status(400).json({ message: "kind must be 'disposal' or 'loss'" });
+      filter.kind = kind;
+    } else {
+      filter.kind = { $in: kinds };
+    }
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) { const f = new Date(from); if (!isNaN(f)) { f.setHours(0, 0, 0, 0); filter.createdAt.$gte = f; } }
+      if (to) { const t = new Date(to); if (!isNaN(t)) { t.setHours(23, 59, 59, 999); filter.createdAt.$lte = t; } }
+      if (!Object.keys(filter.createdAt).length) delete filter.createdAt;
+    }
+
+    const StockMovement = require("../models/stockMovement.model");
+    const [movements, byKind, byStore, byProduct] = await Promise.all([
+      StockMovement.find(filter)
+        .populate("product", "productName productBatchNumber productCategory")
+        .populate("store", "name")
+        .populate("user", "name email")
+        .sort({ createdAt: -1 })
+        .limit(200)
+        .lean(),
+      StockMovement.aggregate([
+        { $match: filter },
+        { $group: { _id: "$kind", quantity: { $sum: "$quantity" }, cost: { $sum: "$totalCost" }, entries: { $sum: 1 } } },
+      ]),
+      StockMovement.aggregate([
+        { $match: filter },
+        { $group: { _id: "$store", quantity: { $sum: "$quantity" }, cost: { $sum: "$totalCost" }, entries: { $sum: 1 } } },
+        { $lookup: { from: "stores", localField: "_id", foreignField: "_id", as: "storeDoc" } },
+        { $project: { storeId: "$_id", store: { $ifNull: [{ $arrayElemAt: ["$storeDoc.name", 0] }, "Unassigned"] }, quantity: 1, cost: 1, entries: 1, _id: 0 } },
+        { $sort: { cost: -1 } },
+      ]),
+      StockMovement.aggregate([
+        { $match: filter },
+        { $group: { _id: "$product", quantity: { $sum: "$quantity" }, cost: { $sum: "$totalCost" }, entries: { $sum: 1 } } },
+        { $lookup: { from: "inventories", localField: "_id", foreignField: "_id", as: "prod" } },
+        { $project: {
+          productId: "$_id",
+          product: { $ifNull: [{ $arrayElemAt: ["$prod.productName", 0] }, "Unknown"] },
+          category: { $arrayElemAt: ["$prod.productCategory", 0] },
+          quantity: 1, cost: 1, entries: 1, _id: 0,
+        } },
+        { $sort: { cost: -1 } },
+        { $limit: 50 },
+      ]),
+    ]);
+
+    const totals = byKind.reduce(
+      (t, k) => ({ quantity: t.quantity + k.quantity, cost: t.cost + k.cost, entries: t.entries + k.entries }),
+      { quantity: 0, cost: 0, entries: 0 }
+    );
+    res.json({ movements, byKind, byStore, byProduct, totals });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load loss report" });
+  }
+};

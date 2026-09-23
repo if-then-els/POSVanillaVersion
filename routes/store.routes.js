@@ -26,18 +26,38 @@ router.post("/", verifyToken, authorize("admin", "manager"),
 });
 
 router.put("/:id", verifyToken, authorize("admin", "manager"), async (req, res) => {
+  // Allow-list: never let clients rewrite business/_id through mass assignment.
+  const update = {};
+  if (req.body.name !== undefined) {
+    if (!String(req.body.name).trim()) return res.status(400).json({ message: "Store name cannot be empty" });
+    update.name = String(req.body.name).trim().slice(0, 80);
+  }
+  if (req.body.location !== undefined) update.location = String(req.body.location).slice(0, 120);
+  if (req.body.phone !== undefined) update.phone = String(req.body.phone).slice(0, 30);
+  if (req.body.status !== undefined) {
+    if (!["active", "inactive"].includes(req.body.status)) return res.status(400).json({ message: "Invalid status" });
+    update.status = req.body.status;
+  }
+  if (req.body.isMain !== undefined) update.isMain = !!req.body.isMain;
   const store = await Store.findOneAndUpdate(
     { _id: req.params.id, business: req.user.business },
-    req.body,
+    update,
     { new: true }
   );
   if (!store) return res.status(404).json({ message: "Store not found" });
+  if (update.isMain) {
+    await Store.updateMany({ business: req.user.business, _id: { $ne: store._id } }, { $set: { isMain: false } });
+  }
   res.json({ store });
 });
 
 router.delete("/:id", verifyToken, authorize("admin"), async (req, res) => {
   const resDel = await Store.findOneAndDelete({ _id: req.params.id, business: req.user.business });
   if (!resDel) return res.status(404).json({ message: "Store not found" });
+  // Detach products + sales snapshots stay intact (storeSnapshot on Sale).
+  // Products linked to the deleted store fall back to Default (store unset).
+  const Inventory = require("../models/inventory");
+  await Inventory.updateMany({ business: req.user.business, store: resDel._id }, { $unset: { store: 1 } });
   res.json({ message: "Store deleted" });
 });
 

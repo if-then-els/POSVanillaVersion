@@ -156,9 +156,43 @@
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
-      /* Adaptive Inputs */
+      /* Adaptive Inputs (plain CSS - @apply is NOT processed by the
+         Tailwind Play CDN in regular <style> blocks, so vanilla CSS
+         is required for light/dark mode to actually work) */
       .input-premium {
-        @apply w-full bg-white dark:bg-primary-800/50 border border-primary-200 dark:border-primary-700 text-primary-900 dark:text-white rounded-xl px-4 py-3 text-sm transition-all duration-200 placeholder-primary-400 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 outline-none;
+        width: 100%;
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #0f172a;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+      }
+      .input-premium::placeholder {
+        color: #94a3b8;
+      }
+      .input-premium:focus {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
+        outline: none;
+      }
+      .dark .input-premium {
+        background-color: rgba(30, 41, 59, 0.5);
+        border-color: #334155;
+        color: #ffffff;
+      }
+      select.input-premium option {
+        background-color: #ffffff;
+        color: #0f172a;
+      }
+      .dark select.input-premium option {
+        background-color: #0f172a;
+        color: #ffffff;
+      }
+      .input-premium:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
       }
 
       /* iOS Style Toggle Switch */
@@ -197,12 +231,29 @@
         transform: translateX(20px);
       }
 
-      /* Active Tab Styling */
-      .tab-button.active {
-        @apply bg-white dark:bg-primary-700 text-accent-600 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10;
-      }
+      /* Tab buttons (plain CSS - .active drives the selected state) */
       .tab-button {
-        @apply text-primary-500 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-200;
+        color: #64748b;
+      }
+      .dark .tab-button {
+        color: #94a3b8;
+      }
+      .tab-button:hover {
+        color: #334155;
+      }
+      .dark .tab-button:hover {
+        color: #e2e8f0;
+      }
+      .tab-button.active {
+        background-color: #ffffff;
+        color: #0284c7;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+        outline: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      .dark .tab-button.active {
+        background-color: #334155;
+        color: #ffffff;
+        outline: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       .btn-shine {
@@ -293,12 +344,22 @@
           Swift<span class="text-accent-500">POS</span>
         </span>
       </div>
-      <button
-        id="toggle-sidebar"
-        class="p-2 text-primary-600 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-colors"
-      >
-        <i class="fas fa-bars text-xl"></i>
-      </button>
+      <div class="flex items-center gap-3">
+        <!-- Mobile Theme Toggle (consistent with other pages) -->
+        <button
+          onclick="toggleTheme()"
+          class="p-2 rounded-lg text-primary-500 hover:bg-primary-100 dark:text-primary-400 dark:hover:bg-primary-800 transition-colors"
+        >
+          <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+          <i class="fas fa-moon block dark:hidden text-primary-600"></i>
+        </button>
+        <button
+          id="toggle-sidebar"
+          class="p-2 text-primary-600 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-colors"
+        >
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
     </nav>
 
     <div
@@ -354,6 +415,16 @@
 
           <!-- Settings Container -->
           <div class="glass-premium rounded-2xl overflow-hidden shadow-xl">
+            <!-- Read-only notice for non-managing roles -->
+            <div
+              id="settings-readonly-notice"
+              class="hidden mx-4 mt-4 md:mx-6 px-5 py-3.5 rounded-xl bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-700/50 text-xs text-warning-700 dark:text-warning-300 font-medium flex items-center gap-2"
+            >
+              <i class="fas fa-eye"></i>
+              <span>Read-only access. Your role can view settings but cannot
+                change store, receipt, or payment configuration. Contact an
+                administrator for changes.</span>
+            </div>
             <!-- Tabs Navigation -->
             <div
               class="border-b border-primary-200/50 dark:border-primary-700/50 p-2"
@@ -749,37 +820,64 @@
               </h3>
 
               <form id="user-settings-form" class="space-y-6">
+                <div class="flex items-center gap-3 mb-2">
+                  <span
+                    id="user-role-badge"
+                    class="text-[11px] font-bold uppercase tracking-wide px-3 py-1 rounded-full bg-accent-100 dark:bg-accent-900/40 text-accent-700 dark:text-accent-300"
+                  ></span>
+                  <span class="text-xs text-primary-400">Your access role</span>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div class="space-y-1.5">
                     <label
-                      for="user-username"
+                      for="user-name"
                       class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
-                      >Username</label
+                      >Full Name</label
                     >
                     <input
-                      id="user-username"
-                      name="username"
-                      class="input-premium bg-primary-50 dark:bg-primary-900 cursor-not-allowed opacity-75"
+                      id="user-name"
+                      name="name"
+                      class="input-premium"
                       value=""
-                      readonly
+                      autocomplete="name"
                     />
                   </div>
 
                   <div class="space-y-1.5">
                     <label
-                      for="user-email"
+                      for="user-phone"
                       class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
-                      >Email Address</label
+                      >Phone Number</label
                     >
                     <input
-                      id="user-email"
-                      name="email"
-                      type="email"
-                      class="input-premium bg-primary-50 dark:bg-primary-900 cursor-not-allowed opacity-75"
+                      id="user-phone"
+                      name="phone"
+                      type="tel"
+                      class="input-premium"
                       value=""
-                      readonly
+                      autocomplete="tel"
                     />
                   </div>
+                </div>
+
+                <div class="space-y-1.5">
+                  <label
+                    for="user-email"
+                    class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
+                    >Email Address</label
+                  >
+                  <input
+                    id="user-email"
+                    name="email"
+                    type="email"
+                    class="input-premium"
+                    value=""
+                    autocomplete="email"
+                  />
+                  <p class="text-[11px] text-primary-400">
+                    Used for login - changing it signs you in with the new
+                    address next time.
+                  </p>
                 </div>
 
                 <!-- Password Section -->
@@ -810,12 +908,23 @@
                         class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
                         >Current Password</label
                       >
-                      <input
-                        id="current-password"
-                        name="currentPassword"
-                        type="password"
-                        class="input-premium"
-                      />
+                      <div class="relative">
+                        <input
+                          id="current-password"
+                          name="currentPassword"
+                          type="password"
+                          class="input-premium pr-11"
+                          autocomplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          data-toggle-password="current-password"
+                          class="absolute inset-y-0 right-0 px-3 text-primary-400 hover:text-accent-500 transition-colors"
+                          title="Show password"
+                        >
+                          <i class="fas fa-eye-slash text-sm"></i>
+                        </button>
+                      </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -825,12 +934,25 @@
                           class="block text-xs font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wide"
                           >New Password</label
                         >
-                        <input
-                          id="new-password"
-                          name="newPassword"
-                          type="password"
-                          class="input-premium"
-                        />
+                        <div class="relative">
+                          <input
+                            id="new-password"
+                            name="newPassword"
+                            type="password"
+                            minlength="8"
+                            class="input-premium pr-11"
+                            placeholder="Min. 8 characters"
+                            autocomplete="new-password"
+                          />
+                          <button
+                            type="button"
+                            data-toggle-password="new-password"
+                            class="absolute inset-y-0 right-0 px-3 text-primary-400 hover:text-accent-500 transition-colors"
+                            title="Show password"
+                          >
+                            <i class="fas fa-eye-slash text-sm"></i>
+                          </button>
+                        </div>
                       </div>
 
                       <div class="space-y-1.5">
@@ -843,7 +965,9 @@
                           id="confirm-password"
                           name="confirmPassword"
                           type="password"
+                          minlength="8"
                           class="input-premium"
+                          autocomplete="new-password"
                         />
                       </div>
                     </div>
@@ -903,6 +1027,7 @@
               <button
                 type="button"
                 id="add-payment-method-btn"
+                data-requires-role="admin"
                 class="w-full py-3 px-4 border-2 border-dashed border-primary-300 dark:border-primary-700 rounded-xl text-sm font-bold text-primary-500 dark:text-primary-400 hover:border-accent-500 hover:text-accent-500 transition-colors flex items-center justify-center gap-2"
               >
                 <i class="fas fa-plus"></i>
@@ -1016,6 +1141,50 @@
           </div>
         </div>
       </main>
+    </div>
+
+    <!-- Delete Payment Method Confirmation -->
+    <div id="delete-method-modal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="fixed inset-0 bg-primary-900/40 dark:bg-black/80 backdrop-blur-sm"
+        id="delete-method-backdrop"
+      ></div>
+      <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div
+          class="glass-premium rounded-2xl p-8 max-w-sm w-full relative shadow-2xl"
+          onclick="event.stopPropagation()"
+        >
+          <div class="text-center mb-6">
+            <div
+              class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-200 dark:border-red-800"
+            >
+              <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-primary-900 dark:text-white font-black text-xl mb-2">
+              Remove Payment Method?
+            </h3>
+            <p class="text-primary-500 dark:text-primary-400 text-sm">
+              Remove <span id="delete-method-name" class="font-bold"></span>
+              from checkout? Customers will no longer see it.
+            </p>
+          </div>
+          <div class="flex justify-center gap-3">
+            <button
+              type="button"
+              id="cancel-delete-method"
+              class="px-5 py-2.5 bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-700 text-primary-600 dark:text-primary-300 text-sm font-bold transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              id="confirm-delete-method"
+              class="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-500/20 transition-transform hover:scale-105"
+            >
+              Yes, Remove
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Feedback Modal -->
@@ -1235,6 +1404,10 @@
 
       // Updated Toast Function (Premium Style)
       window.showToast = function (message, type = "info") {
+        const safeMessage = String(message ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
         const toast = document.createElement("div");
         const colors = {
           success:
@@ -1265,7 +1438,7 @@
         toast.innerHTML = `
           <i class="fas ${icons[type]} ${iconColors[type]} text-lg mt-0.5"></i>
           <div>
-             <p class="text-sm font-semibold">${message}</p>
+             <p class="text-sm font-semibold">${safeMessage}</p>
           </div>
         `;
 

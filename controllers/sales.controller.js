@@ -31,6 +31,20 @@ exports.processSale = async (req, res) => {
 
     let saleResult = null;
     const doSale = async (sess) => {
+      // When the sale belongs to a store, stock must leave THAT store's row.
+      // Items may reference a row from another store (or the default row), so
+      // redirect to the sibling row with the same batch number in the sale's
+      // store when one exists. Falls back to the referenced row otherwise.
+      let saleStoreId = null;
+      if (store) {
+        const saleStore = sess
+          ? await Store.findOne({ _id: store, business }).session(sess)
+          : await Store.findOne({ _id: store, business });
+        if (!saleStore) {
+          throw Object.assign(new Error("Sale store not found in this business"), { status: 400 });
+        }
+        saleStoreId = saleStore._id;
+      }
       for (const item of items) {
         if (!item.productId || !item.quantity || item.quantity <= 0) {
           throw new Error(`Invalid item: ${JSON.stringify(item)}`);
@@ -38,16 +52,28 @@ exports.processSale = async (req, res) => {
         const q = { _id: item.productId, business };
         const product = sess ? await Inventory.findOne(q).session(sess) : await Inventory.findOne(q);
         if (!product) throw Object.assign(new Error(`Product not found: ${item.productId}`), { status: 404 });
-        if (product.productQuantity < item.quantity) {
-          throw Object.assign(new Error(`Insufficient stock for ${product.productName} (have ${product.productQuantity}, need ${item.quantity})`), { status: 400 });
+
+        let target = product;
+        if (saleStoreId) {
+          const productStoreId = product.store ? String(product.store) : null;
+          if (productStoreId !== String(saleStoreId)) {
+            const sibling = sess
+              ? await Inventory.findOne({ business, productBatchNumber: product.productBatchNumber, store: saleStoreId }).session(sess)
+              : await Inventory.findOne({ business, productBatchNumber: product.productBatchNumber, store: saleStoreId });
+            if (sibling) target = sibling;
+          }
+        }
+
+        if (target.productQuantity < item.quantity) {
+          throw Object.assign(new Error(`Insufficient stock for ${target.productName} (have ${target.productQuantity}, need ${item.quantity})`), { status: 400 });
         }
         const updOpts = sess ? { new: true, session: sess } : { new: true };
         const updated = await Inventory.findOneAndUpdate(
-          { _id: item.productId, business, productQuantity: { $gte: item.quantity } },
+          { _id: target._id, business, productQuantity: { $gte: item.quantity } },
           { $inc: { productQuantity: -item.quantity } },
           updOpts
         );
-        if (!updated) throw Object.assign(new Error(`Concurrent stock update failed for ${product.productName}`), { status: 409 });
+        if (!updated) throw Object.assign(new Error(`Concurrent stock update failed for ${target.productName}`), { status: 409 });
       }
       // Snapshot business / store / cashier so the stored receipt copy stays
       // accurate even if settings change later (accountability).

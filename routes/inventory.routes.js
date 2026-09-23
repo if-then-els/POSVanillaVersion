@@ -7,6 +7,7 @@ const { verifyToken } = require("../middleware/auth.middleware");
 
 const { authorize } = require("../middleware/rbac.middleware");
 const { requireLimit, requireFeature } = require("../middleware/tier.middleware");
+const { audit } = require("../middleware/audit.middleware");
 const Inventory = require("../models/inventory");
 
 router.post(
@@ -39,6 +40,17 @@ router.get("/inventory/low-stock", verifyToken, inventoryController.getLowStock)
 router.get("/inventory/valuation", verifyToken, inventoryController.getValuation);
 router.get("/inventory/barcode/:barcode", verifyToken, inventoryController.lookupByBarcode);
 router.post("/inventory/stocktake", verifyToken, authorize("admin","manager","inventory"), inventoryController.stocktake);
+
+// Store-scoped operations: disposal/loss ledger (admin only - writes off value)
+router.post("/inventory/dispose", verifyToken, authorize("admin"), audit("inventory.dispose", "StockMovement"), inventoryController.disposeProduct);
+// Inter-store transfers (admin + manager)
+router.post("/inventory/transfer", verifyToken, authorize("admin","manager"), audit("inventory.transfer", "StockMovement"), inventoryController.transferStock);
+// Side-by-side store comparison (read)
+router.get("/inventory/compare", verifyToken, authorize("admin","manager","inventory"), inventoryController.compareStores);
+// Catalog sync: replicate missing product rows to target stores (admin only, quantities untouched)
+router.post("/inventory/sync", verifyToken, authorize("admin"), audit("inventory.sync", "Store"), inventoryController.syncStores);
+// Movement ledger (disposals, losses, transfers) for reports
+router.get("/inventory/movements", verifyToken, authorize("admin","manager"), inventoryController.getMovements);
 
 router.get(
   "/getInventoryById/:id",
