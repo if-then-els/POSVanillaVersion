@@ -20,6 +20,32 @@
     }
   }
 
+  let sessionRedirecting = false;
+
+  // Auth failures (logged out / expired session) must go to login,
+  // never to the "Subscription Expired" overlay.
+  function isAuthError(status, message) {
+    if (status === 401) return true;
+    if (status === 403) {
+      return /token|auth|unauthorized|login|session|forbidden/i.test(
+        String(message || ""),
+      );
+    }
+    return false;
+  }
+
+  function handleSessionExpired() {
+    if (sessionRedirecting) return;
+    sessionRedirecting = true;
+    hideSubscriptionInactiveModal();
+    try {
+      const path = (window.location.pathname || "").toLowerCase();
+      if (path.endsWith("login.html") || path.endsWith("/login")) return;
+    } catch (e) { /* fall through to redirect */ }
+    console.warn("Session expired - redirecting to login.");
+    window.location.href = "/login.html?session=expired";
+  }
+
   // --- HTML for Modal and Toast Container (embedded for self-contained script) ---
   const embeddedHtml = `
     <!-- Toast notification container -->
@@ -180,18 +206,34 @@
 
       if (response.ok) {
         const data = await response.json();
-        return data.subscription;
-      } else if (response.status === 403 || response.status === 404) {
-        console.log("No active subscription found.");
-        return null;
-      } else {
-        throw new Error(
-          `Failed to fetch subscription details: ${response.statusText}`
-        );
+        return { subscription: data.subscription || null };
       }
+
+      let message = "";
+      try {
+        const errData = await response.json();
+        message = errData.message || "";
+      } catch (_) {
+        message = response.statusText || "";
+      }
+
+      // Logged-out / expired session -> login page, NOT the subscription modal.
+      if (isAuthError(response.status, message)) {
+        console.warn("Session invalid (" + response.status + "): " + message);
+        return { sessionExpired: true };
+      }
+
+      if (response.status === 403 || response.status === 404) {
+        console.log("No active subscription found.");
+        return { subscription: null };
+      }
+
+      throw new Error(
+        `Failed to fetch subscription details: ${response.statusText}`,
+      );
     } catch (error) {
       console.error("Error fetching subscription details:", error);
-      return null;
+      return { fetchError: true };
     }
   }
 
@@ -270,18 +312,29 @@
     // Inject the modal and toast HTML into the body once
     document.body.insertAdjacentHTML("afterbegin", embeddedHtml);
 
-    // Exempt pages stay fully usable so users can subscribe/renew.
-    if (isExemptPage()) {
-      const modal = document.getElementById(MODAL_ID);
-      if (modal) modal.remove();
-      unlockFeatures();
-      hideSubscriptionInactiveModal();
-      return;
-    }
-
     try {
-      const subscription = await fetchSubscriptionDetails();
-      const status = checkSubscriptionStatus(subscription);
+      const result = await fetchSubscriptionDetails();
+
+      // Expired session -> login page (takes precedence over everything).
+      if (result.sessionExpired) {
+        handleSessionExpired();
+        return;
+      }
+
+      if (result.fetchError) {
+        throw new Error("Could not reach subscription service");
+      }
+
+      // Exempt pages stay fully usable so users can subscribe/renew.
+      if (isExemptPage()) {
+        const modal = document.getElementById(MODAL_ID);
+        if (modal) modal.remove();
+        unlockFeatures();
+        hideSubscriptionInactiveModal();
+        return;
+      }
+
+      const status = checkSubscriptionStatus(result.subscription);
 
       if (status.isActive) {
         isSubscriptionActive = true;
@@ -298,6 +351,7 @@
         );
       }
     } catch (error) {
+      if (sessionRedirecting) return; // heading to login - no modal
       console.error(
         "Failed to verify subscription status on page load:",
         error
@@ -314,13 +368,25 @@
 
   // Expose function for external use if needed (e.g., a button to check status)
   window.checkAndLockFeatures = async function () {
+    if (sessionRedirecting) return;
+    const result = await fetchSubscriptionDetails();
+    if (result.sessionExpired) {
+      handleSessionExpired();
+      return;
+    }
+    if (result.fetchError) {
+      showToast(
+        "Could not verify subscription status. Features are limited.",
+        "error"
+      );
+      return;
+    }
     if (isExemptPage()) {
       unlockFeatures();
       hideSubscriptionInactiveModal();
       return;
     }
-    const subscription = await fetchSubscriptionDetails();
-    const status = checkSubscriptionStatus(subscription);
+    const status = checkSubscriptionStatus(result.subscription);
     if (status.isActive) {
       unlockFeatures();
       showExpiryNotification(status);

@@ -30,6 +30,37 @@
     }
   }
 
+  // Set once we decide the session is dead - stops all further
+  // subscription enforcement (no locking, no modal, no toasts).
+  let sessionRedirecting = false;
+
+  // True when an HTTP failure means "not logged in" rather than
+  // "no subscription". Those must go to login, never to the
+  // "Subscription Expired" overlay.
+  function isAuthError(status, message) {
+    if (status === 401) return true;
+    if (status === 403) {
+      return /token|auth|unauthorized|login|session|forbidden/i.test(
+        String(message || ''),
+      );
+    }
+    return false;
+  }
+
+  // Session expired/invalid -> log the user out to the login page.
+  // Never show the subscription overlay for this case.
+  function handleSessionExpired() {
+    if (sessionRedirecting) return;
+    sessionRedirecting = true;
+    setModalVisibility(false);
+    try {
+      const path = (window.location.pathname || '').toLowerCase();
+      if (path.endsWith('login.html') || path.endsWith('/login')) return;
+    } catch (e) { /* fall through to redirect */ }
+    console.warn('Session expired - redirecting to login.');
+    window.location.href = '/login.html?session=expired';
+  }
+
   // --- Global State ---
   let globalSubscriptionState = {
     subscription: null,
@@ -80,7 +111,10 @@
   // --- Core Functions ---
 
   /**
-   * Fetches subscription details from server
+   * Fetches subscription details from server.
+   * Returns { subscription } on success (subscription may be null),
+   * { sessionExpired: true } when the user is no longer logged in,
+   * or { fetchError: true } on network/unexpected failures.
    */
   async function fetchSubscriptionDetails() {
     try {
@@ -92,16 +126,34 @@
 
       if (response.ok) {
         const data = await response.json();
-        return data.subscription;
-      } else if (response.status === 403 || response.status === 404) {
-        console.log('No active subscription found.');
-        return null;
-      } else {
-        throw new Error(`Failed to fetch subscription details: ${response.statusText}`);
+        return { subscription: data.subscription || null };
       }
+
+      let message = '';
+      try {
+        const errData = await response.json();
+        message = errData.message || '';
+      } catch (_) {
+        message = response.statusText || '';
+      }
+
+      // Logged-out / expired session -> login page, NOT the subscription modal.
+      if (isAuthError(response.status, message)) {
+        console.warn('Session invalid (' + response.status + '): ' + message);
+        return { sessionExpired: true };
+      }
+
+      if (response.status === 403 || response.status === 404) {
+        console.log('No active subscription found.');
+        return { subscription: null };
+      }
+
+      throw new Error(`Failed to fetch subscription details: ${response.statusText}`);
     } catch (error) {
+      // fetch() itself threw (network down, server unreachable, ...)
+      if (error && error.sessionExpired) return { sessionExpired: true };
       console.error('Error fetching subscription details:', error);
-      return null;
+      return { fetchError: true };
     }
   }
 
@@ -136,10 +188,25 @@
   }
 
   /**
-   * Updates global subscription state
+   * Updates global subscription state.
+   * Returns null when redirecting to login (caller must skip enforcement).
    */
   async function updateSubscriptionState() {
-    const subscription = await fetchSubscriptionDetails();
+    const result = await fetchSubscriptionDetails();
+
+    if (result.sessionExpired) {
+      handleSessionExpired();
+      return null;
+    }
+
+    if (result.fetchError) {
+      // Can't reach the server - keep the previous state instead of
+      // assuming the subscription died. Enforcement uses last known state.
+      console.warn('Subscription check failed (network?). Keeping last known state.');
+      return globalSubscriptionState;
+    }
+
+    const subscription = result.subscription;
     const status = calculateSubscriptionStatus(subscription);
     
     globalSubscriptionState = {
@@ -275,6 +342,9 @@
    * Main enforcement function - applies subscription rules
    */
   function enforceSubscriptionRules() {
+    // Session is dead and we're heading to login - do nothing here.
+    if (sessionRedirecting) return;
+
     // NEVER block exempt pages (e.g. Subscription Hub) - users must be able
     // to interact with the page to renew/purchase a plan.
     if (isExemptPage()) {
@@ -307,17 +377,20 @@
     document.body.insertAdjacentHTML('afterbegin', MODAL_HTML + STYLES);
 
     try {
-      await updateSubscriptionState();
+      const state = await updateSubscriptionState();
+      if (state === null) return; // redirecting to login
       enforceSubscriptionRules();
       
       // Set up periodic checking
       setInterval(async () => {
-        await updateSubscriptionState();
+        const s = await updateSubscriptionState();
+        if (s === null) return; // redirecting to login
         enforceSubscriptionRules();
       }, CONFIG.CHECK_INTERVAL);
 
     } catch (error) {
       console.error('Failed to initialize subscription checker:', error);
+      if (sessionRedirecting) return; // heading to login - no modal
       // Fail-safe: lock features if we can't determine status
       // ...unless we're on an exempt page (must stay usable to renew).
       if (isExemptPage()) {

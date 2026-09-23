@@ -12,7 +12,7 @@ function audit(action, entity) {
             user: req.user?.id,
             action,
             entity,
-            entityId: body?.sale?._id || body?.product?._id || body?.store?._id || req.params.id,
+            entityId: body?.sale?._id || body?.product?._id || body?.store?._id || body?._id || body?.user?._id || req.params.id,
             details: { body: req.body, response: body?.message || "ok" },
             ip: req.ip,
           });

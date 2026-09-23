@@ -6,6 +6,103 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendResetLinkEmail = require("../utils/emailService");
 
+// ---------------------------------------------------------------------------
+// Shared helpers for production-grade user management
+// ---------------------------------------------------------------------------
+const VALID_ROLES = ["admin", "manager", "cashier", "inventory"];
+const VALID_STATUSES = ["active", "inactive", "suspended"];
+// Roles a non-admin (manager) is allowed to create / assign, mirroring
+// middleware/rbac.middleware.js permissions (users:write:cashier, users:write:inventory).
+const MANAGER_ASSIGNABLE_ROLES = ["cashier", "inventory"];
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email || "").trim());
+}
+
+function isValidPhone(phone) {
+  return /[+\d][\d\s\-()]{6,}/.test(String(phone || "").trim());
+}
+
+// Escape user input before building a RegExp (prevents ReDoS / 500s).
+function escapeRegex(str) {
+  return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sanitizeUser(userDoc) {
+  const obj =
+    typeof userDoc.toObject === "function" ? userDoc.toObject() : userDoc;
+  delete obj.password;
+  return obj;
+}
+
+// Roles the actor may assign. Only admins can create/manage admins & managers.
+function assertCanAssignRole(actorRole, targetRole) {
+  if (!VALID_ROLES.includes(targetRole)) {
+    const err = new Error(
+      `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  if (actorRole !== "admin" && !MANAGER_ASSIGNABLE_ROLES.includes(targetRole)) {
+    const err = new Error("Only administrators can assign admin/manager roles");
+    err.statusCode = 403;
+    throw err;
+  }
+}
+
+// Guards against locking the business out: at least one active admin must remain.
+async function assertLastAdminIntact(businessId, excludeUserId) {
+  const remainingAdmins = await Users.countDocuments({
+    business: businessId,
+    role: "admin",
+    status: "active",
+    _id: { $ne: excludeUserId },
+  });
+  if (remainingAdmins < 1) {
+    const err = new Error(
+      "Operation denied: the business must keep at least one active administrator"
+    );
+    err.statusCode = 403;
+    throw err;
+  }
+}
+
+// Case-insensitive email lookup scoped to a business.
+function findByEmailInBusiness(email, businessId, excludeId) {
+  const query = {
+    business: businessId,
+    email: new RegExp(`^${escapeRegex(String(email).trim())}$`, "i"),
+  };
+  if (excludeId) query._id = { $ne: excludeId };
+  return Users.findOne(query);
+}
+
+// Resolve the effective seat limit + role-management flag for a business.
+async function getBusinessUserPolicy(businessId) {
+  const subscription = await Subscription.findOne({ business: businessId });
+  if (!subscription) {
+    const err = new Error("No subscription found for this business");
+    err.statusCode = 403;
+    throw err;
+  }
+  const plan = subscription.plan ? await Plan.findById(subscription.plan) : null;
+  if (!plan) {
+    const err = new Error("Subscription plan not found for this business");
+    err.statusCode = 403;
+    throw err;
+  }
+  const features =
+    plan.features instanceof Map
+      ? Object.fromEntries(plan.features)
+      : plan.features || {};
+  const seatLimit =
+    Number(features.maxUsers) > 0
+      ? Number(features.maxUsers)
+      : Number(plan.userLimit) || 0; // 0 = unlimited
+  return { plan, seatLimit, roleManagement: !!plan.roleManagement };
+}
+
 exports.registerUser = async (req, res) => {
   try {
     const { name, email, password, role, phone, business } = req.body;
@@ -21,9 +118,21 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: "Business not found" });
     }
 
-    // Get subscription and plan
+    // Get subscription and plan (null-safe: never crash with a 500)
     const subscription = await Subscription.findOne({ business });
-    const plan = await Plan.findById(subscription.plan);
+    if (!subscription) {
+      return res
+        .status(403)
+        .json({ message: "No subscription found for this business" });
+    }
+    const plan = subscription.plan
+      ? await Plan.findById(subscription.plan)
+      : null;
+    if (!plan) {
+      return res
+        .status(403)
+        .json({ message: "Subscription plan not found for this business" });
+    }
 
     // Count current active users
     const userCount = await Users.countDocuments({
@@ -109,7 +218,10 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: "Business not found" });
     }
 
-    if (business.businessName.toLowerCase() !== businessName.toLowerCase()) {
+    if (
+      !business.businessName ||
+      business.businessName.toLowerCase() !== businessName.toLowerCase()
+    ) {
       return res.status(400).json({ message: "Business name does not match" });
     }
 
@@ -117,6 +229,17 @@ exports.loginUser = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
+
+    // Block deactivated accounts - a suspended/inactive user must not get a session.
+    if (user.status && user.status !== "active") {
+      return res.status(403).json({
+        message: `Account is ${user.status}. Please contact your administrator.`,
+      });
+    }
+
+    user.lastActive = new Date();
+    await user.save();
+
     const token = jwt.sign(
       { id: user._id, business: user.business, role: user.role },
       process.env.JWT_SECRET,
@@ -132,11 +255,25 @@ exports.loginUser = async (req, res) => {
       sameSite: "Strict",
     });
 
+    // NEVER return the password hash (or any internal fields) to the client.
     return res
       .status(200)
       // token also returned for Authorization-header fallback (cookie is httpOnly
       // and may not travel cross-origin / SameSite-strict contexts)
-      .json({ message: "Login successful", token, user, business });
+      .json({
+        message: "Login successful",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          business: user.business,
+          mustChangePassword: user.mustChangePassword,
+        },
+        business,
+      });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "server error" });
@@ -222,10 +359,15 @@ exports.fetchUserDetails = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const businessId = req.user.business;
-    const { page = 1, limit = 10, search = "" } = req.query;
+    let { page = 1, limit = 10, search = "", role, status, sort } = req.query;
 
+    // Validate + clamp pagination (prevents abuse via ?limit=1000000)
+    page = Math.max(1, parseInt(page, 10) || 1);
+    limit = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
     const skip = (page - 1) * limit;
-    const searchRegex = new RegExp(search, "i");
+
+    // Escape search input before building a RegExp (invalid patterns -> 500)
+    const searchRegex = new RegExp(escapeRegex(search).slice(0, 100), "i");
 
     const query = {
       business: businessId,
@@ -235,16 +377,38 @@ exports.getAllUsers = async (req, res) => {
         { phone: searchRegex },
       ],
     };
+    if (role) {
+      if (!VALID_ROLES.includes(role)) {
+        return res.status(400).json({ message: "Invalid role filter" });
+      }
+      query.role = role;
+    }
+    if (status) {
+      if (!VALID_STATUSES.includes(status)) {
+        return res.status(400).json({ message: "Invalid status filter" });
+      }
+      query.status = status;
+    }
+
+    // Whitelisted sort (field:direction)
+    const SORTABLE = {
+      newest: { createdAt: -1 },
+      oldest: { createdAt: 1 },
+      name: { name: 1 },
+      lastActive: { lastActive: -1 },
+    };
+    const sortSpec = SORTABLE[sort] || SORTABLE.newest;
 
     const users = await Users.find(query)
       .select("-password")
+      .sort(sortSpec)
       .skip(skip)
-      .limit(parseInt(limit))
+      .limit(limit)
       .lean();
 
     const totalUsers = await Users.countDocuments(query);
     const activeUsers = await Users.countDocuments({
-      ...query,
+      business: businessId,
       status: "active",
     });
 
@@ -252,8 +416,8 @@ exports.getAllUsers = async (req, res) => {
       users,
       totalUsers,
       activeUsers,
-      totalPages: Math.ceil(totalUsers / limit),
-      currentPage: parseInt(page),
+      totalPages: Math.max(1, Math.ceil(totalUsers / limit)),
+      currentPage: page,
     });
   } catch (error) {
     console.error(error);
@@ -265,17 +429,84 @@ exports.getAllUsers = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const businessId = req.user.business;
+    const actorRole = req.user.role;
     const { name, email, password, role, phone } = req.body;
 
+    // Validate required fields with a useful message
+    const missing = ["name", "email", "password", "role", "phone"].filter(
+      (f) => !req.body[f]
+    );
+    if (missing.length > 0) {
+      return res
+        .status(400)
+        .json({ message: `Missing required fields: ${missing.join(", ")}` });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+    if (!isValidPhone(phone)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+    if (String(password).length < 8) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters" });
+    }
+
+    // Privilege guard: only admins may create admin/manager accounts.
+    try {
+      assertCanAssignRole(actorRole, role);
+    } catch (e) {
+      return res.status(e.statusCode || 403).json({ message: e.message });
+    }
+
+    // Duplicate email within this business (409, not a 500 crash)
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const emailExists = await findByEmailInBusiness(
+      normalizedEmail,
+      businessId
+    );
+    if (emailExists) {
+      return res
+        .status(409)
+        .json({ message: "A user with this email already exists" });
+    }
+
+    // Plan policy: seat limit + role management (defense in depth -
+    // the route-level requireLimit middleware enforces this too).
+    let policy;
+    try {
+      policy = await getBusinessUserPolicy(businessId);
+    } catch (e) {
+      return res.status(e.statusCode || 403).json({ message: e.message });
+    }
+    if (policy.seatLimit > 0) {
+      const activeCount = await Users.countDocuments({
+        business: businessId,
+        status: "active",
+      });
+      if (activeCount >= policy.seatLimit) {
+        return res.status(403).json({
+          message: `User limit reached for your plan (${activeCount}/${policy.seatLimit}). Upgrade to add more users.`,
+          upgradeRequired: true,
+        });
+      }
+    }
+    if (!policy.roleManagement && role !== "admin" && role !== "cashier") {
+      return res
+        .status(403)
+        .json({ message: "Role management not available for your plan" });
+    }
+
     const newUser = new Users({
-      name,
-      email,
-      password, // FIX: Store hashed password
+      name: String(name).trim(),
+      email: normalizedEmail,
+      password, // hashed by the model's pre-save hook
       role,
-      phone,
+      phone: String(phone).trim(),
       business: businessId,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        name
+        String(name).trim()
       )}&background=random`,
     });
 
@@ -286,13 +517,18 @@ exports.createUser = async (req, res) => {
       $push: { users: newUser._id },
     });
 
-    // Return user without password
-    const userResponse = newUser.toObject();
-    delete userResponse.password;
-
-    res.status(201).json(userResponse);
+    res.status(201).json(sanitizeUser(newUser));
   } catch (error) {
     console.error(error);
+    // Handle race-condition duplicates + validation errors cleanly
+    if (error.code === 11000) {
+      return res
+        .status(409)
+        .json({ message: "A user with this email already exists" });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -301,6 +537,8 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const businessId = req.user.business;
+    const actorRole = req.user.role;
+    const actorId = String(req.user.id);
     const userId = req.params.id;
     // console.log("Updating user:", userId, "for business:", businessId);
     const { name, email, role, phone, status } = req.body;
@@ -310,31 +548,96 @@ exports.updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const isSelf = String(user._id) === actorId;
 
-    // Check if new email is available
-    if (email && email !== user.email) {
-      const emailExists = await Users.findOne({ email, business: businessId });
-      if (emailExists) {
-        return res.status(400).json({ message: "Email already in use" });
-      }
-      user.email = email;
+    // Managers cannot touch administrator accounts at all.
+    if (user.role === "admin" && actorRole !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Only administrators can manage admin accounts" });
     }
 
-    user.name = name || user.name;
-    user.role = role || user.role;
-    user.phone = phone || user.phone;
-    user.status = status || user.status;
-    user.lastActive = new Date();
+    // Validate inputs
+    if (email && !isValidEmail(email)) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+    if (phone && !isValidPhone(phone)) {
+      return res.status(400).json({ message: "Invalid phone number" });
+    }
+    if (status && !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    // Role changes: privilege + self-lockout + last-admin guards
+    if (role && role !== user.role) {
+      try {
+        assertCanAssignRole(actorRole, role);
+      } catch (e) {
+        return res.status(e.statusCode || 403).json({ message: e.message });
+      }
+      if (isSelf) {
+        return res
+          .status(403)
+          .json({ message: "You cannot change your own role" });
+      }
+      if (user.role === "admin" && user.status === "active") {
+        try {
+          await assertLastAdminIntact(businessId, user._id);
+        } catch (e) {
+          return res.status(e.statusCode || 403).json({ message: e.message });
+        }
+      }
+      user.role = role;
+    }
+
+    // Status changes: self-lockout + last-admin guards
+    if (status && status !== user.status) {
+      if (isSelf) {
+        return res
+          .status(403)
+          .json({ message: "You cannot change your own account status" });
+      }
+      if (
+        user.role === "admin" &&
+        user.status === "active" &&
+        status !== "active"
+      ) {
+        try {
+          await assertLastAdminIntact(businessId, user._id);
+        } catch (e) {
+          return res.status(e.statusCode || 403).json({ message: e.message });
+        }
+      }
+      user.status = status;
+    }
+
+    // Check if new email is available
+    if (email && email.trim().toLowerCase() !== String(user.email).toLowerCase()) {
+      const emailExists = await findByEmailInBusiness(
+        email,
+        businessId,
+        user._id
+      );
+      if (emailExists) {
+        return res.status(409).json({ message: "Email already in use" });
+      }
+      user.email = String(email).trim().toLowerCase();
+    }
+
+    if (name) user.name = String(name).trim();
+    if (phone) user.phone = String(phone).trim();
 
     await user.save();
 
-    // Return user without password
-    const userResponse = user.toObject();
-    delete userResponse.password;
-
-    res.json(userResponse);
+    res.json(sanitizeUser(user));
   } catch (error) {
     console.error(error);
+    if (error.code === 11000) {
+      return res.status(409).json({ message: "Email already in use" });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -365,12 +668,29 @@ exports.getUserById = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const businessId = req.user.business;
+    const actorId = String(req.user.id);
     const userId = req.params.id;
+
+    // You cannot delete your own account (use a different admin).
+    if (String(userId) === actorId) {
+      return res
+        .status(403)
+        .json({ message: "You cannot delete your own account" });
+    }
 
     // Check if user exists and belongs to this business
     const user = await Users.findOne({ _id: userId, business: businessId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // Never remove the last active administrator.
+    if (user.role === "admin" && user.status === "active") {
+      try {
+        await assertLastAdminIntact(businessId, user._id);
+      } catch (e) {
+        return res.status(e.statusCode || 403).json({ message: e.message });
+      }
     }
 
     await user.deleteOne();
@@ -385,12 +705,19 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// Reset password
+// Reset password (admin-initiated). The password is hashed by the model hook.
 exports.resetPassword = async (req, res) => {
   try {
     const businessId = req.user.business;
+    const actorId = String(req.user.id);
     const userId = req.params.id;
     const { newPassword } = req.body;
+
+    if (!newPassword || String(newPassword).length < 8) {
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 8 characters" });
+    }
 
     // Check if user exists and belongs to this business
     const user = await Users.findOne({ _id: userId, business: businessId });
@@ -398,10 +725,20 @@ exports.resetPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.password = newPassword;
+    if (String(user._id) === actorId) {
+      return res.status(400).json({
+        message:
+          "You cannot reset your own password here. Use Forgot Password instead.",
+      });
+    }
+
+    user.password = String(newPassword);
+    user.mustChangePassword = true;
     await user.save();
 
-    res.json({ message: "Password reset successfully" });
+    res.json({
+      message: `Password reset for ${user.email}. They must change it on next login.`,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

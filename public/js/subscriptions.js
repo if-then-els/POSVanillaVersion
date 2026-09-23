@@ -286,6 +286,15 @@ actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
     }
   }
 
+  // Session is dead -> log out to login. Never show subscription UI for this.
+  function redirectToLoginOnSessionExpiry() {
+    try {
+      const path = (window.location.pathname || "").toLowerCase();
+      if (path.endsWith("login.html") || path.endsWith("/login")) return;
+    } catch (e) { /* fall through to redirect */ }
+    window.location.href = "/login.html?session=expired";
+  }
+
   // --- Fetch Business Details (critical first step) ---
   async function fetchBusinessDetails() {
     try {
@@ -293,6 +302,12 @@ actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
         credentials: "include",
       });
       if (!response.ok) {
+        // Expired/invalid session -> login page, not subscription UI.
+        if (response.status === 401 || response.status === 403) {
+          console.warn("Session invalid - redirecting to login.");
+          redirectToLoginOnSessionExpiry();
+          return;
+        }
         throw new Error("Failed to fetch business details");
       }
       const data = await response.json();
@@ -383,6 +398,22 @@ actions.canUpgrade = status === "active" && !actions.isCurrentTrial;
       );
 
       if (!response.ok) {
+        // Expired/invalid session -> login page, not subscription UI.
+        if (response.status === 401 || response.status === 403) {
+          let message = "";
+          try {
+            const errData = await response.clone().json();
+            message = errData.message || "";
+          } catch (_) { /* ignore parse errors */ }
+          if (
+            response.status === 401 ||
+            /token|auth|unauthorized|login|session|forbidden/i.test(message)
+          ) {
+            console.warn("Session invalid - redirecting to login.");
+            redirectToLoginOnSessionExpiry();
+            return;
+          }
+        }
         if (response.status === 404) {
           console.log("No active subscription found for this business.");
           appState.currentSubscription = null; // Clear any old subscription data
